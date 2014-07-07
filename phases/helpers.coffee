@@ -36,6 +36,37 @@ exports.colors =  colors
 
 
 
+
+
+###
+**<h5>[gulp-exec](https://github.com/robrich/gulp-exec)</h5>**
+
+A Gulp wrapper for child_process.exec(). Execute shell commands.
+###
+exec:
+  continueOnError: true
+  pipeStdout: false
+
+execReport:
+  err: true
+  stderr: true
+  stdout: true
+# <br><br><br>
+
+
+
+###
+**<h5>[gulp-rimraf](https://github.com/robrich/gulp-rimraf)</h5>**
+
+Remove files witl `rm -rf`
+###
+rimraf:
+  force: true
+  read: false
+# <br><br><br>
+
+
+
 # Initalize internal flags from commandline args
 isQa =           exports.isQa =            args.qa?
 isVerbose =      exports.isVerbose =       args.verbose?
@@ -60,44 +91,6 @@ rconfig =         require '../build.require'
 base =            require.main.filename
 currentDir = exports.currentDir = base.replace base.substr(base.indexOf 'node_modules'), ''
 
-
-
-
-###
-Display build messages as native OSX notifications.
-@method notify
-###
-n = new notifier()
-notify = exports.notify = (title, message, type) ->
-  msg =
-    title: "#{title} || #{APP_NAME}"
-    message: message
-    group: type or 'app'
-  # msg.icon = "#{__dirname}/#{type}.jpg"  if type
-  n.notify msg
-  log.tag 'notify', msg.message  #if isVerbose
-#<br><br><br>
-
-
-
-###
-Wrapper for gulp-util log()
-@method log
-###
-log = exports.log = $.util.log
-log.tag = (tag, msg) ->
-  if isVerbose
-    {white, bold, reset, yellow, cyan, blue, grey, red} = colors.styles
-    if tag is 'notify'
-      log colors.bgBlue "[" +yellow.open + bold.open + tag + bold.close + yellow.close + "]", msg
-    else
-      log  colors.underline "[" +blue.open + tag + blue.close + "]",  msg
-log.alt = (flag, msg) ->
-  if flag
-    log colors.green "#{msg}   ✔"
-  else
-    log colors.red "#{msg}   ✘"
-# <br><br><br>
 
 
 ###
@@ -227,32 +220,6 @@ Returns the current time with the given format
 time = exports.time = (f) ->
   moment().format(f)
 # <br><br><br>
-
-
-
-###
-Shortcut for executing system commands with Gulp via Node's child_process.exec
-@method execute
-@param {String} command The command to be executed
-@param {Function} cb Callback to be called after command completes
-###
-execute = exports.execute = (command, cb)->
-  exec command, (err, stdout, stderr) ->
-    $.util.log stdout
-    $.util.log stderr
-    cb err
-# <br><br><br>
-
-
-
-# *Compute build variables*
-USER =                 exports.USER =                  process.env.USER
-APP_NAME =             exports.APP_NAME =              'smartTerminal'
-BUILD_TIME =           exports.BUILD_TIME =            if isQa then time(cfg.timestamp.qa) else time(cfg.timestamp.dev)
-APP_VERSION_SRC =      exports.APP_VERSION_SRC =       fs.readFileSync('config/version.txt').toString().replace(/[\n]*/gm, '')
-APP_VERSION =          exports.APP_VERSION =           if isQa then "#{APP_VERSION_SRC}.#{BUILD_TIME}"  else "#{APP_VERSION_SRC}.#{BUILD_TIME}.#{USER}"
-APP_VERSION_AS_URL =   exports.APP_VERSION_AS_URL =    APP_VERSION.replace(/[\. _]/gm, '-')
-STACKATO_APP_ID =      exports.STACKATO_APP_ID =       "#{APP_NAME}-#{APP_VERSION_AS_URL}"
 
 
 # Banner placed at the top of all JS files during development

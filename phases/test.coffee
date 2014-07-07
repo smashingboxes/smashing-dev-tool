@@ -1,3 +1,4 @@
+
 gulp =            require 'gulp'
 $ =               require('gulp-load-plugins')(camelize: true)  # attach  "gulp-*" plugins to '$' variable
 $.util =          require 'gulp-util'
@@ -14,6 +15,28 @@ helpers =         require './helpers'
 } = helpers
 
 # <br><br><br>
+
+
+###
+**[Karma](https://github.com/karma-runner/karma)**
+
+Karma is a simple tool that allows you to execute JavaScript code in
+multiple real browsers. We use it to run our tests across major
+browsers of interest
+###
+karma:
+  files:[
+    {pattern: '**/*.js', included: false},
+    {pattern: '**/*.coffee', included: false},
+    {pattern: '**/*.html', included: false},
+    {pattern: '**/*.jade', included: false},
+    {pattern: '**/*.css', included: false},
+    {pattern: '**/*.styl', included: false},
+  ]
+  exclude: 'components/vendor/*'
+# <br><br><br>
+
+
 
 
 

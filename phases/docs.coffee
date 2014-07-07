@@ -1,4 +1,3 @@
-
 ###
 **Gulp plugins** <br>
 Import `gulp` and alias `gulp-util`
@@ -26,6 +25,32 @@ helpers =         require './helpers'
 } = helpers
 
 
+
+
+###
+**[Groc](https://github.com/nevir/groc)**
+
+Groc takes your documented code and generates documentation that follows
+the spirit of literate programming. This ensures documentation is always
+up-to-date and in sync with the source code.
+###
+groc:
+  'glob': [
+    "#{clientDir}/**/*.coffee"
+    "#{clientDir}/**/*.jade"
+    "#{clientDir}/**/*.js"
+    "config/**/*.coffee"
+    "README.md"
+  ]
+  'except': [
+    "#{clientDir}/components/vendor/**/*"
+    "config/plugins/**/*"
+  ]
+  'github':           false
+  'out':              'docs'
+  'repository-url':   'http://github.com/Cisco-Systems-SWTG/ApolloSmartTerminal'
+  'silent':           true
+# <br><br><br>
 
 
 ###
