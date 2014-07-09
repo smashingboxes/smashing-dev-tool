@@ -1,8 +1,9 @@
-###
-<h2>Data</h2>
-###
-gulp.task 'compile:data', (done) ->
-  log.tag 'compile', 'data'
+{files, dest, banner, $, lazypipe} = require('../../config/helpers')
+{logger, notify, execute} = require('../../config/util')
+{assets, tasks, args, dir, pkg} = require('../../config/config')()
+
+
+tasks.add 'compile:data', (done) ->
   files('py')
-    .pipe $.if isVerbose, $.using()
-    .pipe dest.compile()
+    .pipe($.using())
+    .pipe(dest.compile())

@@ -1,5 +1,10 @@
-gulp.task 'build:data', (done) ->
-  log.tag 'build', 'data'
+{compiledFiles, dest, banner, $, lazypipe} = require('../../config/helpers')
+{logger, notify, execute} = require('../../config/util')
+{assets, tasks, args, dir, pkg} = require('../../config/config')()
+
+
+
+tasks.add 'build:data', (done) ->
   compiledFiles('py')
-    .pipe $.if isVerbose, $.using()
-    .pipe dest.build()
+    .pipe($.using())
+    .pipe(dest.build())

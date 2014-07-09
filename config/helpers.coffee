@@ -1,73 +1,67 @@
-###
-<h2>Helpers</h2>
-
-Here we define some general helper functions to be used throughout the
-build. By creating some stream factory functions we can minimize repitition
-in our source code and make our Gulp tasks more human-readable.
-###
+#!/usr/bin/env coffee
 
 
-###
-**General modules** <br>
-General-purpose Node modules and libraries.
-###
+{logger, notify, execute} = require './util'
+{assets, tasks, args, dir, pkg} = require('./config')()
+
 _ =               require 'lodash'                # array and object utilities
+chalk =         require 'chalk'
+
+tildify =       require 'tildify'
+moment =          require 'moment'                # time/date utils
 open =            require 'open'                  # open files
 fs =              require 'fs'
 path =            require 'path'                  # manipulate file paths
 join =            path.join
-exec =            require('child_process').exec   # execute commands
-moment =          require 'moment'                # time/date utils
-args =            require('yargs').argv           # utilize command line args
-notifier =        require('node-notifier')
-through =         require 'through2'
 
+
+through =         require 'through2'
 lazypipe =        require 'lazypipe'              # re-use partial streams
-combine =         require 'stream-combiner'
 runSequence =     require 'run-sequence'          # execute tasks in parallel or series
+combine =         require 'stream-combiner'
+
 
 gulp =            require 'gulp'                  # streaming build system
-$ =               require('gulp-load-plugins')(camelize: true)  # attach  "gulp-*" plugins to '$' variable
+$ = exports.$ =   require('gulp-load-plugins')(camelize: true, config: pkg)  # attach  "gulp-*" plugins to '$' variable
 $.util =          require 'gulp-util'
 
 {colors} =        $.util
 exports.colors =  colors
+exports.lazypipe = lazypipe
 # <br><br><br>
 
-exports.lazypipe = lazypipe
-exports.plugins = $
 
-Orchestrator =  require 'orchestrator'
-tasks = exports.tasks = new Orchestrator()
+
+
 
 
 # central config object included/modified by other components
-config = exports.config =
-  tasks:
-    ###
-    **<h5>[gulp-exec](https://github.com/robrich/gulp-exec)</h5>**
-
-    A Gulp wrapper for child_process.exec(). Execute shell commands.
-    ###
-    exec:
-      continueOnError: true
-      pipeStdout: false
-
-    execReport:
-      err: true
-      stderr: true
-      stdout: true
-
-
-    ###
-    **<h5>[gulp-rimraf](https://github.com/robrich/gulp-rimraf)</h5>**
-
-    Remove files witl `rm -rf`
-    ###
-    rimraf:
-      force: true
-      read: false
-
+# config = exports.config =
+#   tasks:
+#     ###
+#     **<h5>[gulp-exec](https://github.com/robrich/gulp-exec)</h5>**
+#
+#     A Gulp wrapper for child_process.exec(). Execute shell commands.
+#     ###
+#     exec:
+#       continueOnError: true
+#       pipeStdout: false
+#
+#     execReport:
+#       err: true
+#       stderr: true
+#       stdout: true
+#
+#
+#     ###
+#     **<h5>[gulp-rimraf](https://github.com/robrich/gulp-rimraf)</h5>**
+#
+#     Remove files witl `rm -rf`
+#     ###
+#     rimraf:
+#       force: true
+#       read: false
+#
 
 
 
@@ -89,26 +83,24 @@ files = exports.files = (types...) ->
 
   # Ignore vendor files and tests
   source = [
-    "!#{config.dir.client}/components/vendor/**/*"
+    "!#{dir.client}/components/vendor/**/*"
     "!**/*_test.*"
   ]
 
   for type in types
-    source.push "#{config.dir.client}/**/*.#{type}"
+    source.push "#{dir.client}/**/*.#{type}"
 
-
-  console.log 'getting files', source
   # We can attach any tasks that should be run on all files here.
   # In this case, we add a reference to the global file cache to
   # enable incremental builds.
-  # if isWatching
-  #   gulp.src(source)
-  #     .pipe $.cached('main')
-  #     .pipe $.watch()
-  #     .pipe $.plumber()
-  # else
-  gulp.src(source)
-    .pipe $.cached('main')
+  if args.watch
+    gulp.src(source)
+      .pipe $.cached('main')
+      .pipe $.watch()
+      .pipe $.plumber()
+  else
+    gulp.src(source)
+      .pipe $.cached('main')
 
 
 
@@ -142,14 +134,14 @@ optionally filtered to a specific file type.
 compiledFiles = exports.compiledFiles = (types...) ->
   # Ignore vendor files
   source = [
-    "!#{config.dir.compile}/components/vendor/**/*",
-    # "!#{config.dir.compile}/components/common/**/*"
+    "!#{dir.compile}/components/vendor/**/*",
+    # "!#{dir.compile}/components/common/**/*"
   ]
 
   for type in types
-    source.push "#{config.dir.compile}/**/*.#{type}"
+    source.push "#{dir.compile}/**/*.#{type}"
 
-  if isWatching
+  if args.watch
     gulp.src(source)
       .pipe $.cached('main')
       .pipe $.watch()
@@ -191,9 +183,9 @@ Returns a destination pipe for the build directory
 @method dest
 ###
 dest = exports.dest =
-  compile: -> gulp.dest config.dir.compile
-  build: -> gulp.dest config.dir.build
-  deploy: -> gulp.dest config.dir.deploy
+  compile: -> gulp.dest dir.compile
+  build: -> gulp.dest dir.build
+  deploy: -> gulp.dest dir.deploy
 # <br><br><br>
 
 
@@ -210,6 +202,6 @@ time = exports.time = (f) ->
 
 
 # Banner placed at the top of all JS files during development
-exports.banner =  "/** \n
+banner = exports.banner =  "/** \n
            * APP_NAME
            */ \n\n"

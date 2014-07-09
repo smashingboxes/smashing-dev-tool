@@ -1,12 +1,13 @@
+{files, dest, banner, $, lazypipe} = require('../../config/helpers')
+{logger, notify, execute} = require('../../config/util')
+{assets, tasks, args, dir, pkg} = require('../../config/config')()
 
+csslintrc = require '../../config/lint/csslintrc'
 
-
-gulp.task 'compile:css', ->
-  log.tag 'compile', 'css'
+tasks.add 'compile:css', ->
   files('css')
-    .pipe $.if isVerbose, $.using()
-    .pipe $.csslint cfg.tasks.csslint
-    .pipe $.csslint.reporter()
-    .pipe postProcessStyles()
-    # .pipe $.if isVerbose, $.size title: 'css'
-    .pipe dest.compile()
+    .pipe($.using())
+    .pipe($.csslint csslintrc)
+    .pipe($.csslint.reporter())
+    .pipe(dest.compile())
+    # .pipe(postProcessStyles())

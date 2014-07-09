@@ -1,10 +1,12 @@
+{files, dest, banner, $, lazypipe} = require('../../config/helpers')
+{logger, notify, execute} = require('../../config/util')
+{assets, tasks, args, dir, pkg} = require('../../config/config')()
 
+htmlhintrc = require '../../config/lint/htmlhintrc'
 
-gulp.task 'compile:html', ->
-  log.tag 'compile', 'html'
+tasks.add 'compile:html', ->
   files('html')
-    .pipe $.if isVerbose, $.using()
-    .pipe $.htmlhint cfg.tasks.htmlhint
-    .pipe $.htmlhint.reporter()
-    # .pipe $.if isVerbose, $.size title: 'html'
-    .pipe dest.compile()
+    .pipe($.using())
+    .pipe($.htmlhint htmlhintrc)
+    .pipe($.htmlhint.reporter())
+    .pipe(dest.compile())

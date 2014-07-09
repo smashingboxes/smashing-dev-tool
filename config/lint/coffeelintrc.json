@@ -1,0 +1,54 @@
+{
+  "coffeescript_error": {
+    "level": "error"
+  },
+  "no_tabs": {
+    "name": "no_tabs",
+    "level": "error"
+  },
+  "no_trailing_whitespace": {
+    "name": "no_trailing_whitespace",
+    "level": "warn",
+    "allowed_in_comments": false,
+    "allowed_in_empty_lines": true
+  },
+  "max_line_length": {
+    "name": "max_line_length",
+    "value": 160,
+    "level": "warn",
+    "limitComments": true
+  },
+  "no_trailing_semicolons": {
+    "name": "no_trailing_semicolons",
+    "level": "error"
+  },
+  "camel_case_classes": {
+    "name": "camel_case_classes",
+    "level": "error"
+  },
+  "no_throwing_strings": {
+    "name": "no_throwing_strings",
+    "level": "error"
+  },
+  "no_backticks": {
+    "name": "no_backticks",
+    "level": "error"
+  },
+  "duplicate_key": {
+    "name": "duplicate_key",
+    "level": "error"
+  },
+  "cyclomatic_complexity": {
+    "name": "cyclomatic_complexity",
+    "value": 10,
+    "level": "ignore"
+  },
+  "no_unnecessary_fat_arrows": {
+    "name": "no_unnecessary_fat_arrows",
+    "level": "warn"
+  },
+  "missing_fat_arrows": {
+    "name": "missing_fat_arrows",
+    "level": "ignore"
+  }
+}

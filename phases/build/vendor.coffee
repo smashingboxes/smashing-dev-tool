@@ -1,5 +1,10 @@
-gulp.task 'build:vendor', ->
-  log.tag 'build', 'vendor'
+{vendorFiles, dest, banner, $, lazypipe} = require('../../config/helpers')
+{logger, notify, execute} = require('../../config/util')
+{assets, tasks, args, dir, pkg} = require('../../config/config')()
+
+gulp = require 'gulp'
+
+tasks.add 'build:vendor', ->
   vendorFiles('*')
-    .pipe $.if isVerbose, $.using()
-    .pipe gulp.dest "#{cfg.buildDir}/components/vendor"
+    .pipe($.using())
+    .pipe(gulp.dest "#{dir.build}/components/vendor")

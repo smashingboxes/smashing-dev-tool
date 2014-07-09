@@ -1,20 +1,17 @@
+{files, dest, banner, $, lazypipe} = require('../../config/helpers')
+{logger, notify, execute} = require('../../config/util')
+{assets, tasks, args, dir, pkg} = require('../../config/config')()
 
-###
-**<h5>[gulp-coffee](https://github.com/wearefractal/gulp-coffee)</h5>**
+coffeeStylish = require('coffeelint-stylish').reporter
+coffeelintrc = require '../../config/lint/coffeelintrc'
 
-Compile Coffeescript files
-###
-coffee:
-  bare: true
+postProcessScripts = lazypipe()
+  .pipe $.header, banner
 
-
-gulp.task 'compile:coffee', ->
-  log.tag 'compile', 'coffee'
+tasks.add 'compile:coffee', (done) ->
   files('coffee')
-    .pipe $.if isVerbose, $.using()
-    .pipe $.coffeelint cfg.tasks.coffeelint
-    .pipe $.coffeelint.reporter()
-    .pipe $.coffee cfg.tasks.coffee
-    .pipe postProcessScripts()
-    # .pipe $.if isVerbose, $.size title: 'coffeescript'
+    .pipe($.using())
+    .pipe($.coffeelint coffeelintrc)
+    .pipe($.coffeelint.reporter())
+    .pipe($.coffee bare:true)
     .pipe dest.compile()

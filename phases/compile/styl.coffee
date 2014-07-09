@@ -1,23 +1,15 @@
-###
-**<h5>[gulp-stylus](https://github.com/stevelacy/gulp-stylus)</h5>**
-<em>Wrapper for <strong><a href="http://learnboost.github.io/stylus/">Stylus</a></strong></em>
-
-Stylus is a css preprocessor and syntax. It extends base
-CSS capabilities, similar to SASS or LESS.
-###
-stylus:
-  errors: true
-# <br><br><br>
+{files, dest, banner, $, lazypipe} = require('../../config/helpers')
+{logger, notify, execute} = require('../../config/util')
+{assets, tasks, args, dir, pkg} = require('../../config/config')()
 
 
-
-gulp.task 'compile:styl', ->
-  log.tag 'compile', 'stylus'
+tasks.add 'compile:styl', ->
   files('styl')
-    .pipe $.if isVerbose, $.using()
-    .pipe $.stylus cfg.tasks.stylus
-    .on 'error', (err) ->
+    .pipe($.using())
+    .pipe($.stylus errors: true)
+    .on('error', (err) ->
       log colors.red err.message
-    .pipe postProcessStyles()
+    )
+    .pipe(dest.compile())
+    # .pipe postProcessStyles()
     # .pipe $.if isVerbose, $.size title: 'stylus'
-    .pipe dest.compile()

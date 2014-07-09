@@ -1,8 +1,9 @@
+{files, dest, banner, $, lazypipe} = require('../../config/helpers')
+{logger, notify, execute} = require('../../config/util')
+{assets, tasks, args, dir, pkg} = require('../../config/config')()
 
-gulp.task 'compile:jade', ->
-  log.tag 'compile', 'jade'
+tasks.add 'compile:jade', ->
   files('jade')
-    .pipe $.if isVerbose, $.using()
-    .pipe $.jade()
-    # .pipe $.if isVerbose, $.size title: 'jade'
-    .pipe dest.compile()
+    .pipe($.using())
+    .pipe($.jade())
+    .pipe(dest.compile())

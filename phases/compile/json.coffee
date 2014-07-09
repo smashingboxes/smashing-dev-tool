@@ -1,9 +1,11 @@
+{files, dest, banner, $, lazypipe} = require('../../config/helpers')
+{logger, notify, execute} = require('../../config/util')
+{assets, tasks, args, dir, pkg} = require('../../config/config')()
 
-gulp.task 'compile:json', ->
-  log.tag 'compile', 'json'
+
+tasks.add 'compile:json', ->
   files('json')
-    .pipe $.if isVerbose, $.using()
-    .pipe $.jsonlint()
-    .pipe $.jsonlint.reporter()
-    # .pipe $.if isVerbose, $.size title: 'json'
-    .pipe dest.compile()
+    .pipe($.using())
+    .pipe($.jsonlint())
+    .pipe($.jsonlint.reporter())
+    .pipe(dest.compile())
