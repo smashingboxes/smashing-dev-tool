@@ -3,25 +3,18 @@
 argv =          require('minimist')(process.argv.slice 2)
 chalk =         require 'chalk'
 commander =     require 'commander'
-winston =       require 'winston'
 tildify =       require 'tildify'
 notifier =      require 'node-notifier'
 exec =          require 'exec'
 rest =          require 'restler'
 inquire =       require 'inquirer'
-
-run = require 'run-sequence'
-gulp = require 'gulp'
-
-# util = require '../phases/helpers'
-# {logger, notify} = util
+run =           require 'run-sequence'
+gulp =          require 'gulp'
 
 {logger, notify, execute} = require '../config/util'
 
-config = require('../config/config')()
+config = require('../config/config')
 {assets, tasks, args, dir} = config
-
-
 
 # API Access
 do_key = '67f797894ee8624b9dc72b5be7bd44d6639907aa522cb20f2b9a4169dd00a3a6'
@@ -44,7 +37,6 @@ github.authenticate
 
 ###
 Configure Gulp pipechain
-
 ###
 
 

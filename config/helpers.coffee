@@ -2,7 +2,7 @@
 
 
 {logger, notify, execute} = require './util'
-{assets, tasks, args, dir, pkg} = require('./config')()
+{assets, tasks, args, dir, pkg} = require('./config')
 
 _ =               require 'lodash'                # array and object utilities
 chalk =         require 'chalk'

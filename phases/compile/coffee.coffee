@@ -1,6 +1,6 @@
 {files, dest, banner, $, lazypipe} = require('../../config/helpers')
 {logger, notify, execute} = require('../../config/util')
-{assets, tasks, args, dir, pkg} = require('../../config/config')()
+{assets, tasks, args, dir, pkg} = require('../../config/config')
 
 coffeeStylish = require('coffeelint-stylish').reporter
 coffeelintrc = require '../../config/lint/coffeelintrc'
