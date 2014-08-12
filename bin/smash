@@ -10,6 +10,8 @@ rest =          require 'restler'
 inquire =       require 'inquirer'
 run =           require 'run-sequence'
 gulp =          require 'gulp'
+required =      require 'require-dir'
+
 
 {logger, notify, execute} = require '../config/util'
 
@@ -142,16 +144,7 @@ commander
 
 
 # Compile
-require '../phases/compile/coffee'
-require '../phases/compile/jade'
-require '../phases/compile/css'
-require '../phases/compile/styl'
-require '../phases/compile/html'
-require '../phases/compile/js'
-require '../phases/compile/json'
-require '../phases/compile/data'
-require '../phases/compile/vendor'
-
+required '../phases/compile'
 commander
   .command('compile')
   .description('compile local assets based on Smashfile')
@@ -170,12 +163,7 @@ commander
 
 
 # Build
-require '../phases/build/scripts'
-require '../phases/build/styles'
-require '../phases/build/views'
-require '../phases/build/vendor'
-require '../phases/build/images'
-require '../phases/build/data'
+required '../phases/build'
 commander
   .command('build')
   .description('build local assets based on Smashfile')
