@@ -2,7 +2,7 @@
 
 
 {logger, notify, execute} = require './util'
-{assets, tasks, args, dir, pkg} = require('./config')
+{assets, tasks, args, dir, pkg, env} = require('./config')
 
 _ =               require 'lodash'                # array and object utilities
 chalk =         require 'chalk'
@@ -80,7 +80,7 @@ and allows us to use a much cleaner syntax when building tasks.
 @return {Object}
 ###
 files = exports.files = (types...) ->
-
+  console.log 'getting files for ' + types.join ', '
   # Ignore vendor files and tests
   source = [
     "!#{dir.client}/components/vendor/**/*"
@@ -94,7 +94,7 @@ files = exports.files = (types...) ->
   # In this case, we add a reference to the global file cache to
   # enable incremental builds.
   if args.watch
-    gulp.src(source)
+    gulp.src(source, cwd: env.configBase )
       .pipe $.cached('main')
       .pipe $.watch()
       .pipe $.plumber()

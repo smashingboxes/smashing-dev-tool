@@ -15,8 +15,8 @@ required =      require 'require-dir'
 
 {logger, notify, execute} = require '../config/util'
 
-config = require('../config/config')
-{assets, tasks, args, dir} = config
+
+{assets, tasks, args, dir} = config = require('../config/config')
 
 # API Access
 do_key = '67f797894ee8624b9dc72b5be7bd44d6639907aa522cb20f2b9a4169dd00a3a6'
@@ -149,17 +149,8 @@ commander
   .command('compile')
   .description('compile local assets based on Smashfile')
   .action ->
-    tasks.start [
-      'compile:coffee'
-      'compile:jade'
-      'compile:css'
-      'compile:html'
-      'compile:js'
-      'compile:json'
-      'compile:styl'
-      'compile:vendor'
-      'compile:data'
-    ]
+    toRun = ("compile:#{ext}" for ext, asset of assets)
+    tasks.start toRun
 
 
 # Build

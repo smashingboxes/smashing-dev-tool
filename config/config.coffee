@@ -15,14 +15,8 @@ Orchestrator =  require 'orchestrator'
 _ =             require 'lodash'
 
 {logger, notify, execute} = require './util'
-defaultAssets = require '../config/assets'
-defaultDirs =
-  client: 'client'
-  server: 'server'
-  compile: 'compile'
-  build: 'build'
-  deploy: 'deploy'
-  docs: 'docs'
+assumptions = require './assumptions'
+
 
 
 pkg = require '../package'
@@ -69,13 +63,12 @@ Smasher.launch
     project = require env.configPath
 
     # collect asset definitions
-
     for asset in project.assets
       # load preconfigured assets by name
       if typeof asset is 'string'
-        if defaultAssets[asset]?
+        if assumptions.assets[asset]?
           logger.verbose "Adding asset type:", chalk.magenta.bold asset
-          assets[asset] = defaultAssets[asset]
+          assets[asset] = assumptions.assets[asset]
         else
           logger.warn chalk.red "Asset type: \"#{asset}\" not recognized. Please provide a definition."
 
@@ -85,14 +78,14 @@ Smasher.launch
         logger.verbose asset
         assets[asset.ext] = asset
 
-    config.assets = assets
-    config.args = argv
-    config.tasks = new Orchestrator()
-    config.pkg = pkg
+    config =
+      assets: assets
+      args:   argv
+      tasks:  new Orchestrator()
+      pkg:    pkg
+      env:    env
+      dir:    _.defaults (project.dir or {}), assumptions.dir
 
-    if project.dir
-      config.dir = _.defaults project.dir, defaultDirs
-    else
-      config.dir = defaultDirs
+
 
 module.exports = config

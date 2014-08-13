@@ -1,6 +1,6 @@
 {files, dest, banner, $, lazypipe} = require('../../config/helpers')
 {logger, notify, execute} = require('../../config/util')
-{assets, tasks, args, dir, pkg} = require('../../config/config')
+{assets, tasks, args, dir, pkg, env} = require('../../config/config')
 
 coffeeStylish = require('coffeelint-stylish').reporter
 coffeelintrc = require '../../config/lint/coffeelintrc'
@@ -8,7 +8,7 @@ coffeelintrc = require '../../config/lint/coffeelintrc'
 postProcessScripts = lazypipe()
   .pipe $.header, banner
 
-tasks.add 'compile:coffee', (done) ->
+tasks.add 'compile:coffee', ->
   files('coffee')
     .pipe($.using())
     .pipe($.coffeelint coffeelintrc)

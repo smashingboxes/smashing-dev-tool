@@ -1,14 +1,14 @@
 ###
 
-## Recursive hierarchical structure
+<h2>Recursive hierarchical structure</h2>
 We propose a recursive structure, the base unit of which contains a module definition file (app.js), a controller definition file (app-controller.js), a unit test file (app-controller_test.js), an HTML view (index.html or app.html) and some styling (app.css) at the top level, along with directives, filters, services, protos, e2e tests, in their own subdirectories.
 
 
-## Components and Sub-sections
+<h2>Components and Sub-sections</h2>
 We group elements of an application either under a "components" directory (for common elements reused elsewhere in the app), or under meaningfully-named directories for recursively-nested sub-sections that represent structural "view" elements or routes within the app:
 
 
-###Components
+<h3>Components</h3>
 
 + A components directory contains directives, services, filters, and related files.
 + Common data (images, models, utility files, etc.) might also live under components (e.g. components/lib/), or it can be stored externally.
@@ -16,7 +16,7 @@ We group elements of an application either under a "components" directory (for c
 + Components may contain module definitions, if appropriate. (See "Module definitions" below.)
 
 
-### Sub-sections
+<h3>Sub-sections</h3>
 
 + These top-level (or nested) directories contains only templates (.html, .css), controllers, and module definitions.
 + We stamp out sub-level child sub-sections using the same unit template (i.e., a section is made up of templates, controllers, and module definitions), going deeper and deeper as needed to reflect the inheritance of elements in the UI.
@@ -24,13 +24,13 @@ We group elements of an application either under a "components" directory (for c
 + Sub-sections may or may not have their own modules, depending on how complex the code is.  (See "Module definitions" below.)
 
 
-### Module definitions
+<h3>Module definitions</h3>
 
 + In general, 'angular.module('foo')' should be called only once. Other modules and files can depend on it, but they should never modify it.
 + Module definition can happen in the main module file, or in subdirectories for sections or components, depending on the application's needs.
 
 
-### Naming conventions
+<h3>Naming conventions</h3>
 
 We lean heavily on the Google JavaScript Style Guide naming conventions and propose a few additions:
 + Each filename should describe the file's purpose by including the component or view sub-section that it's in, and the type of object that it is as part of the name. For example, a datepicker directive would be in components/datepicker/datepicker-directive.js.
@@ -46,13 +46,13 @@ We lean heavily on the Google JavaScript Style Guide naming conventions and prop
 # Asset Types
 
 assets = [
-  {name: 'html', ext: 'html', type: 'view', doc: true, test: true, lint: true}
-  {name: 'jade', ext: 'jade', type: 'view', doc: true, test: true, lint: false}
-  {name: 'css', ext:  'css', type: 'style', doc: true, test: true, lint: true}
-  {name: 'stylus', ext: 'styl', type: 'style', doc: false, test: false, lint: false}
-  {name: 'js', ext: 'js', type: 'script', doc: true, test: true, lint: true}
-  {name: 'coffeescript', ext:  'coffee', type: 'script', doc: true, test: true, lint: true}
-  {name: 'json', ext: 'json', type: 'data', doc: false, test: true, lint: true}
+  {name: 'html',          ext: 'html',    type: 'view', doc: true, test: true, lint: true}
+  {name: 'jade',          ext: 'jade',    type: 'view', doc: true, test: true, lint: false}
+  {name: 'css',           ext: 'css',     type: 'style', doc: true, test: true, lint: true}
+  {name: 'stylus',        ext: 'styl',    type: 'style', doc: false, test: false, lint: false}
+  {name: 'js',            ext: 'js',      type: 'script', doc: true, test: true, lint: true}
+  {name: 'coffeescript',  ext: 'coffee',  type: 'script', doc: true, test: true, lint: true}
+  {name: 'json',          ext: 'json',    type: 'data', doc: false, test: true, lint: true}
 ]
 
 eAssets = []
@@ -63,12 +63,12 @@ exports.assets = eAssets
 
 
 
-
-# Directory Structure
-
+# Directory names
 exports.dir =
   client:  'client'
   server:  'server'
+
+  vendor:  'vendor'
 
   compile: 'compile'
   build:   'build'
