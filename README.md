@@ -24,7 +24,7 @@ This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automatio
       'coffee'
       'json'
 
-      # define additional asset types that are not supported
+      # define additional asset types that are not built-in
       {name: 'python', ext: 'py', type: 'data', doc: false, test: false, lint: false}
     ]
 
