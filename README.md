@@ -14,6 +14,7 @@ This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automatio
 
 ```coffeescript
   module.exports =
+    # file types to be compiled/built
     assets: [
       'html'
       'jade'
@@ -22,8 +23,12 @@ This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automatio
       'js'
       'coffee'
       'json'
+
+      # define additional asset types that are not supported
       {name: 'python', ext: 'py', type: 'data', doc: false, test: false, lint: false}
     ]
+
+    # override default directory conventions
     dir:
       client: 'WebContent'
       server: 'src'
