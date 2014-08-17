@@ -45,6 +45,9 @@ require('../modules/deploy')(commander)
 # Apps
 require('../modules/apps')(commander)
 
+# Documentation generation
+require('../modules/document')(commander)
+
 
 # commander.help()  if argv._.length is 0
 commander.parse process.argv

@@ -5,9 +5,9 @@
 {assets, tasks, args, dir, pkg, env} = require('./config')
 
 _ =               require 'lodash'                # array and object utilities
-chalk =         require 'chalk'
+chalk =           require 'chalk'
 
-tildify =       require 'tildify'
+tildify =         require 'tildify'
 moment =          require 'moment'                # time/date utils
 open =            require 'open'                  # open files
 fs =              require 'fs'
@@ -61,9 +61,6 @@ exports.lazypipe = lazypipe
 #     rimraf:
 #       force: true
 #       read: false
-#
-
-
 
 # Determine current working directory
 base =            require.main.filename
