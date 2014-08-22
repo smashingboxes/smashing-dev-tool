@@ -14,14 +14,10 @@ inquire =       require 'inquirer'
 Orchestrator =  require 'orchestrator'
 _ =             require 'lodash'
 
-{logger, notify, execute} = require './util'
+
+util = require './util'
 assumptions = require './assumptions'
-
-
-
-pkg = require '../package'
-
-# TODO: allow other files to add config to global private object
+{logger, notify, execute} = util
 
 
 config = {}
@@ -61,6 +57,7 @@ Smasher.launch
 
     process.chdir(env.configBase)
     project = require env.configPath
+    pkg = require "#{env.configBase}/package"
 
     # collect asset definitions
     for asset in project.assets
@@ -79,13 +76,13 @@ Smasher.launch
         assets[asset.ext] = asset
 
     config =
-      assets: assets
-      args:   argv
-      tasks:  new Orchestrator()
-      pkg:    pkg
-      env:    env
-      dir:    _.defaults (project.dir or {}), assumptions.dir
-
-
+      assets:       assets
+      args:         argv
+      tasks:        new Orchestrator()
+      pkg:          pkg
+      env:          env
+      dir:          _.defaults (project.dir or {}), assumptions.dir
+      util:         util
+      assumptions:  assumptions
 
 module.exports = config

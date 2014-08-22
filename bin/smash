@@ -3,11 +3,15 @@
 argv =          require('minimist')(process.argv.slice 2)
 chalk =         require 'chalk'
 commander =     require 'commander'
-inquire =       require 'inquirer'
 required =      require 'require-dir'
 
-{logger, notify, execute} = require '../config/util'
-{assets, tasks, args, dir, env, pkg} = require '../config/config'
+
+project = require '../config/config'
+project.helpers = require '../config/helpers'
+project.commander = commander
+
+{logger, notify, execute} = project.util
+{assets, tasks, args, dir, env, pkg} = project
 
 
 # Configure Commander.js
@@ -27,26 +31,29 @@ commander
 # MAIN MODULES
 
 # Initialization
-require('../modules/init')(commander)
+require('../modules/init')(project)
 
 # Compile phase
-require('../modules/compile')(commander)
+require('../modules/compile')(project)
 
 # Build phase
-require('../modules/build')(commander)
+require('../modules/build')(project)
 
-# Deploy phase
-require('../modules/deploy')(commander)
+# # Deploy phase
+# require('../modules/deploy')(commander)
+
+# Test phase
+require('../modules/test')(project)
 
 
 
 # EXTENDED FUNCTIONALITY
-
-# Apps
-require('../modules/apps')(commander)
-
+#
+# # Apps
+require('../modules/apps')(project)
+#
 # Documentation generation
-require('../modules/document')(commander)
+require('../modules/document')(project)
 
 
 # commander.help()  if argv._.length is 0

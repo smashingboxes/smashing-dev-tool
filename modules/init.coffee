@@ -1,4 +1,7 @@
-module.exports = (commander) ->
+module.exports = ({assets, tasks, args, dir, env, pkg, util, helpers, commander}) ->
+  {files, vendorFiles, copyFiles, time, filters, dest, colors} = helpers
+  {logger, notify, execute, $} = util
+
   # Setup
   commander
     .command('setup')

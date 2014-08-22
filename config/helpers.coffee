@@ -21,9 +21,12 @@ runSequence =     require 'run-sequence'          # execute tasks in parallel or
 combine =         require 'stream-combiner'
 
 
+smashPkg = require '../package'
+
 gulp =            require 'gulp'                  # streaming build system
-$ = exports.$ =   require('gulp-load-plugins')(camelize: true, config: pkg)  # attach  "gulp-*" plugins to '$' variable
+$ = exports.$ =   require('gulp-load-plugins')(camelize: true, config: smashPkg)  # attach  "gulp-*" plugins to '$' variable
 $.util =          require 'gulp-util'
+
 
 {colors} =        $.util
 exports.colors =  colors

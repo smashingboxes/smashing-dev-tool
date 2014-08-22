@@ -1,12 +1,15 @@
-required =      require 'require-dir'
 
-{logger, notify, execute} = require '../config/util'
-{assets, tasks, args, dir} = require '../config/config'
+module.exports = (project) ->
+  {assets, tasks, args, dir, env, pkg, util, helpers, commander} = project
+  {files, vendorFiles, copyFiles, time, filters, dest, colors, $} = helpers
+  {logger, notify, execute} = util
 
-required '../phases/build'
-
-
-module.exports = (commander) ->
+  require('../phases/build/data')(project)
+  require('../phases/build/images')(project)
+  require('../phases/build/scripts')(project)
+  require('../phases/build/styles')(project)
+  require('../phases/build/vendor')(project)
+  require('../phases/build/views')(project)
 
   commander
     .command('build')

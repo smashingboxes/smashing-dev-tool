@@ -1,11 +1,19 @@
 required =      require 'require-dir'
 
-{logger, notify, execute} = require '../config/util'
-{assets, tasks, args, dir} = require '../config/config'
+module.exports = (project) ->
+  {assets, tasks, args, dir, env, pkg, util, helpers, commander} = project
+  {files, vendorFiles, copyFiles, time, filters, dest, colors, $} = helpers
+  {logger, notify, execute} = util
 
-required '../phases/compile'
+  require('../phases/compile/coffee')(project)
+  require('../phases/compile/css')(project)
+  require('../phases/compile/data')(project)
+  require('../phases/compile/html')(project)
+  require('../phases/compile/jade')(project)
+  require('../phases/compile/js')(project)
+  require('../phases/compile/styl')(project)
+  require('../phases/compile/vendor')(project)
 
-module.exports = (commander) ->
   commander
     .command('compile')
     .description('compile local assets based on Smashfile')
