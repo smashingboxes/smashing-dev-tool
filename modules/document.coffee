@@ -3,9 +3,10 @@ open =            require 'open'
 gulp =            require 'gulp'                  # streaming build system
 
 
-module.exports = ({assets, tasks, args, dir, env, pkg, util, helpers, commander}) ->
-  {files, vendorFiles, copyFiles, time, filters, dest, colors} = helpers
-  {logger, notify, execute, $} = util
+module.exports = (project) ->
+  {assets, tasks, args, dir, env, pkg, util, helpers, commander} = project
+  {files, compiledFiles, vendorFiles, copyFiles, time, filters, dest, colors, $, banner} = helpers
+  {logger, notify, execute} = util
 
   ###
   **[Groc](https://github.com/nevir/groc)**
@@ -14,17 +15,18 @@ module.exports = ({assets, tasks, args, dir, env, pkg, util, helpers, commander}
   the spirit of literate programming. This ensures documentation is always
   up-to-date and in sync with the source code.
   ###
+  console.log env.configBase
   groc =
     'glob': [
-      "#{dir.client}/**/*.coffee"
-      "#{dir.client}/**/*.jade"
-      "#{dir.client}/**/*.js"
-      "config/**/*.coffee"
-      "README.md"
+      "#{env.configBase}/#{dir.client}/**/*.coffee"
+      "#{env.configBase}/#{dir.client}/**/*.jade"
+      "#{env.configBase}/#{dir.client}/**/*.js"
+      "#{env.configBase}/config/**/*.coffee"
+      "#{env.configBase}/README.md"
     ]
     'except': [
-      "#{dir.client}/components/vendor/**/*"
-      "config/plugins/**/*"
+      "#{env.configBase}/#{dir.client}/components/vendor/**/*"
+      "#{env.configBase}/config/plugins/**/*"
     ]
     'github':           false
     'out':              'docs'
@@ -42,15 +44,16 @@ module.exports = ({assets, tasks, args, dir, env, pkg, util, helpers, commander}
     # notify "Groc", "Generating documentation..."
 
     # Provide realtime output of generated files, rather than at the end
-    watcher = gulp.watch(["docs/**/*"]).on 'all', (event) ->
+    watcher = gulp.watch(["#{env.configBase}/docs/**/*"]).on 'all', (event) ->
       path = event.path
       path = path.substr(path.indexOf dir.docs)
       log colors.green "    ✔    #{path} "
 
     # Dynamically generate .groc.json from config
-    fs.writeFile '.groc.json', JSON.stringify(groc), 'utf8', ->
+    fs.writeFile "#{env.configBase}/.groc.json", JSON.stringify(groc), 'utf8', ->
       logger.info  colors.green 'Generated .groc.json from config'
-      execute 'groc', ->
+      execute ".#{process.cwd()}/node_modules/fe_build/node_modules/groc/bin/groc", (back)->
+        console.log back
         watcher.end()
         notify "Groc", "Success!"
         # open cfg.openDocsUrl

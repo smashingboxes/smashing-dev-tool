@@ -40,7 +40,7 @@ require('../modules/compile')(project)
 require('../modules/build')(project)
 
 # # Deploy phase
-# require('../modules/deploy')(commander)
+require('../modules/deploy')(project)
 
 # Test phase
 require('../modules/test')(project)
