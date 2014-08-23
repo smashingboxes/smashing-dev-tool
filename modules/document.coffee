@@ -21,27 +21,22 @@ module.exports = (project) ->
       "#{env.configBase}/#{dir.client}/**/*.coffee"
       "#{env.configBase}/#{dir.client}/**/*.jade"
       "#{env.configBase}/#{dir.client}/**/*.js"
-      "#{env.configBase}/config/**/*.coffee"
       "#{env.configBase}/README.md"
     ]
     'except': [
       "#{env.configBase}/#{dir.client}/components/vendor/**/*"
-      "#{env.configBase}/config/plugins/**/*"
     ]
     'github':           false
     'out':              'docs'
-    'repository-url':   'http://github.com/Cisco-Systems-SWTG/ApolloSmartTerminal'
+    'repository-url':   'http://github.com/smashing-boxes/fe_build'
     'silent':           true
-
 
   rimraf =
     force: true
     read: false
 
-
-
   tasks.add 'docs', (done) ->
-    # notify "Groc", "Generating documentation..."
+    notify "Groc", "Generating documentation..."
 
     # Provide realtime output of generated files, rather than at the end
     watcher = gulp.watch(["#{env.configBase}/docs/**/*"]).on 'all', (event) ->
@@ -52,20 +47,18 @@ module.exports = (project) ->
     # Dynamically generate .groc.json from config
     fs.writeFile "#{env.configBase}/.groc.json", JSON.stringify(groc), 'utf8', ->
       logger.info  colors.green 'Generated .groc.json from config'
-      execute ".#{process.cwd()}/node_modules/fe_build/node_modules/groc/bin/groc", (back)->
-        console.log back
+
+      # Use our copy of Groc to generate documentation for the project
+      require("#{env.configBase}/node_modules/fe_build/node_modules/groc").CLI [], (error)->
+        process.exit(1) if error
         watcher.end()
         notify "Groc", "Success!"
-        # open cfg.openDocsUrl
+        open "#{env.configBase}/docs/index.html"
         done()
 
   tasks.add 'docs:clean', (cb) ->
     gulp.src dir.docs
      .pipe $.rimraf rimraf
-
-
-
-
 
   commander
     .command('docs')
