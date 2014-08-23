@@ -1,6 +1,7 @@
 fs =              require 'fs'
 open =            require 'open'
 gulp =            require 'gulp'                  # streaming build system
+_ =               require 'underscore'
 
 
 module.exports = (project) ->
@@ -15,21 +16,22 @@ module.exports = (project) ->
   the spirit of literate programming. This ensures documentation is always
   up-to-date and in sync with the source code.
   ###
-  console.log env.configBase
+  docsGlob = [
+    "#{env.configBase}/README.md"
+  ]
+  for key, val of assets
+    docsGlob.push "#{env.configBase}/#{dir.client}/**/*.#{val.ext}" if val.doc
+
+
   groc =
-    'glob': [
-      "#{env.configBase}/#{dir.client}/**/*.coffee"
-      "#{env.configBase}/#{dir.client}/**/*.jade"
-      "#{env.configBase}/#{dir.client}/**/*.js"
-      "#{env.configBase}/README.md"
-    ]
+    'glob': docsGlob
     'except': [
       "#{env.configBase}/#{dir.client}/components/vendor/**/*"
     ]
     'github':           false
-    'out':              'docs'
-    'repository-url':   'http://github.com/smashing-boxes/fe_build'
-    'silent':           true
+    'out':              dir.docs
+    'repository-url':   pkg.repository?.url or ''
+    'silent':           !args.verbose?
 
   rimraf =
     force: true
@@ -38,12 +40,6 @@ module.exports = (project) ->
   tasks.add 'docs', (done) ->
     notify "Groc", "Generating documentation..."
 
-    # Provide realtime output of generated files, rather than at the end
-    watcher = gulp.watch(["#{env.configBase}/docs/**/*"]).on 'all', (event) ->
-      path = event.path
-      path = path.substr(path.indexOf dir.docs)
-      log colors.green "    ✔    #{path} "
-
     # Dynamically generate .groc.json from config
     fs.writeFile "#{env.configBase}/.groc.json", JSON.stringify(groc), 'utf8', ->
       logger.info  colors.green 'Generated .groc.json from config'
@@ -51,7 +47,6 @@ module.exports = (project) ->
       # Use our copy of Groc to generate documentation for the project
       require("#{env.configBase}/node_modules/fe_build/node_modules/groc").CLI [], (error)->
         process.exit(1) if error
-        watcher.end()
         notify "Groc", "Success!"
         open "#{env.configBase}/docs/index.html"
         done()
