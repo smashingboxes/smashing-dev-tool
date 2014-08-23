@@ -16,22 +16,6 @@ module.exports = (project) ->
   the spirit of literate programming. This ensures documentation is always
   up-to-date and in sync with the source code.
   ###
-  docsGlob = [
-    "#{env.configBase}/README.md"
-  ]
-  for key, val of assets
-    docsGlob.push "#{env.configBase}/#{dir.client}/**/*.#{val.ext}" if val.doc
-
-
-  groc =
-    'glob': docsGlob
-    'except': [
-      "#{env.configBase}/#{dir.client}/components/vendor/**/*"
-    ]
-    'github':           false
-    'out':              dir.docs
-    'repository-url':   pkg.repository?.url or ''
-    'silent':           !args.verbose?
 
   rimraf =
     force: true
@@ -40,8 +24,22 @@ module.exports = (project) ->
   tasks.add 'docs', (done) ->
     notify "Groc", "Generating documentation..."
 
+    docsGlob = ["#{env.configBase}/README.md"]
+    for key, val of assets
+      docsGlob.push "#{env.configBase}/#{dir.client}/**/*.#{val.ext}" if val.doc
+
+    grocjson = JSON.stringify
+      'glob': docsGlob
+      'except': [
+        "#{env.configBase}/#{dir.client}/components/vendor/**/*"
+      ]
+      'github':           false
+      'out':              dir.docs
+      'repository-url':   pkg.repository?.url or ''
+      'silent':           !args.verbose?
+
     # Dynamically generate .groc.json from config
-    fs.writeFile "#{env.configBase}/.groc.json", JSON.stringify(groc), 'utf8', ->
+    fs.writeFile "#{env.configBase}/.groc.json", grocjson, 'utf8', ->
       logger.info  colors.green 'Generated .groc.json from config'
 
       # Use our copy of Groc to generate documentation for the project
