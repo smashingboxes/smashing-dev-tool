@@ -48,12 +48,14 @@ require('../modules/test')(project)
 
 
 # EXTENDED FUNCTIONALITY
-#
-# # Apps
+# Apps
 require('../modules/apps')(project)
-#
+
 # Documentation generation
 require('../modules/document')(project)
+
+# App template generation/scaffolding
+require('../modules/generate')(project)
 
 
 # commander.help()  if argv._.length is 0

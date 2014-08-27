@@ -4,7 +4,7 @@
 {logger, notify, execute} = require './util'
 {assets, tasks, args, dir, pkg, env} = require('./config')
 
-_ =               require 'lodash'                # array and object utilities
+_ =               require 'underscore'                # array and object utilities
 chalk =           require 'chalk'
 
 tildify =         require 'tildify'
@@ -79,7 +79,7 @@ and allows us to use a much cleaner syntax when building tasks.
 @param {...String} types The desired file types
 @return {Object}
 ###
-files = exports.files = (types...) ->
+exports.files = (types...) ->
   console.log 'getting files for ' + types.join ', '
   # Ignore vendor files and tests
   source = [
@@ -113,7 +113,7 @@ optionally filtered to a specific file type.
 @param {...String} types The desired file types
 @return {Object}
 ###
-vendorFiles = exports.vendorFiles = (types...) ->
+exports.vendorFiles = (types...) ->
   source = []
   for type in types
     source.push "**/*.#{type}"
@@ -131,7 +131,7 @@ optionally filtered to a specific file type.
 @param {...String} types The desired file types
 @return {Object}
 ###
-compiledFiles = exports.compiledFiles = (types...) ->
+exports.compiledFiles = (types...) ->
   # Ignore vendor files
   source = [
     "!#{dir.compile}/components/vendor/**/*",
@@ -150,6 +150,9 @@ compiledFiles = exports.compiledFiles = (types...) ->
     gulp.src(source)
 # <br><br><br>
 
+
+exports.templateFiles = (template) ->
+  gulp.src ["./templates/angular/**.*"]
 
 
 ###
@@ -182,10 +185,11 @@ exports.copyFiles = (files) ->
 Returns a destination pipe for the build directory
 @method dest
 ###
-dest = exports.dest =
+exports.dest =
   compile: -> gulp.dest dir.compile
   build: -> gulp.dest dir.build
   deploy: -> gulp.dest dir.deploy
+  client: -> gulp.dest dir.client
 # <br><br><br>
 
 

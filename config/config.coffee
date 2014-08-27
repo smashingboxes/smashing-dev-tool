@@ -12,7 +12,7 @@ exec =          require 'exec'
 rest =          require 'restler'
 inquire =       require 'inquirer'
 Orchestrator =  require 'orchestrator'
-_ =             require 'lodash'
+_ =             require 'underscore'
 
 
 util = require './util'
