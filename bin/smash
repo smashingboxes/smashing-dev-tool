@@ -10,26 +10,35 @@ project = require '../config/config'
 project.helpers = require '../config/helpers'
 project.commander = commander
 
+globalConfig = require '../config/global'
+
 {logger, notify, execute} = require '../config/util'
-{assets, tasks, args, dir, env, pkg} = project
+{assets, tasks, args, dir, env} = project
+
+pkg = globalConfig.smash.pkg
 
 # Configure Commander.js
 commander
-  .version(pkg?.version or null)
+  .version('1.0')
   .option('-v, --verbose',         'Display detailed log information')
   .option('-s, --silent',          'Hide all logs and notifications')
   .option('-w, --watch',          'Watch assets for changes')
-  # .on '--help', ->
-  #   console.log '  Examples:'
-  #   console.log ''
-  #   console.log '    $ custom-help --help'
-  #   console.log '    $ custom-help -h'
-  #   console.log ''
+  .on '--help', ->
+    console.log '  Examples:'
+    console.log ''
+    console.log '    $ custom-help --help'
+    console.log '    $ custom-help -h'
+    console.log ''
 
+commander
+  .command('*')
+  .usage('smash [options]')
+  .action (cmd, options) ->
+    console.log 'exec "%s" using %s mode', cmd, options.exec_mode
 
 # MAIN MODULES
 
-globalConfig = require '../config/global'
+
 
 # App template generation/scaffolding
 require('../modules/generate')(globalConfig)
@@ -61,5 +70,5 @@ if project.pkg
   require('../modules/document')(project)
 
 
-commander.help()  if argv._.length is 0
+# commander.help()  if argv._.length is 0
 commander.parse process.argv
