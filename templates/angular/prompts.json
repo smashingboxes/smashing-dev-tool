@@ -1,0 +1,43 @@
+[
+  {
+    "name": "appName",
+    "message": "What is the name of your project?",
+    "default": "Test App"
+  },
+  {
+    "name": "appDescription",
+    "message": "What is the description?",
+    "default": "A sample application."
+  },
+  {
+    "name": "appVersion",
+    "message": "What is the version of your project?",
+    "default": "0.1.0"
+  },
+  {
+    "type": "confirm",
+    "name": "privateApp",
+    "message": "Should this app be private? This prevents accidental publishing to NPM.",
+    "default": true
+  },
+  {
+    "name": "authorName",
+    "message": "What is the author name?",
+    "default": "default.user.name"
+  },
+  {
+    "name": "authorEmail",
+    "message": "What is the author email?",
+    "default": "default.user.email"
+  },
+  {
+    "name": "userName",
+    "message": "What is the github username?",
+    "default": "default.user.username"
+  },
+  {
+    "type": "confirm",
+    "name": "moveon",
+    "message": "Continue?"
+  }
+]

@@ -10,13 +10,12 @@ project = require '../config/config'
 project.helpers = require '../config/helpers'
 project.commander = commander
 
-{logger, notify, execute} = project.util
+{logger, notify, execute} = require '../config/util'
 {assets, tasks, args, dir, env, pkg} = project
-
 
 # Configure Commander.js
 commander
-  .version(pkg.version)
+  .version(pkg?.version or null)
   .option('-v, --verbose',         'Display detailed log information')
   .option('-s, --silent',          'Hide all logs and notifications')
   .option('-w, --watch',          'Watch assets for changes')
@@ -30,33 +29,37 @@ commander
 
 # MAIN MODULES
 
-# Initialization
-require('../modules/init')(project)
-
-# Compile phase
-require('../modules/compile')(project)
-
-# Build phase
-require('../modules/build')(project)
-
-# # Deploy phase
-require('../modules/deploy')(project)
-
-# Test phase
-require('../modules/test')(project)
-
-
-
-# EXTENDED FUNCTIONALITY
-# Apps
-require('../modules/apps')(project)
-
-# Documentation generation
-require('../modules/document')(project)
+globalConfig = require '../config/global'
 
 # App template generation/scaffolding
-require('../modules/generate')(project)
+require('../modules/generate')(globalConfig)
+
+# existing project
+if project.pkg
+
+  # Initialization
+  require('../modules/init')(project)
+
+  # Compile phase
+  require('../modules/compile')(project)
+
+  # Build phase
+  require('../modules/build')(project)
+
+  # # Deploy phase
+  require('../modules/deploy')(project)
+
+  # Test phase
+  require('../modules/test')(project)
 
 
-# commander.help()  if argv._.length is 0
+  # EXTENDED FUNCTIONALITY
+  # Apps
+  require('../modules/apps')(project)
+
+  # Documentation generation
+  require('../modules/document')(project)
+
+
+commander.help()  if argv._.length is 0
 commander.parse process.argv

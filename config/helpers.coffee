@@ -20,22 +20,17 @@ lazypipe =        require 'lazypipe'              # re-use partial streams
 runSequence =     require 'run-sequence'          # execute tasks in parallel or series
 combine =         require 'stream-combiner'
 
-
-smashPkg = require '../package'
+smashPkg =        require '../package'
+smashRoot =       process.mainModule.filename.replace '/bin/smash', ''
 
 gulp =            require 'gulp'                  # streaming build system
 $ = exports.$ =   require('gulp-load-plugins')(camelize: true, config: smashPkg)  # attach  "gulp-*" plugins to '$' variable
 $.util =          require 'gulp-util'
 
-
 {colors} =        $.util
 exports.colors =  colors
 exports.lazypipe = lazypipe
 # <br><br><br>
-
-
-
-
 
 
 # central config object included/modified by other components
@@ -150,9 +145,6 @@ exports.compiledFiles = (types...) ->
     gulp.src(source)
 # <br><br><br>
 
-
-exports.templateFiles = (template) ->
-  gulp.src ["./templates/angular/**.*"]
 
 
 ###

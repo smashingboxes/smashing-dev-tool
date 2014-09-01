@@ -24,14 +24,14 @@ module.exports = (project) ->
   tasks.add 'docs', (done) ->
     notify "Groc", "Generating documentation..."
 
-    docsGlob = ["#{env.configBase}/README.md"]
+    docsGlob = ["README.md"]
     for key, val of assets
-      docsGlob.push "#{env.configBase}/#{dir.client}/**/*.#{val.ext}" if val.doc
+      docsGlob.push "#{dir.client}/**/*.#{val.ext}" if val.doc
 
     grocjson = JSON.stringify
       'glob': docsGlob
       'except': [
-        "#{env.configBase}/#{dir.client}/components/vendor/**/*"
+        "#{dir.client}/components/vendor/**/*"
       ]
       'github':           false
       'out':              dir.docs
@@ -46,7 +46,7 @@ module.exports = (project) ->
       require("#{env.configBase}/node_modules/fe_build/node_modules/groc").CLI [], (error)->
         process.exit(1) if error
         notify "Groc", "Success!"
-        open "#{env.configBase}/docs/index.html"
+        open "#{dir.docs}/index.html"
         done()
 
   tasks.add 'docs:clean', (cb) ->
