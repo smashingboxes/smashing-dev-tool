@@ -29,11 +29,11 @@ module.exports = ({args, util, tasks, commander, assumptions, smash, user, platf
   target = null
   template = null
   templateFiles = null
-
   overwriteDir = false
 
-  ### NEW APP GENERATION ###
+  # New App
 
+  # Handle existing folder
   tasks.add 'generate:check-dir', (done) ->
     if fs.existsSync target
       inquirer.prompt [{
@@ -45,7 +45,8 @@ module.exports = ({args, util, tasks, commander, assumptions, smash, user, platf
         process.exit 1  unless overwrite
         overwriteDir = true
         done()
-
+    else
+      done()
 
   # Load the requested template, prompts and files reference
   tasks.add 'generate:load-template', ['generate:check-dir'], (done) ->
@@ -104,13 +105,15 @@ module.exports = ({args, util, tasks, commander, assumptions, smash, user, platf
       .on "end", done
 
 
-  ### COMPONENT SCAFFOLDING ###
+  # Scaffold Tasks
+  
   tasks.add 'generate:component', (done) ->
     logger.info 'Generating component'
     done()
 
 
 
+  # Expose commands
   commander
     .command('generate <type> <path>')
     # .alias('g')
