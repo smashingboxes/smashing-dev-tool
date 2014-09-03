@@ -37,8 +37,8 @@ This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automatio
 ## TODO/Future
 
 + Automated testing of source code
-+ documentation generation from source (via Groc)
-+ project generation and scaffolding (a la Yeoman)
++ ~~documentation generation from source (via Groc)~~
++ ~~project generation and scaffolding (a la Yeoman)~~
 + Component guide generation
 + UI/UX deliverables generated from source code (style tiles, etc.)
 + Provisioning of dev resorces (DigitalOcean, GitHub, AWS)
