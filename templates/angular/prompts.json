@@ -2,7 +2,7 @@
   {
     "name": "appName",
     "message": "What is the name of your project?",
-    "default": "Test App"
+    "default": "default.commander.appName"
   },
   {
     "name": "appDescription",

@@ -22,8 +22,12 @@ replaceDot = (path) ->
 
 
 # Register module Commands
-module.exports = ({args, util, tasks, commander, assumptions, smash, user, platform}) ->
+module.exports = (globalConfig) ->
+  {args, util, tasks, commander, assumptions, smash, user, platform, getHelpers} = globalConfig
   {logger, notify, execute} = require '../config/util'
+
+  helpers = null
+
   prompts = []
   answers = {}
   target = null
@@ -62,16 +66,14 @@ module.exports = ({args, util, tasks, commander, assumptions, smash, user, platf
         process.exit 1
 
       prompts = require "#{smash.root}/templates/#{template}/prompts.json"
-
       # replace prompt default placeholders with global config values where appropriate
       for prompt in prompts
         if prompt.default and (typeof prompt.default is 'string') and (prompt.default.match /default\./)
           keys = prompt.default.replace('default.', '').split('.')
           prompt.default = switch
-            when keys[0] is 'user'
-              user[keys[1]]
-            when keys[0] is 'platform'
-              platform[keys[0]]
+            when keys[0] is 'user'      then user[keys[1]]
+            when keys[0] is 'platform'  then platform[keys[0]]
+            when keys[0] is 'commander' then target
 
       templateFiles = ->
         gulp.src [
@@ -89,8 +91,8 @@ module.exports = ({args, util, tasks, commander, assumptions, smash, user, platf
       done()
 
   # Generate app from template files
-  tasks.add 'generate:app', ['generate:prompt-new-app'], (done) ->
-    logger.info "Generating app '#{chalk.magenta(answers.appNameSlug)}' from template '#{chalk.yellow(template)}'"
+  tasks.add 'generate:app', ['generate:prompt-new-app'], ->
+    logger.info "Generating app '#{chalk.magenta(answers.appNameSlug)}' from template '#{chalk.yellow template}'"
     logger.info "Creating project directory #{chalk.magenta target}"
 
     fs.mkdirSync target  unless overwriteDir
@@ -98,32 +100,31 @@ module.exports = ({args, util, tasks, commander, assumptions, smash, user, platf
     templateFiles()
       .pipe $.using()
       .pipe $.template answers
-      .pipe $.rename replaceDot
       .pipe $.conflict '.'
+      .pipe $.rename replaceDot
       .pipe gulp.dest target
       .pipe $.install()
-      .on "end", done
-
 
   # Scaffold Tasks
-  
   tasks.add 'generate:component', (done) ->
-    logger.info 'Generating component'
+    logger.info "Generating #{chalk.magenta('components/' + target)}"
     done()
-
 
 
   # Expose commands
   commander
-    .command('generate <type> <path>')
-    # .alias('g')
+    .command('new <name>')
+    .alias('n')
     .description('generate app from template')
-    .action (type, path, options) ->
-      target = path
-      switch type
-        when 'app'
-          tasks.start 'generate:app'
-        when 'component'
-          tasks.start 'generate:component'
-        else
-          logger.error "I don't know how to generate '#{chalk.red target}'!"
+    .action (name, options) ->
+      target = name
+      tasks.start 'generate:app'
+
+  commander
+    .command('generate <name>')
+    .alias('g')
+    .description('generate component from template')
+    .action (name, options) ->
+      helpers = getHelpers()
+      target = name
+      tasks.start 'generate:component'

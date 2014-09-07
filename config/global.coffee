@@ -23,10 +23,7 @@ config = gitConfig.sync()
 user = config.user or {}
 user.homeDir = homeDir =   process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
 user.username = if config.github?.user? then config.github.user else homeDir?.split("/").pop() or 'root'
-
-format = (string) ->
-  username = string.toLowerCase()
-  username.replace /\s/g, ""
+format = (s) -> s.toLowerCase().replace /\s/g, ''
 
 
 # Platform
@@ -40,8 +37,7 @@ platform =
   cpus:               os.cpus()
   networkInterfaces:  os.networkInterfaces()
 
-
-module.exports =
+finalConfig =
   args:         argv
   util:         util
   assumptions:  assumptions
@@ -52,3 +48,18 @@ module.exports =
   smash:
     pkg:        smashPkg
     root:       smashRoot
+
+project = null
+finalConfig.getProject = ->
+  unless project
+    project = require './project'
+  project
+
+helpers = null
+finalConfig.getHelpers = ->
+  unless helpers
+    helpers = require('./helpers')(finalConfig)
+  helpers
+
+
+module.exports = finalConfig

@@ -1,19 +1,12 @@
 #!/usr/bin/env coffee
-
 argv =          require('minimist')(process.argv.slice 2)
 chalk =         require 'chalk'
 commander =     require 'commander'
 required =      require 'require-dir'
 
-
-project = require '../config/config'
-project.helpers = require '../config/helpers'
-project.commander = commander
-
 globalConfig = require '../config/global'
 
 {logger, notify, execute} = require '../config/util'
-{assets, tasks, args, dir, env} = project
 
 pkg = globalConfig.smash.pkg
 
@@ -26,49 +19,39 @@ commander
   .on '--help', ->
     console.log '  Examples:'
     console.log ''
-    console.log '    $ custom-help --help'
-    console.log '    $ custom-help -h'
+    console.log '    $ smash generate app my-new-app'
+    console.log '    $ smash generate component base/header'
     console.log ''
 
-commander
-  .command('*')
-  .usage('smash [options]')
-  .action (cmd, options) ->
-    console.log 'exec "%s" using %s mode', cmd, options.exec_mode
 
 # MAIN MODULES
-
-
 
 # App template generation/scaffolding
 require('../modules/generate')(globalConfig)
 
-# existing project
-if project.pkg
 
-  # Initialization
-  require('../modules/init')(project)
-
-  # Compile phase
-  require('../modules/compile')(project)
-
-  # Build phase
-  require('../modules/build')(project)
-
-  # # Deploy phase
-  require('../modules/deploy')(project)
-
-  # Test phase
-  require('../modules/test')(project)
+# # Initialization
+# require('../modules/init')(globalConfig)
+#
+# # Compile phase
+# require('../modules/compile')(globalConfig)
+#
+# # Build phase
+# require('../modules/build')(globalConfig)
+#
+# # # Deploy phase
+# require('../modules/deploy')(globalConfig)
+#
+# # Test phase
+# require('../modules/test')(globalConfig)
 
 
-  # EXTENDED FUNCTIONALITY
-  # Apps
-  require('../modules/apps')(project)
 
-  # Documentation generation
-  require('../modules/document')(project)
+# Apps
+# require('../modules/apps')(globalConfig)
 
+# Documentation generation
+require('../modules/document')(globalConfig)
 
-# commander.help()  if argv._.length is 0
 commander.parse process.argv
+commander.help()  if !commander.args.length

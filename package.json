@@ -19,7 +19,7 @@
     "chalk": "~0.4.0",
     "coffee-script": "~1.7.1",
     "coffeelint-stylish": "0.0.1",
-    "commander": "~2.2.0",
+    "commander": "git+ssh://git@github.com:visionmedia/commander.js.git",
     "event-stream": "~3.1.5",
     "exec": "~0.1.1",
     "git-config": "0.0.6",

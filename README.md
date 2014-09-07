@@ -6,8 +6,7 @@ This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automatio
 
 ## Installation
 
-`npm install smasher`
-
+`npm install -g smasher`
 
 
 ## Example Smashfile

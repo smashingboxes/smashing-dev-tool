@@ -2,12 +2,11 @@ fs =              require 'fs'
 open =            require 'open'
 gulp =            require 'gulp'                  # streaming build system
 _ =               require 'underscore'
+chalk =           require 'chalk'
 
 
-module.exports = (project) ->
-  {assets, tasks, args, dir, env, pkg, util, helpers, commander} = project
-  {files, compiledFiles, vendorFiles, copyFiles, time, filters, dest, colors, $, banner} = helpers
-  {logger, notify, execute} = util
+module.exports = ({args, util, tasks, commander, smash, user, platform, getProject, getHelpers}) ->
+  {logger, notify, execute} = require '../config/util'
 
   ###
   **[Groc](https://github.com/nevir/groc)**
@@ -22,6 +21,8 @@ module.exports = (project) ->
     read: false
 
   tasks.add 'docs', (done) ->
+    {assets, env, dir, pkg} = getProject()
+
     notify "Groc", "Generating documentation..."
 
     docsGlob = ["README.md"]
@@ -40,7 +41,7 @@ module.exports = (project) ->
 
     # Dynamically generate .groc.json from config
     fs.writeFile "#{env.configBase}/.groc.json", grocjson, 'utf8', ->
-      logger.info  colors.green 'Generated .groc.json from config'
+      logger.info  chalk.green 'Generated .groc.json from config'
 
       # Use our copy of Groc to generate documentation for the project
       require("#{env.configBase}/node_modules/fe_build/node_modules/groc").CLI [], (error)->
@@ -50,6 +51,8 @@ module.exports = (project) ->
         done()
 
   tasks.add 'docs:clean', (cb) ->
+    {assets, env, dir, pkg} = getProject()
+
     gulp.src dir.docs
      .pipe $.rimraf rimraf
 
