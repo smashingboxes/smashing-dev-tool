@@ -17,13 +17,14 @@ combine =         require 'stream-combiner'
 # <br><br><br>
 
 
-module.exports = (globalConfig) ->
+module.exports = (globalConfig, projectConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
-  {assets, pkg, env, dir, assumptions} = getProject()
+  {assets, pkg, env, dir, assumptions} = projectConfig
 
-  $ = require('gulp-load-plugins')(camelize: true, config: smash.pkg)
-  $.util = require 'gulp-util'
+  $ =             require('gulp-load-plugins')(camelize: true, config: smash.pkg)
+  $.util =        require 'gulp-util'
+  $.bowerFiles =  require 'main-bower-files'
 
   # gulp plugins
   $: $
@@ -37,7 +38,7 @@ module.exports = (globalConfig) ->
   @return {Object}
   ###
   files: (types...) ->
-    console.log 'getting files for ' + types.join ', '
+    logger.info "getting files for #{chalk.magenta types.join ',' }"
     # Ignore vendor files and tests
     source = [
       "!#{dir.client}/components/vendor/**/*"
@@ -73,8 +74,8 @@ module.exports = (globalConfig) ->
     for type in types
       source.push "**/*.#{type}"
 
-    $.bowerFiles()
-      .pipe $.filter source
+    gulp.src $.bowerFiles(), base: 'client/components/vendor'
+      .pipe($.filter source)
   # <br><br><br>
 
 

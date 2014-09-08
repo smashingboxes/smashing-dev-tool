@@ -5,17 +5,13 @@ commander =     require 'commander'
 required =      require 'require-dir'
 
 globalConfig = require '../config/global'
-
-{logger, notify, execute} = require '../config/util'
-
-pkg = globalConfig.smash.pkg
+{logger, notify, execute} = globalConfig.util
 
 # Configure Commander.js
 commander
-  .version('1.0')
+  .version(globalConfig.smash.pkg.version)
   .option('-v, --verbose',         'Display detailed log information')
   .option('-s, --silent',          'Hide all logs and notifications')
-  .option('-w, --watch',          'Watch assets for changes')
   .on '--help', ->
     console.log '  Examples:'
     console.log ''
@@ -29,26 +25,25 @@ commander
 # App template generation/scaffolding
 require('../modules/generate')(globalConfig)
 
+# Initialization
+require('../modules/init')(globalConfig)
 
-# # Initialization
-# require('../modules/init')(globalConfig)
-#
-# # Compile phase
-# require('../modules/compile')(globalConfig)
-#
-# # Build phase
-# require('../modules/build')(globalConfig)
-#
-# # # Deploy phase
-# require('../modules/deploy')(globalConfig)
-#
-# # Test phase
-# require('../modules/test')(globalConfig)
+# Compile phase
+require('../modules/compile')(globalConfig)
+
+# Build phase
+require('../modules/build')(globalConfig)
+
+# Deploy phase
+require('../modules/deploy')(globalConfig)
+
+# Test phase
+require('../modules/test')(globalConfig)
 
 
 
 # Apps
-# require('../modules/apps')(globalConfig)
+require('../modules/apps')(globalConfig)
 
 # Documentation generation
 require('../modules/document')(globalConfig)

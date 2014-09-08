@@ -55,11 +55,4 @@ finalConfig.getProject = ->
     project = require './project'
   project
 
-helpers = null
-finalConfig.getHelpers = ->
-  unless helpers
-    helpers = require('./helpers')(finalConfig)
-  helpers
-
-
 module.exports = finalConfig

@@ -4,9 +4,9 @@ inquire =       require 'inquirer'
 
 
 # Register module Commands
-module.exports = ({assets, tasks, args, dir, env, pkg, util, helpers, commander}) ->
-  {files, vendorFiles, copyFiles, time, filters, dest, colors} = helpers
-  {logger, notify, execute, $} = util
+module.exports = (globalConfig) ->
+  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
+  {logger, notify, execute} = util
 
   # API Access
   do_key = '67f797894ee8624b9dc72b5be7bd44d6639907aa522cb20f2b9a4169dd00a3a6'

@@ -1,15 +1,14 @@
 
-module.exports = (project) ->
-  {assets, tasks, args, dir, env, pkg, util, helpers, commander} = project
-  {files, vendorFiles, copyFiles, time, filters, dest, colors, $} = helpers
+module.exports = (globalConfig) ->
+  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
 
-  require('../phases/build/data')(project)
-  require('../phases/build/images')(project)
-  require('../phases/build/scripts')(project)
-  require('../phases/build/styles')(project)
-  require('../phases/build/vendor')(project)
-  require('../phases/build/views')(project)
+  require('../phases/build/data')(globalConfig)
+  require('../phases/build/images')(globalConfig)
+  require('../phases/build/scripts')(globalConfig)
+  require('../phases/build/styles')(globalConfig)
+  require('../phases/build/vendor')(globalConfig)
+  require('../phases/build/views')(globalConfig)
 
   commander
     .command('build')

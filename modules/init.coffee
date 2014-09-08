@@ -1,6 +1,6 @@
-module.exports = ({assets, tasks, args, dir, env, pkg, util, helpers, commander}) ->
-  {files, vendorFiles, copyFiles, time, filters, dest, colors} = helpers
-  {logger, notify, execute, $} = util
+module.exports = (globalConfig) ->
+  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
+  {logger, notify, execute} = util
 
   # Setup
   commander
@@ -8,6 +8,9 @@ module.exports = ({assets, tasks, args, dir, env, pkg, util, helpers, commander}
     .description('set up project to use the Smasher')
     .option('-b, --bold',         'Display detailed log information')
     .action(->
+      {assets, env, dir, pkg, helpers} = getProject()
+      {files, vendorFiles, compiledFiles, copyFiles, banner, dest, time, $} = helpers
+      
       console.log 'setup'
     ).on '--help', ->
       console.log '  Examples:'

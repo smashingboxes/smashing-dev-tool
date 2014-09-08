@@ -5,8 +5,9 @@ _ =               require 'underscore'
 chalk =           require 'chalk'
 
 
-module.exports = ({args, util, tasks, commander, smash, user, platform, getProject, getHelpers}) ->
-  {logger, notify, execute} = require '../config/util'
+module.exports = (globalConfig) ->
+  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
+  {logger, notify, execute} = util
 
   ###
   **[Groc](https://github.com/nevir/groc)**
@@ -21,7 +22,7 @@ module.exports = ({args, util, tasks, commander, smash, user, platform, getProje
     read: false
 
   tasks.add 'docs', (done) ->
-    {assets, env, dir, pkg} = getProject()
+    {assets, env, dir, pkg, helpers} = getProject()
 
     notify "Groc", "Generating documentation..."
 

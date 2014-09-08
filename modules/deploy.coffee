@@ -1,8 +1,12 @@
+chalk = require 'chalk'
 
-
-module.exports = (project) ->
-  {assets, tasks, args, dir, env, pkg, util, helpers, commander} = project
-  {files, compiledFiles, vendorFiles, copyFiles, time, filters, dest, colors, $, banner} = helpers
+module.exports = (globalConfig) ->
+  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
 
-  # require ('../phases/deploy')(project)
+  commander
+    .command('deploy <target>')
+    .alias('d')
+    .description('Deploy code to a remote target')
+    .action (target) ->
+      logger.info "Deploying code to #{chalk.yellow target}"

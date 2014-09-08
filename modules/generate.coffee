@@ -23,7 +23,7 @@ replaceDot = (path) ->
 
 # Register module Commands
 module.exports = (globalConfig) ->
-  {args, util, tasks, commander, assumptions, smash, user, platform, getHelpers} = globalConfig
+  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = require '../config/util'
 
   helpers = null
@@ -110,7 +110,6 @@ module.exports = (globalConfig) ->
     logger.info "Generating #{chalk.magenta('components/' + target)}"
     done()
 
-
   # Expose commands
   commander
     .command('new <name>')
@@ -125,6 +124,6 @@ module.exports = (globalConfig) ->
     .alias('g')
     .description('generate component from template')
     .action (name, options) ->
-      helpers = getHelpers()
+      helpers = getProject().helpers
       target = name
       tasks.start 'generate:component'
