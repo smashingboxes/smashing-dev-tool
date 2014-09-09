@@ -34,7 +34,7 @@ This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automatio
 ```
 
 ## TODO/Future
-
++ ~~Compile and build source code (replaces Rails Asset Pipeline)~~
 + Automated testing of source code
 + ~~documentation generation from source (via Groc)~~
 + ~~project generation and scaffolding (a la Yeoman)~~
