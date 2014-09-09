@@ -13,7 +13,7 @@ $ =
   rename:       require 'gulp-rename'
   install:      require 'gulp-install'
 
-templates = ['ember', 'polymer', 'angular']
+templates = ['ember', 'polymer', 'angular', 'angular-amd']
 
 replaceDot = (path) ->
   if path.basename[0] is "_"

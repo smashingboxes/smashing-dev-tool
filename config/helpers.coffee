@@ -22,7 +22,13 @@ module.exports = (globalConfig, projectConfig) ->
   {logger, notify, execute} = util
   {assets, pkg, env, dir, assumptions} = projectConfig
 
-  $ =             require('gulp-load-plugins')(camelize: true, config: smash.pkg)
+
+  $ = require('gulp-load-plugins')(
+    camelize: true
+    config: smash.pkg
+    scope: ['dependencies']
+  )
+
   $.util =        require 'gulp-util'
   $.bowerFiles =  require 'main-bower-files'
 
@@ -59,6 +65,17 @@ module.exports = (globalConfig, projectConfig) ->
     else
       gulp.src(source)
         .pipe $.cached('main')
+  # <br><br><br>
+
+  serverFiles: (types...) ->
+    logger.info "getting server files for #{chalk.magenta types.join ',' }"
+
+    source = []
+    for type in types
+      source.push "#{dir.server}/**/*.#{type}"
+
+    gulp.src(source)
+      .pipe $.cached('main')
   # <br><br><br>
 
 

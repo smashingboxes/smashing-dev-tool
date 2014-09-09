@@ -10,6 +10,6 @@ module.exports = (globalConfig) ->
 
     files('html')
       .pipe($.using())
-      .pipe($.htmlhint htmlhintrc)
-      .pipe($.htmlhint.reporter())
+      # .pipe($.htmlhint htmlhintrc)
+      # .pipe($.htmlhint.reporter())
       .pipe(dest.compile())

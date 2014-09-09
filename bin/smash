@@ -26,7 +26,7 @@ commander
 require('../modules/generate')(globalConfig)
 
 # Initialization
-require('../modules/init')(globalConfig)
+# require('../modules/init')(globalConfig)
 
 # Compile phase
 require('../modules/compile')(globalConfig)
@@ -39,6 +39,9 @@ require('../modules/deploy')(globalConfig)
 
 # Test phase
 require('../modules/test')(globalConfig)
+
+# Server
+require('../modules/serve')(globalConfig)
 
 
 

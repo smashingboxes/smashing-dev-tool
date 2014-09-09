@@ -16,9 +16,10 @@ module.exports = (globalConfig) ->
   commander
     .command('compile')
     .alias('c')
+    .option('-w, --watch', 'Watch files and recompile on change')
     .description('compile local assets based on Smashfile')
     .action ->
       {assets} = getProject()
-      
+
       toRun = ("compile:#{ext}" for ext, asset of assets)
       tasks.start toRun
