@@ -52,10 +52,12 @@ module.exports = (globalConfig) ->
         done()
 
   tasks.add 'docs:clean', (cb) ->
-    {assets, env, dir, pkg} = getProject()
+    {assets, env, dir, pkg, helpers} = getProject()
+    $ = helpers.$
 
     gulp.src dir.docs
-     .pipe $.rimraf rimraf
+      .pipe $.using()
+      .pipe $.rimraf force:true, read:false
 
   commander
     .command('docs')

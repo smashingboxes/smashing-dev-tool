@@ -25,6 +25,10 @@ commander
 # App template generation/scaffolding
 require('../modules/generate')(globalConfig)
 
+# Remove compiled files
+require('../modules/clean')(globalConfig)
+
+
 # Initialization
 # require('../modules/init')(globalConfig)
 

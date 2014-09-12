@@ -3,8 +3,12 @@ html(lang='en')
 head
   meta(charset='utf-8')
   title <%= appNameSlug %>
-  script(data-main='js/main.js', src='components/vendor/requirejs/require.js')
+  script(data-main='main.js', src='components/vendor/requirejs/require.js')
+
+  link(rel='stylesheet', href='app.css')
 
 body
   h1 <%= appNameSlug %>
+  p.intro Welcome! If you're viewing this that means you've successfully generated a project!
+
   div(ng-view='ng-view')

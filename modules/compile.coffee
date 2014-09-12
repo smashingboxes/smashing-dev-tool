@@ -1,4 +1,5 @@
 required =      require 'require-dir'
+gulp =          require 'gulp'
 
 module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
@@ -19,7 +20,29 @@ module.exports = (globalConfig) ->
     .option('-w, --watch', 'Watch files and recompile on change')
     .description('compile local assets based on Smashfile')
     .action ->
-      {assets} = getProject()
+      {assets, helpers, dir} = getProject()
+      {vendorFiles, $} = helpers
+      vendorFiles('*')
+        .pipe($.using())
+        .pipe(gulp.dest "#{dir.compile}/components/vendor")
+      tasks.start ("compile:#{ext}" for ext, asset of assets)
 
-      toRun = ("compile:#{ext}" for ext, asset of assets)
-      tasks.start toRun
+
+  tasks.add 'compile:watch', ->
+    {assets, helpers, dir} = getProject()
+    {vendorFiles, $} = helpers
+    vendorFiles('*')
+      .pipe($.using())
+      .pipe(gulp.dest "#{dir.compile}/components/vendor")
+
+    globalConfig.watching = true
+    tasks.start ("compile:#{ext}" for ext, asset of assets)
+
+
+  tasks.add 'compile:clean', ->
+    {assets, helpers, dir} = getProject()
+    $ = helpers.$
+
+    gulp.src dir.compile
+      .pipe $.using()
+      .pipe $.rimraf force:true, read:false

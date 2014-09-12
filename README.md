@@ -35,10 +35,10 @@ This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automatio
 
 ## TODO/Future
 + ~~Compile and build source code (replaces Rails Asset Pipeline)~~
-+ Automated testing of source code
-+ ~~documentation generation from source (via Groc)~~
-+ ~~project generation and scaffolding (a la Yeoman)~~
++ Automated testing of source code (unit, e2e)
++ ~~Documentation generation from source (via Groc)~~
++ ~~Project generation and scaffolding (a la Yeoman)~~
 + Component guide generation
++ API mocking, test data generation
 + UI/UX deliverables generated from source code (style tiles, etc.)
-+ Provisioning of dev resorces (DigitalOcean, GitHub, AWS)
-+ Generate static Gulpfile based on app configuration (for handing off code w/o requiring use of this tool)
++ Provisioning of dev resources (DigitalOcean, GitHub, AWS)

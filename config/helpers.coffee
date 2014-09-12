@@ -57,7 +57,7 @@ module.exports = (globalConfig, projectConfig) ->
     # We can attach any tasks that should be run on all files here.
     # In this case, we add a reference to the global file cache to
     # enable incremental builds.
-    if args.watch
+    if args.watch or globalConfig.watching
       gulp.src(source, cwd: env.configBase )
         .pipe $.cached('main')
         .pipe $.watch()
@@ -113,7 +113,7 @@ module.exports = (globalConfig, projectConfig) ->
     for type in types
       source.push "#{dir.compile}/**/*.#{type}"
 
-    if args.watch
+    if args.watch or globalConfig.watching
       gulp.src(source)
         .pipe $.cached('main')
         .pipe $.watch()
@@ -121,6 +121,29 @@ module.exports = (globalConfig, projectConfig) ->
     else
       gulp.src(source)
   # <br><br><br>
+
+
+  ###
+  Returns a source pipe containing built asset files.
+  @method builtFiles
+  @param {...String} types The desired file types
+  @return {Object}
+  ###
+  builtFiles: (types...) ->
+    # Ignore vendor files
+    source = ["!#{dir.build}/components/vendor/**/*"]
+
+    for type in types
+      source.push "#{dir.build}/**/*.#{type}"
+
+    if args.watch or globalConfig.watching
+      gulp.src(source)
+        .pipe $.watch()
+        .pipe $.plumber()
+    else
+      gulp.src(source)
+  # <br><br><br>
+
 
 
   ###
