@@ -35,6 +35,10 @@ module.exports = (globalConfig, projectConfig) ->
   # gulp plugins
   $: $
 
+  mainFile: ->
+    source = ["#{dir.client}/main.*"]
+    gulp.src(source)
+
   ###
   Returns a source pipe for a given asset type. This gives us
   a place to attach plugins that should be used for all asset groups
@@ -87,6 +91,7 @@ module.exports = (globalConfig, projectConfig) ->
   @return {Object}
   ###
   vendorFiles: (types...) ->
+    logger.info 'getting vendor files'
     source = []
     for type in types
       source.push "**/*.#{type}"
@@ -104,12 +109,7 @@ module.exports = (globalConfig, projectConfig) ->
   @return {Object}
   ###
   compiledFiles: (types...) ->
-    # Ignore vendor files
-    source = [
-      "!#{dir.compile}/components/vendor/**/*",
-      # "!#{dir.compile}/components/common/**/*"
-    ]
-
+    source = []
     for type in types
       source.push "#{dir.compile}/**/*.#{type}"
 

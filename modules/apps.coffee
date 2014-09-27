@@ -24,27 +24,9 @@ module.exports = (globalConfig) ->
     key: "87b39d7b6116996a64a2"
     secret: "313b60a654df8a5efcd3449074557c4087dd57db"
     token: "0a95788d83ff7b526d493351a13f22dbd522fd6e"
+    
 
-
-  # Configure module Tasks
-  tasks.add 'apps:list:github', ->
-    logger.info 'getting apps from GitHub'
-    github.repos.getFromOrg
-      type: 'all'
-      org: 'smashingBoxes'
-      (err, res) ->
-        for r in res
-          console.log r.name
-
-  tasks.add 'apps:list:digitalocean', ->
-    logger.info 'getting apps from DigitalOcean'
-    rest
-      .get('https://api.digitalocean.com/v2/droplets', accessToken: do_key)
-      .on('complete', (result)->
-        for ret in result.droplets
-          console.log ret.name
-      )
-
+  ### ---------------- COMMANDS ------------------------------------------- ###
   commander
     .command('apps')
     .description('deploy application to specified remote enviornment')
@@ -69,3 +51,24 @@ module.exports = (globalConfig) ->
                 tasks.start('apps:list:digitalocean')
               when 'github'
                 tasks.start('apps:list:github')
+
+
+
+  ### ---------------- TASKS ---------------------------------------------- ###
+  tasks.add 'apps:list:github', ->
+    logger.info 'getting apps from GitHub'
+    github.repos.getFromOrg
+      type: 'all'
+      org: 'smashingBoxes'
+      (err, res) ->
+        for r in res
+          console.log r.name
+
+  tasks.add 'apps:list:digitalocean', ->
+    logger.info 'getting apps from DigitalOcean'
+    rest
+      .get('https://api.digitalocean.com/v2/droplets', accessToken: do_key)
+      .on('complete', (result)->
+        for ret in result.droplets
+          console.log ret.name
+      )

@@ -3,3 +3,4 @@ client/components/vendor
 build
 compile
 deploy
+docs

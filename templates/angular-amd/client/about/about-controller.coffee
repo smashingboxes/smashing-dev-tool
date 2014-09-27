@@ -1,5 +1,7 @@
 define [
   'app'
+  '../components/common/header/header-directive.js'
+  '../components/common/header/main-nav-directive.js'
 ], (app) ->
 
   app.register.controller 'aboutController', [

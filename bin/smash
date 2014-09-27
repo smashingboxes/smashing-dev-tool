@@ -22,6 +22,9 @@ commander
 
 # MAIN MODULES
 
+# require('../modules/builder')(globalConfig)
+
+
 # App template generation/scaffolding
 require('../modules/generate')(globalConfig)
 

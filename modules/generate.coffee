@@ -13,21 +13,11 @@ $ =
   rename:       require 'gulp-rename'
   install:      require 'gulp-install'
 
-templates = ['ember', 'polymer', 'angular', 'angular-amd']
-
-replaceDot = (path) ->
-  if path.basename[0] is "_"
-    path.basename = ".#{path.basename.slice 1}"
-  path
-
-
-# Register module Commands
 module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = require '../config/util'
 
   helpers = null
-
   prompts = []
   answers = {}
   target = null
@@ -35,8 +25,34 @@ module.exports = (globalConfig) ->
   templateFiles = null
   overwriteDir = false
 
-  # New App
+  templates = ['ember', 'polymer', 'angular', 'angular-amd']
 
+  replaceDot = (path) ->
+    if path.basename[0] is "_"
+      path.basename = ".#{path.basename.slice 1}"
+    path
+
+
+  ### ---------------- COMMANDS ------------------------------------------- ###
+  commander
+    .command('new <name>')
+    .alias('n')
+    .description('generate app from template')
+    .action (name, options) ->
+      target = name
+      tasks.start 'generate:app'
+
+  commander
+    .command('generate <name>')
+    .alias('g')
+    .description('generate component from template')
+    .action (name, options) ->
+      helpers = getProject().helpers
+      target = name
+      tasks.start 'generate:component'
+
+
+  ### ---------------- TASKS ---------------------------------------------- ###
   # Handle existing folder
   tasks.add 'generate:check-dir', (done) ->
     if fs.existsSync target
@@ -109,21 +125,3 @@ module.exports = (globalConfig) ->
   tasks.add 'generate:component', (done) ->
     logger.info "Generating #{chalk.magenta('components/' + target)}"
     done()
-
-  # Expose commands
-  commander
-    .command('new <name>')
-    .alias('n')
-    .description('generate app from template')
-    .action (name, options) ->
-      target = name
-      tasks.start 'generate:app'
-
-  commander
-    .command('generate <name>')
-    .alias('g')
-    .description('generate component from template')
-    .action (name, options) ->
-      helpers = getProject().helpers
-      target = name
-      tasks.start 'generate:component'

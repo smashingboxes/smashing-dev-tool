@@ -3,7 +3,7 @@ define [
   'angular-route'
   'angular-animate'
 ], (angularAMD) ->
-  app = angular.module('sb-app', ['ngRoute', 'ngAnimate'])
+  app = angular.module('<%= appNameSlug %>', ['ngRoute', 'ngAnimate'])
 
   # Configure Angular ngApp with route and cache the needed providers
   app.config ['$routeProvider', '$locationProvider', ($routeProvider, $locationProvider) ->
@@ -20,7 +20,7 @@ define [
   ]
 
   # Define constant to be used by Google Analytics
-  app.constant 'SiteName', 'sb-app'
+  app.constant 'SiteName', '<%= appNameSlug %>'
 
   # Bootstrap Angular when DOM is ready
   angularAMD.bootstrap app

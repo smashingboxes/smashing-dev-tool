@@ -1,0 +1,25 @@
+module.exports = (globalConfig) ->
+
+  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
+  {logger, notify, execute} = util
+
+  {assets, env, dir, pkg, helpers} = project = getProject()
+  {files, vendorFiles, compiledFiles, copyFiles, banner, dest, time, $} = helpers
+
+
+  ### ---------------- TASKS ---------------------------------------------- ###
+  tasks.add 'compile:json', ->
+    recipe files('json')
+      .lint()
+      .pipe $.if args.verbose, $.using()
+      .pipe $.size title:'json'
+
+
+  ### ---------------- RECIPE ----------------------------------------------- ###
+  recipe = (stream) ->
+    stream.lint = ->
+      @
+        .pipe $.jsonlint()
+        .pipe $.jsonlint.reporter()
+      @
+    stream

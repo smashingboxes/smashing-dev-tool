@@ -2,6 +2,8 @@ module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
 
+
+  ### ---------------- COMMANDS ------------------------------------------- ###
   # Setup
   commander
     .command('setup')
@@ -10,7 +12,7 @@ module.exports = (globalConfig) ->
     .action(->
       {assets, env, dir, pkg, helpers} = getProject()
       {files, vendorFiles, compiledFiles, copyFiles, banner, dest, time, $} = helpers
-      
+
       console.log 'setup'
     ).on '--help', ->
       console.log '  Examples:'
@@ -18,7 +20,6 @@ module.exports = (globalConfig) ->
       console.log '    $ deploy exec sequential'
       console.log '    $ deploy exec async'
       console.log ''
-
 
   # Run
   commander

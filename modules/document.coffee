@@ -9,18 +9,20 @@ module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
 
-  ###
-  **[Groc](https://github.com/nevir/groc)**
-
-  Groc takes your documented code and generates documentation that follows
-  the spirit of literate programming. This ensures documentation is always
-  up-to-date and in sync with the source code.
-  ###
-
   rimraf =
     force: true
     read: false
 
+
+  ### ---------------- COMMANDS ------------------------------------------- ###
+  commander
+    .command('docs')
+    .description('Generate documentation based on source code')
+    .action ->
+      tasks.start 'docs'
+
+
+  ### ---------------- TASKS ---------------------------------------------- ###
   tasks.add 'docs', (done) ->
     {assets, env, dir, pkg, helpers} = getProject()
 
@@ -28,7 +30,9 @@ module.exports = (globalConfig) ->
 
     docsGlob = ["README.md"]
     for key, val of assets
-      docsGlob.push "#{dir.client}/**/*.#{val.ext}" if val.doc
+      if val.doc
+        docsGlob.push "#{dir.client}/**/*.#{val.ext}"
+        docsGlob.push "#{dir.server}**.*.#{val.ext}"
 
     grocjson = JSON.stringify
       'glob': docsGlob
@@ -58,9 +62,3 @@ module.exports = (globalConfig) ->
     gulp.src dir.docs
       .pipe $.using()
       .pipe $.rimraf force:true, read:false
-
-  commander
-    .command('docs')
-    .description('Generate documentation based on source code')
-    .action ->
-      tasks.start 'docs'

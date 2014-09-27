@@ -3,11 +3,6 @@ require.config
 
   # alias libraries paths
   paths:
-    angular:             'components/vendor/angular/angular'
-    angularAMD:          'components/vendor/angularAMD/angularAMD'
-    'angular-route':     'components/vendor/angular-route/angular-route'
-    'angular-animate':   'components/vendor/angular-animate/angular-animate'
-    underscore:          'components/vendor/underscore/underscore'
     ngload:              'ngload'
 
     homeController:      'home/home-controller'

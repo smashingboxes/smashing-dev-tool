@@ -4,6 +4,8 @@ module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
 
+
+  ### ---------------- COMMANDS ------------------------------------------- ###
   commander
     .command('deploy <target>')
     .alias('d')

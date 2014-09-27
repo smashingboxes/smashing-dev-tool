@@ -1,42 +1,67 @@
-required =      require 'require-dir'
-gulp =          require 'gulp'
+required       = require 'require-dir'
+gulp           = require 'gulp'
+lazypipe       = require 'lazypipe'
+_              = require 'underscore'
+merge          = require 'merge-stream'
+amdOptimize    = require 'amd-optimize'
+bowerRequireJS = require 'bower-requirejs'
 
 module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
+  {assets, helpers, dir, env} = getProject()
+  {vendorFiles, mainFile, compiledFiles, files, dest, $} = helpers
 
-  require('../phases/compile/coffee')(globalConfig)
-  require('../phases/compile/css')(globalConfig)
-  require('../phases/compile/data')(globalConfig)
-  require('../phases/compile/html')(globalConfig)
-  require('../phases/compile/jade')(globalConfig)
-  require('../phases/compile/js')(globalConfig)
-  require('../phases/compile/styl')(globalConfig)
-  require('../phases/compile/vendor')(globalConfig)
+  recipes = {}
+  for recipe in ['coffee', 'js', 'styl', 'css', 'jade', 'html', 'json', 'vendor']
+    recipes[recipe] = require("../recipes/#{recipe}")(globalConfig)
 
+
+  ### ---------------- COMMANDS ------------------------------------------- ###
   commander
     .command('compile')
     .alias('c')
     .option('-w, --watch', 'Watch files and recompile on change')
     .description('compile local assets based on Smashfile')
     .action ->
-      {assets, helpers, dir} = getProject()
-      {vendorFiles, $} = helpers
-      vendorFiles('*')
-        .pipe($.using())
-        .pipe(gulp.dest "#{dir.compile}/components/vendor")
-      tasks.start ("compile:#{ext}" for ext, asset of assets)
+      # if args.watch? or globalConfig.watching?
+      #   tasks.start 'compile:watch'
+      # else
+      #   tasks.start 'compile'
+      logger.warn '--- COMPILE TEST ---'
 
 
-  tasks.add 'compile:watch', ->
-    {assets, helpers, dir} = getProject()
-    {vendorFiles, $} = helpers
-    vendorFiles('*')
-      .pipe($.using())
-      .pipe(gulp.dest "#{dir.compile}/components/vendor")
+  ### ---------------- TASKS ---------------------------------------------- ###
+  tasks.add 'compile', ['compile:clean'], (done)->
+    tasks.start ['compile:bower'].concat("compile:#{ext}" for ext, asset of assets), done
 
+  tasks.add 'compile:watch', (done) ->
+    args.watch = true
     globalConfig.watching = true
-    tasks.start ("compile:#{ext}" for ext, asset of assets)
+
+    tasks.start ['compile:bower'].concat("compile:#{ext}" for ext, asset of assets)
+    gulp.watch("#{dir.compile}/main.js", ['compile:bower'])
+
+
+
+  gulp.task 'compile:require-main', ->
+    mainFile()
+      .pipe $.coffee()
+      .pipe $.using()
+      .pipe dest.compile()
+
+  gulp.task 'compile:bower', (done) ->
+    bowerRequire =
+      config: "#{env.configBase}/#{dir.compile}/main.js"
+      transitive: true
+    bowerRequireJS bowerRequire, (rjsConfigFromBower) -> done()
+
+  tasks.add 'compile:bower', ['compile:coffee', 'compile:vendor'], (done) ->
+    bowerRequire =
+      config: "#{env.configBase}/#{dir.compile}/main.js"
+      transitive: true
+    bowerRequireJS bowerRequire, (rjsConfigFromBower) -> done()
+
 
 
   tasks.add 'compile:clean', ->
