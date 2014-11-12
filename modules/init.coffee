@@ -11,7 +11,7 @@ module.exports = (globalConfig) ->
     .option('-b, --bold',         'Display detailed log information')
     .action(->
       {assets, env, dir, pkg, helpers} = getProject()
-      {files, vendorFiles, compiledFiles, copyFiles, banner, dest, time, $} = helpers
+      {files, vendorFiles, compiledFiles,  banner, dest, time, $} = helpers
 
       console.log 'setup'
     ).on '--help', ->

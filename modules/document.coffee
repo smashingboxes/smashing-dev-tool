@@ -3,15 +3,12 @@ open =            require 'open'
 gulp =            require 'gulp'                  # streaming build system
 _ =               require 'underscore'
 chalk =           require 'chalk'
+del =       require 'del'
 
 
 module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
-
-  rimraf =
-    force: true
-    read: false
 
 
   ### ---------------- COMMANDS ------------------------------------------- ###
@@ -58,7 +55,4 @@ module.exports = (globalConfig) ->
   tasks.add 'docs:clean', (cb) ->
     {assets, env, dir, pkg, helpers} = getProject()
     $ = helpers.$
-
-    gulp.src dir.docs
-      .pipe $.using()
-      .pipe $.rimraf force:true, read:false
+    del [dir.docs]

@@ -4,7 +4,7 @@ module.exports = (globalConfig) ->
   {logger, notify, execute} = util
 
   {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, vendorFiles, compiledFiles, copyFiles, banner, dest, time, $} = helpers
+  {files, vendorFiles, compiledFiles,  banner, dest, time, $} = helpers
 
   cfg =
     ngAnnotate:
@@ -22,26 +22,26 @@ module.exports = (globalConfig) ->
 
   ### ---------------- TASKS ---------------------------------------------- ###
   tasks.add 'compile:js', ->
-    recipe files('js')
+    recipe files '.js'
       .lint()
       .compile()
       .postProcess()
       .pipe $.if args.verbose, $.using()
       .pipe $.size title:'js'
       .pipe dest.compile()
+      .pipe $.if args.reload, $.reload stream:true
 
 
   tasks.add 'build:js', ->
     bowerRequireJS cfg.bowerRequire, (rjsConfigFromBower) ->
       buildConfig = require '../../config/build.config'
-      recipe compiledFiles('js')
+      recipe files 'compile', '.js'
         .pipe $.requirejs buildConfig
         .concat()
         .optimize()
         .pipe $.if args.verbose, $.using()
         .pipe $.size title:'js'
         .pipe dest.build()
-
 
 
 

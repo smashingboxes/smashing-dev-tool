@@ -4,26 +4,26 @@ module.exports = (globalConfig) ->
   {logger, notify, execute} = util
 
   {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, vendorFiles, compiledFiles, copyFiles, banner, dest, time, $} = helpers
+  {files, vendorFiles, compiledFiles,  banner, dest, time, $} = helpers
 
   cfg =
-    csso: false # set to true to prevent structural modifications
+    csso:                      false # set to true to prevent structural modifications
     css2js:
-      splitOnNewline: true
+      splitOnNewline:          true
       trimSpacesBeforeNewline: true
-      trimTrailingNewline: true
+      trimTrailingNewline:     true
     myth:
-      sourcemap: false
+      sourcemap:               false
 
   ### ---------------- TASKS ---------------------------------------------- ###
-  tasks.add 'compile:css', ['compile:vendor', 'compile:styl'], ->
-    recipe files('css')
+  tasks.add 'compile:css', ->
+    recipe files '.css'
       .lint()
       .postProcess()
-      .concat()
       .pipe $.if args.verbose, $.using()
       .pipe $.size title:'css'
       .pipe dest.compile()
+      .pipe $.if args.reload, $.reload stream:true
 
 
   ### ---------------- RECIPE --------------------------------------------- ###
@@ -47,8 +47,8 @@ module.exports = (globalConfig) ->
 
     stream.concat = ->
       @
-        .pipe $.if globalConfig.watching, $.continuousConcat 'app-styles.css'
-        .pipe $.if !globalConfig.watching, $.concat 'app-styles.css'
+        .pipe $.if args.watch, $.continuousConcat 'app-styles.css'
+        .pipe $.if !args.watch, $.concat 'app-styles.css'
         .pipe $.css2js()
         .pipe $.wrapAmd()
       @

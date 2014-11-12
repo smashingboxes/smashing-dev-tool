@@ -1,4 +1,5 @@
 gulp =      require 'gulp'
+del =       require 'del'
 
 
 module.exports = (globalConfig) ->
@@ -20,10 +21,10 @@ module.exports = (globalConfig) ->
       #   'build:images'
       # ]
 
-  
+
   ### ---------------- TASKS ------------------------------ ---------------- ###
   tasks.add 'build:watch', ->
-    globalConfig.watching = true
+    args.watch = true
     # tasks.start [
     #   'build:scripts'
     #   'build:styles'
@@ -33,9 +34,6 @@ module.exports = (globalConfig) ->
     #   'build:images'
     # ]
 
-  tasks.add 'build:clean', ->
-    {assets, helpers, dir} = getProject()
-    $ = helpers.$
-    gulp.src dir.build
-      .pipe $.using()
-      .pipe $.rimraf force:true, read:false
+  tasks.add 'build:clean', (done) ->
+    {assets, env, dir, pkg, helpers} = getProject()
+    del [dir.build], done

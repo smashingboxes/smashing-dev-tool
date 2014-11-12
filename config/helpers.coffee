@@ -14,6 +14,10 @@ through =         require 'through2'
 lazypipe =        require 'lazypipe'              # re-use partial streams
 runSequence =     require 'run-sequence'          # execute tasks in parallel or series
 combine =         require 'stream-combiner'
+
+browserSync =     require 'browser-sync'
+reload =          browserSync.reload
+
 # <br><br><br>
 
 
@@ -21,7 +25,6 @@ module.exports = (globalConfig, projectConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
   {assets, pkg, env, dir, assumptions} = projectConfig
-
 
   $ = require('gulp-load-plugins')(
     camelize: true
@@ -31,13 +34,10 @@ module.exports = (globalConfig, projectConfig) ->
 
   $.util =        require 'gulp-util'
   $.bowerFiles =  require 'main-bower-files'
+  $.reload =      reload
 
   # gulp plugins
   $: $
-
-  mainFile: ->
-    source = ["#{dir.client}/main.*"]
-    gulp.src(source)
 
   ###
   Returns a source pipe for a given asset type. This gives us
@@ -47,141 +47,96 @@ module.exports = (globalConfig, projectConfig) ->
   @param {...String} types The desired file types
   @return {Object}
   ###
-  files: (types...) ->
-    logger.info "getting files for #{chalk.magenta types.join ',' }"
-    # Ignore vendor files and tests
-    source = [
-      "!#{dir.client}/components/vendor/**/*"
-      "!**/*_test.*"
-    ]
+  files: (src, types, read=true, excludes) ->
+    options =
+      read:read
+      base: 'client'
+    excludeVendor = true
+    _excludes = []
 
-    for type in types
-      source.push "#{dir.client}/**/*.#{type}"
+    logger.debug "file: #{src}"
 
-    # We can attach any tasks that should be run on all files here.
-    # In this case, we add a reference to the global file cache to
-    # enable incremental builds.
-    if args.watch or globalConfig.watching
-      gulp.src(source, cwd: env.configBase )
-        .pipe $.cached('main')
-        .pipe $.watch()
-        .pipe $.plumber()
-    else
-      gulp.src(source)
-        .pipe $.cached('main')
-  # <br><br><br>
-
-  serverFiles: (types...) ->
-    logger.info "getting server files for #{chalk.magenta types.join ',' }"
-
-    source = []
-    for type in types
-      source.push "#{dir.server}/**/*.#{type}"
-
-    gulp.src(source)
-      .pipe $.cached('main')
-  # <br><br><br>
-
-
-  ###
-  Returns a source pipe containing assets from `bower_components`,
-  optionally filtered to a specific file type.
-  @method vendorFiles
-  @param {...String} types The desired file types
-  @return {Object}
-  ###
-  vendorFiles: (types...) ->
-    logger.info 'getting vendor files'
-    source = []
-    for type in types
-      source.push "**/*.#{type}"
-
-    gulp.src $.bowerFiles(), base: 'client/components/vendor'
-      .pipe($.filter source)
-  # <br><br><br>
-
-
-  ###
-  Returns a source pipe containing assets from `bower_components`,
-  optionally filtered to a specific file type.
-  @method vendorFiles
-  @param {...String} types The desired file types
-  @return {Object}
-  ###
-  compiledFiles: (types...) ->
-    source = []
-    for type in types
-      source.push "#{dir.compile}/**/*.#{type}"
-
-    if args.watch or globalConfig.watching
-      gulp.src(source)
-        .pipe $.cached('main')
-        .pipe $.watch()
-        .pipe $.plumber()
-    else
-      gulp.src(source)
-  # <br><br><br>
-
-
-  ###
-  Returns a source pipe containing built asset files.
-  @method builtFiles
-  @param {...String} types The desired file types
-  @return {Object}
-  ###
-  builtFiles: (types...) ->
-    # Ignore vendor files
-    source = ["!#{dir.build}/components/vendor/**/*"]
-
-    for type in types
-      source.push "#{dir.build}/**/*.#{type}"
-
-    if args.watch or globalConfig.watching
-      gulp.src(source)
-        .pipe $.watch()
-        .pipe $.plumber()
-    else
-      gulp.src(source)
-  # <br><br><br>
-
-
-
-  ###
-  Copy files from source to destination
-  @method copyFiles
-  @param {Object} files A group of files to copy
-  ###
-  copyFiles: (files) ->
-    for file in files
-      log "Copying #{file.src} to #{file.dest}"  if isVerbose
-
-      if typeof file.src is 'string'
-        source = [file.src]
+    # build source array
+    source = if /vendor/.test src
+      logger.debug 'file: vendor'
+      options.base = dir.vendor
+      # ------------------------------  /client/components/vendor
+      # files('vendor')
+      unless types?
+        $.bowerFiles()
       else
-        source = file.src
+        switch types[0]
+          # files('vendor', '*')
+          when '*' then $.bowerFiles()
+          # files('vendor', '.js')
+          when '.' then $.bowerFiles(filter: new RegExp types)
+          else
+            # files('vendor', ['.js', '.css', '.html'])
+            if _.isArray types then $.bowerFiles(filter: new RegExp types.join '|')
+            else null
+    else
+      # exclude vendor files
+      _excludes = [
+        "!{#{dir.compile},#{dir.build},#{dir.client}}/components/vendor{,/**}"
+        "!node_modules{,/**}"
+      ].concat(
+        if _.isString excludes then [excludes]
+        else if _.isArray excludes then excludes
+        else [])
 
-      if file.replace?
-        gulp.src(source)
-          .pipe $.if isVerbose, $.using()
-          .pipe($.replace file.replace[0], file.replace[1])
-          .pipe(gulp.dest file.dest)
+      if _.isEmpty arguments
+        # ------------------------------  /client
+        # files('*')
+        ["#{dir.client}/**/*.*"]
       else
-        gulp.src(source)
-          .pipe(gulp.dest file.dest)
-  # <br><br><br>
+        switch
+          when _.isString(src)
+            switch
+              # files('*')
+              when /\*/.test(src) then ["#{dir.client}/**/*.*"]
+              # files('.js')
+              when /\./.test(src) then ["#{dir.client}/**/*#{src}"]
 
+              # ------------------------------  /compile, /build
+              when /compile|build/.test src
+                # files('compile')
+                unless types?
+                  ["#{dir[src]}/**/*.*"]
+                else
+                  switch types[0]
+                    # files('compile', '*')
+                    when '*' then ["#{dir[src]}/**/*.*"]
+                    # files('compile', '.js')
+                    when '.' then ["#{dir[src]}/**/*#{types}"]
+                    else
+                      # files('compile', ['.js', '.css', '.html'])
+                      if _.isArray types then ("**/*#{type}"  for type in types)
+                      else null
+              else null
+          # files(['.js', '.css', '.html'])
+          when _.isArray(src) then ("#{dir.client}/**/*#{type}") for type in src
+          # files({path: 'path/to/file'})
+          when _.isObject(src) and !_.isArray(src)
+            excludeVendor = false
+            ["#{src.path}"]
+          else null
 
-  ###
-  Returns a destination pipe for the build directory
-  @method dest
-  ###
+    # create gulp stream
+    unless source?
+      logger.error "!! unknown file target"
+    else
+      source = source.concat(_excludes)  if excludeVendor
+      console.log source, read
+
+      gulp.src source, options
+        .pipe $.using()
+
   dest:
-    compile: -> gulp.dest dir.compile
-    build: ->   gulp.dest dir.build
-    deploy: ->  gulp.dest dir.deploy
-    client: ->  gulp.dest dir.client
-  # <br><br><br>
-
+    compile:       -> gulp.dest dir.compile
+    build:         ->   gulp.dest dir.build
+    deploy:        ->  gulp.dest dir.deploy
+    client:        ->  gulp.dest dir.client
+    compileVendor: ->  gulp.dest dir.vendor
 
   ###
   Returns the current time with the given format

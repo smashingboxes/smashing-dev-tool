@@ -68,7 +68,7 @@ exports.dir =
   client:  'client'
   server:  'server'
 
-  vendor:  'vendor'
+  vendor:  'client/components/vendor'
 
   compile: 'compile'
   build:   'build'

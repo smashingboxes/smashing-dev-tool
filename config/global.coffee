@@ -26,17 +26,6 @@ user.username = if config.github?.user? then config.github.user else homeDir?.sp
 format = (s) -> s.toLowerCase().replace /\s/g, ''
 
 
-
-# Recipes
-# TODO: move recipes to globalConfig
-# TODO: recipes.coffee files.coffee()...
-# recipes = {}
-# for recipe in ['coffee', 'js', 'styl', 'css', 'jade', 'html']
-#   recipes[recipe] = require("../recipes/#{recipe}")(globalConfig)
-# console.log recipes
-
-
-
 # Platform
 platform =
   type:               os.type()
@@ -52,9 +41,9 @@ finalConfig =
   args:         argv
   util:         util
   assumptions:  assumptions
-  # recipes:      recipes
   commander:    commander
   tasks:        new Orchestrator()
+  fileRecipes:      {}
   user:         user
   platform:     platform
   smash:

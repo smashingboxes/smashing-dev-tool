@@ -3,7 +3,7 @@ module.exports = (globalConfig) ->
   {logger, notify, execute} = util
 
   {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, vendorFiles, compiledFiles, copyFiles, banner, dest, time, $} = helpers
+  {files, vendorFiles, compiledFiles,  banner, dest, time, $} = helpers
 
   cfg =
     ngHtml2js:
@@ -13,14 +13,15 @@ module.exports = (globalConfig) ->
 
   ### ---------------- TASKS ---------------------------------------------- ###
   tasks.add 'compile:html', ->
-    recipe files('html')
+    recipe files '.html'
       .lint()
       .pipe $.if args.verbose, $.using()
       .pipe $.size title:'html'
       .pipe dest.compile()
+      .pipe $.if args.reload, $.reload stream:true
 
   tasks.add 'build:html', ->
-    recipe compiledFiles('html')
+    recipe files 'compile', '.html'
       .optimize()
       .concat()
       .pipe $.if args.verbose, $.using()

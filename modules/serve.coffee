@@ -59,7 +59,7 @@ module.exports = (globalConfig) ->
       with #{chalk.yellow 'BrowserSync'}
       at #{chalk.green 'localhost:4567'}"
 
-    globalConfig.watching = true
+    args.watch = true
     tasks.start 'compile:watch'
 
     # server.start()

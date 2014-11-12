@@ -4,7 +4,7 @@ module.exports = (globalConfig) ->
   {logger, notify, execute} = util
 
   {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, vendorFiles, compiledFiles, copyFiles, banner, dest, time, $} = helpers
+  {files, vendorFiles, compiledFiles,  banner, dest, time, $} = helpers
 
 
   cfg =
