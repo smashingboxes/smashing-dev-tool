@@ -54,11 +54,11 @@ module.exports = (globalConfig, projectConfig) ->
     excludeVendor = true
     _excludes = []
 
-    logger.debug "file: #{src}"
+    if args.verbose
+      logger.debug "files(): #{ if typeof src is 'string' then src else typeof src}"
 
     # build source array
     source = if /vendor/.test src
-      logger.debug 'file: vendor'
       options.base = dir.vendor
       # ------------------------------  /client/components/vendor
       # files('vendor')
@@ -79,6 +79,7 @@ module.exports = (globalConfig, projectConfig) ->
       _excludes = [
         "!{#{dir.compile},#{dir.build},#{dir.client}}/components/vendor{,/**}"
         "!node_modules{,/**}"
+        "!#{dir.client}/components/test/**"
       ].concat(
         if _.isString excludes then [excludes]
         else if _.isArray excludes then excludes
@@ -110,13 +111,14 @@ module.exports = (globalConfig, projectConfig) ->
                     when '.' then ["#{dir[src]}/**/*#{types}"]
                     else
                       # files('compile', ['.js', '.css', '.html'])
-                      if _.isArray types then ("**/*#{type}"  for type in types)
+                      if _.isArray types then ("#{dir[src]}/**/*#{type}"  for type in types)
                       else null
               else null
           # files(['.js', '.css', '.html'])
           when _.isArray(src) then ("#{dir.client}/**/*#{type}") for type in src
           # files({path: 'path/to/file'})
           when _.isObject(src) and !_.isArray(src)
+            console.log 'OBJECT!'
             excludeVendor = false
             ["#{src.path}"]
           else null
@@ -126,10 +128,7 @@ module.exports = (globalConfig, projectConfig) ->
       logger.error "!! unknown file target"
     else
       source = source.concat(_excludes)  if excludeVendor
-      console.log source, read
-
       gulp.src source, options
-        .pipe $.using()
 
   dest:
     compile:       -> gulp.dest dir.compile

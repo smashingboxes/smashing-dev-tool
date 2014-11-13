@@ -17,8 +17,7 @@ module.exports = (globalConfig) ->
   for recipe in ['coffee', 'js', 'styl', 'css', 'jade', 'html', 'json', 'vendor']
     recipes[recipe] = require("../recipes/#{recipe}")(globalConfig)
 
-
-
+  assetTasks = ("compile:#{ext}" for ext, asset of assets)
 
   ### ---------------- COMMANDS ------------------------------------------- ###
   commander
@@ -28,43 +27,39 @@ module.exports = (globalConfig) ->
     .option '-r --reload', 'Reload the browser on change'
     .description('compile local assets based on Smashfile')
     .action ->
-      # tasks.start 'compile'
-      tasks.start 'compile:inject:index'
-
-
+      tasks.start 'compile'
+      # tasks.start 'compile:inject:index'
 
   ### ---------------- TASKS ---------------------------------------------- ###
-  tasks.add 'compile', ['compile:clean'], (done) ->
-    assetTasks = ("compile:#{ext}" for ext, asset of assets)
-    tasks.start assetTasks.concat(['compile:vendor']), done
+  tasks.add 'compile', ['compile:clean'],  ->
+    tasks.start 'compile:assets'
 
-
-
-  # tasks.add 'compile:assets', assetTasks.concat(['compile:vendor']), (done) ->
+  tasks.add 'compile:assets', assetTasks.concat(['compile:vendor']), (done) ->
     # tasks.start 'compile:inject:deps', done
     tasks.start 'compile:inject:index', done
 
 
   # Inject asset paths into index.html for development
   injectIndex = ->
-    files path: "#{dir.client}/index.jade"
+    console.log 'injecting index...'
+    files 'index.jade'
       .pipe $.if args.verbose, $.using()
 
       # inject CSS
-      .pipe $.inject files('compile', ['.css'], false),
+      .pipe $.inject files('compile', '.css', false),
         name: 'app'
         ignorePath: 'compile'
         addRootSlash: false
 
       # inject JS (Angular)
-      .pipe $.inject files('compile', ['.js'], false).pipe($.angularFilesort()),
-        name:'app'
+      .pipe $.inject files('compile', '.js', false).pipe($.angularFilesort()),
+        name: 'app'
         ignorePath: 'compile'
         addRootSlash: false
 
       # inject vendor files
       .pipe $.inject files('vendor', '*', false),
-        name:'vendor'
+        name: 'vendor'
         ignorePath: 'client'
         addRootSlash: false
 
@@ -76,7 +71,7 @@ module.exports = (globalConfig) ->
   tasks.add 'compile:inject:index', (done)->
     if args.watch
       gulp.task 'inject:index', injectIndex
-      gulp.watch "#{dir.client}/index.jade", ['inject:index', $.reload]
+      gulp.watch "index.jade", ['inject:index', $.reload]
 
     injectIndex()
     done()

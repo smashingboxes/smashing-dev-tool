@@ -60,7 +60,8 @@ for a in assets
   eAssets[a.ext] = a
 exports.assets = eAssets
 
-
+test:
+  prefix: 'test_'
 
 
 # Directory names
