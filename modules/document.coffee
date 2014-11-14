@@ -10,7 +10,6 @@ module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
 
-
   ### ---------------- COMMANDS ------------------------------------------- ###
   commander
     .command('docs')
@@ -31,22 +30,23 @@ module.exports = (globalConfig) ->
         docsGlob.push "#{dir.client}/**/*.#{val.ext}"
         docsGlob.push "#{dir.server}**.*.#{val.ext}"
 
-    grocjson = JSON.stringify
+    grocjson = JSON.stringify {
       'glob': docsGlob
       'except': [
         "#{dir.client}/components/vendor/**/*"
       ]
       'github':           false
       'out':              dir.docs
-      'repository-url':   pkg.repository?.url or ''
+      'repository-url':   smash.pkg.repository?.url or ''
       'silent':           !args.verbose?
+    }, null, 2
 
     # Dynamically generate .groc.json from config
     fs.writeFile "#{env.configBase}/.groc.json", grocjson, 'utf8', ->
       logger.info  chalk.green 'Generated .groc.json from config'
 
       # Use our copy of Groc to generate documentation for the project
-      require("#{env.configBase}/node_modules/fe_build/node_modules/groc").CLI [], (error)->
+      require("#{smash.root}/node_modules/groc").CLI [], (error)->
         process.exit(1) if error
         notify "Groc", "Success!"
         open "#{dir.docs}/index.html"

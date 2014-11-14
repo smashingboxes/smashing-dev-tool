@@ -32,7 +32,7 @@
     "express": "^4.8.8",
     "express-livereload": "0.0.24",
     "git-config": "0.0.6",
-    "groc": "~0.6.3",
+    "groc": "killercup/groc",
     "grunt": "^0.4.5",
     "gulp": "~3.6.2",
     "gulp-aggregate": "~0.1.1",
