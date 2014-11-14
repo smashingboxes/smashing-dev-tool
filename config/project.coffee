@@ -72,6 +72,7 @@ Smasher.launch
         pkg:          pkg
         env:          env
         dir:          _.defaults (project.dir or {}), assumptions.dir
+        build:        project.build
         assumptions:  assumptions
       config.helpers = require('./helpers')(require('./global'), config)
 

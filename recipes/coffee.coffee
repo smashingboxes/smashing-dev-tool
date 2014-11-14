@@ -9,7 +9,8 @@ module.exports = (globalConfig) ->
 
 
   ### ---------------- TASKS ---------------------------------------------- ###
-  fileRecipes.coffee = ->
+  fileRecipes.coffee = {}
+  fileRecipes.coffee.compile = ->
     coffeeStylish = require('coffeelint-stylish').reporter
     coffeelintrc = require '../config/lint/coffeelintrc'
 
@@ -22,8 +23,8 @@ module.exports = (globalConfig) ->
       .pipe dest.compile()
       # .pipe $.if args.reload, $.reload stream:true
 
-
-  tasks.add 'compile:coffee', fileRecipes.coffee
+  tasks.add 'compile:coffee', fileRecipes.coffee.compile
+  # tasks.add 'compile:build', fileRecipes.coffee.build
 
 
   ### ---------------- RECIPE --------------------------------------------- ###

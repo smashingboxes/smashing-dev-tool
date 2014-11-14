@@ -49,8 +49,7 @@ module.exports = (globalConfig, projectConfig) ->
   ###
   files: (src, types, read=true, excludes) ->
     options =
-      read:read
-      base: 'client'
+      read: read
     excludeVendor = true
     _excludes = []
 
@@ -101,6 +100,7 @@ module.exports = (globalConfig, projectConfig) ->
               # ------------------------------  /compile, /build
               when /compile|build/.test src
                 # files('compile')
+                options.base = src
                 unless types?
                   ["#{dir[src]}/**/*.*"]
                 else
@@ -127,6 +127,7 @@ module.exports = (globalConfig, projectConfig) ->
     unless source?
       logger.error "!! unknown file target"
     else
+      options.base ?= 'client'
       source = source.concat(_excludes)  if excludeVendor
       gulp.src source, options
 
