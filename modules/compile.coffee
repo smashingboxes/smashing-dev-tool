@@ -32,9 +32,7 @@ module.exports = (globalConfig) ->
 
   ### ---------------- TASKS ---------------------------------------------- ###
   tasks.add 'compile', ['compile:clean'],  ->
-    console.log $
     tasks.start 'compile:assets'
-
 
   tasks.add 'compile:assets', assetTasks.concat(['compile:vendor']), (done) ->
     tasks.start 'compile:inject:index', done

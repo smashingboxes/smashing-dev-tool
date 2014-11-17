@@ -40,7 +40,7 @@ module.exports = (globalConfig, projectConfig) ->
   $: $
 
   ###
-  Returns a source pipe for a given asset type. This gives us
+  Returns a source stream for a given asset type. This gives us
   a place to attach plugins that should be used for all asset groups
   and allows us to use a much cleaner syntax when building tasks.
   @method files
@@ -53,8 +53,8 @@ module.exports = (globalConfig, projectConfig) ->
     excludeVendor = true
     _excludes = []
 
-    if args.verbose
-      logger.debug "files(): #{ if typeof src is 'string' then src else typeof src}"
+    # if args.verbose
+    #   logger.debug "files(): #{ if typeof src is 'string' then src else typeof src}"
 
     # build source array
     source = if /vendor/.test src
@@ -118,9 +118,13 @@ module.exports = (globalConfig, projectConfig) ->
           when _.isArray(src) then ("#{dir.client}/**/*#{type}") for type in src
           # files({path: 'path/to/file'})
           when _.isObject(src) and !_.isArray(src)
-            console.log 'OBJECT!'
             excludeVendor = false
-            ["#{src.path}"]
+            options.base = ''
+            if _.isArray types
+              ("#{src.path}/**/*#{t}") for t in types
+            else
+              ["#{src.path}"]
+
           else null
 
     # create gulp stream

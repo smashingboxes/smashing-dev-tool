@@ -1,6 +1,7 @@
 winston =       require 'winston'
 notifier =      require 'node-notifier'
 exec =          require('child_process').exec   # execute commands
+streamqueue =   require 'streamqueue'
 
 # winston logger config
 winston.cli()
@@ -40,3 +41,8 @@ execute = exports.execute = (command, cb)->
   exec command, (err, stdout, stderr) ->
     console.log stdout
     cb err
+
+# Returns a new stream composed of all argument streams
+merge = exports.merge = (streams...) ->
+  queue = new streamqueue objectMode:true
+  queue.done.apply queue, streams
