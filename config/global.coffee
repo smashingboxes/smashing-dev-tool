@@ -43,7 +43,7 @@ finalConfig =
   assumptions:  assumptions
   commander:    commander
   tasks:        new Orchestrator()
-  fileRecipes:      {}
+  recipes:  {}
   user:         user
   platform:     platform
   smash:

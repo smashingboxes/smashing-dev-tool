@@ -1,46 +1,41 @@
+gulp = require 'gulp'
+
 module.exports = (globalConfig) ->
 
-  {args, util, tasks, fileRecipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
+  {args, util, tasks, recipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
 
   {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, vendorFiles, compiledFiles,  banner, dest, time, $} = helpers
+  {files, banner, dest, time, $, logging, watching} = helpers
 
+  imageTypes = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
 
   cfg =
     imacss: 'images.css'
     imagemin:
       progressive: true
 
-  optimize = ->
-    logger.info 'optimizing images'
-    @
-      .pipe $.imagemin cfg.imagemin
-      # .pipe $.imacss cfg.imacss
-    @
-
-  ### ---------------- TASKS ---------------------------------------------- ###
-
-  fileRecipes.images = {}
-  fileRecipes.images.compile = ->
-    files '.png'
-      .pipe $.if args.verbose, $.using()
-      .pipe $.size title:'images'
-      .pipe dest.compile()
-      # .pipe $.if args.reload, $.reload stream:true
-
-  fileRecipes.images.build = ->
-    files '.png'
-      .pipe $.if args.verbose, $.using()
-      .pipe $.size title:'images'
-      .pipe dest.build()
-
-  tasks.add 'compile:images', fileRecipes.images.compile
-  tasks.add 'compile:build', fileRecipes.images.build
-
 
   ### ---------------- RECIPE --------------------------------------------- ###
-  recipe = (stream) ->
+  compile = (stream) ->
     stream
+      .pipe logging()
+      .pipe $.imagemin()
 
-  recipe
+  build = (stream) ->
+    stream
+      .pipe logging()
+      .pipe $.imagemin()
+
+
+
+  ### ---------------- TASKS ---------------------------------------------- ###
+  images =
+    compile: ->
+      compile files path:'client/data/images', imageTypes
+        .pipe gulp.dest "#{dir.compile}/data/images"
+        
+
+    build: ->
+      build files path:'client/data/images', imageTypes
+        .pipe gulp.dest "#{dir.build}/data/images"

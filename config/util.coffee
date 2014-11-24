@@ -2,11 +2,12 @@ winston =       require 'winston'
 notifier =      require 'node-notifier'
 exec =          require('child_process').exec   # execute commands
 streamqueue =   require 'streamqueue'
+argv = require('yargs').argv
 
 # winston logger config
 winston.cli()
 logger = exports.logger = new (winston.Logger)(
-  transports: [new (winston.transports.Console)(colorize: true, level: 'info')]
+  transports: [new (winston.transports.Console)(colorize: true, level: (if argv.verbose then 'verbose' else 'info'))]
   levels:
     silly: 0
     verbose: 1

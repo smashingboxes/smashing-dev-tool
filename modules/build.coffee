@@ -2,13 +2,15 @@ gulp =      require 'gulp'
 del =       require 'del'
 chalk =     require 'chalk'
 streamqueue = require 'streamqueue'
+fs =        require 'fs'
 
 
 module.exports = (globalConfig) ->
-  {args, util, tasks, fileRecipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
+  {args, util, tasks, recipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute, merge} = util
   {assets, helpers, dir, env} = getProject()
   {vendorFiles, mainFile, compiledFiles, files, dest, $} = helpers
+  logging = -> $.if args.verbose, $.using()
 
   target = null
   project = getProject()
@@ -22,79 +24,91 @@ module.exports = (globalConfig) ->
       target = _target
       tasks.start 'build'
 
-      # tasks.start [
-      #   'build:scripts'
-      #   'build:styles'
-      #   'build:vendor'
-      #   'build:views'
-      #   'build:data'
-      #   'build:images'
-      # ]
-
 
   ### ---------------- TASKS ------------------------------ ---------------- ###
   tasks.add 'build', ->
+
+    # determine correct output path
+    outDir = null
     if target? and project.build?[target]?
-
-      targetOpts = project.build[target]
-      logger.info "building files from #{chalk.red.bold './'+project.dir.compile} to #{chalk.magenta.bold './'+targetOpts.out} for target #{chalk.green.bold target}"
-
-      images = files path:'client/data/images', ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
-        # .pipe $.imagemin()
-        .pipe gulp.dest "#{targetOpts.out}/images"
-        .pipe $.using()
-
-      fonts = files path:'client/data/fonts', ['.eot', '.svg', '.ttf', '.woff']
-        .pipe gulp.dest "#{targetOpts.out}/fonts"
-        .pipe $.using()
-
-      styles = merge(
-        files('compile', '.css')
-        files('vendor', '.css')
-      )
-        .pipe $.concat('app-styles.css')
-        .pipe $.csso()
-
-      views = files('compile', '.html')
-        .pipe $.ngHtml2js(moduleName: 'templates-main')
-        .pipe $.concat('templates-main.js')
-
-      scripts = merge(
-        files('compile', '.js').pipe($.ngAnnotate())
-        files('vendor', '.js')
-      )
-        .pipe $.concat 'scripts-main.js'
-
-      scriptsPkg = merge(scripts, views)
-        .pipe $.uglify()
-        .pipe $.concat 'app.js'
-
-
-      pkg = merge(scriptsPkg, styles)
-        .pipe gulp.dest targetOpts.out
-        .pipe $.if args.verbose, $.using()
-
+      outDir = project.build[target].out
+      logger.info "Building files from #{chalk.green './'+project.dir.compile} to #{chalk.magenta './'+outDir} for target #{chalk.bold target}"
     else
-      logger.info "building files from #{chalk.red.bold './'+project.dir.compile} to #{chalk.magenta.bold './'+project.dir.build}"
-      files('compile', '.html')
-        .pipe $.using()
-        .pipe dest.build()
+      outDir = project.dir.build
+      logger.info "Building files from #{chalk.green './'+project.dir.compile} to #{chalk.magenta './'+outDir}"
+
+    # Conert app Views to JS
+    views = files('compile', '.html')
+      .pipe $.htmlmin collapseWhitespace: true
+      .pipe $.ngHtml2js moduleName: 'templates-main'
+      .pipe $.concat 'templates-main.js'
+
+    # Merge vendor and app Scripts, optimize
+    scripts = merge(
+      files('compile', '.js').pipe($.ngAnnotate())
+      files('vendor', '.js')
+      views
+    ).pipe($.uglify()).pipe($.concat 'app.js')
+
+
+    # Optimize and output Images
+    images = files path:'client/data/images', ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
+      .pipe $.imagemin()
+      .pipe gulp.dest "#{outDir}/images"
+      .pipe logging()
+
+    # Optimize and output Fonts
+    fonts = files path:'client/data/fonts', ['.eot', '.svg', '.ttf', '.woff']
+      .pipe gulp.dest "#{outDir}/fonts"
+      .pipe logging()
+
+    # Merge vendor and app Styles, optimize
+    styles = merge(
+      files('compile', '.css')
+      files('vendor', '.css')
+    ).pipe($.concat 'app-styles.css').pipe $.csso()
+
+    # Output Scripts and Styles to build directory
+    pkg = merge(scripts, styles)
+      .pipe gulp.dest outDir
+      .pipe logging()
+
+
+    # Inject built files into index.html
+    files 'index.jade'
+      .pipe $.using()
+      .pipe $.inject pkg,
+        name: 'app'
+        ignorePath: 'build'
+        addRootSlash: false
+      .pipe logging()
+
+      # convert to HTML and optimize
+      .pipe $.jade()
+      .on('error', (err) -> logger.error err.message)
+      .pipe $.htmlmin collapseWhitespace: true
+
+      .pipe $.if args.verbose, $.cat()
+      .pipe gulp.dest outDir
+
 
   tasks.add 'build:watch', ->
     args.watch = true
-    # tasks.start [
-    #   'build:scripts'
-    #   'build:styles'
-    #   'build:vendor'
-    #   'build:views'
-    #   'build:data'
-    #   'build:images'
-    # ]
+
 
   tasks.add 'build:clean', (done) ->
+    hasDirs = false
+
     if project.build?
+      hasDirs = true
       for t of project.build
-        console.log project.build[t].out
-        del [project.build[t].out]
-    else
+        if fs.existsSync project.build[t].out
+          logger.info "Deleting #{chalk.magenta './'+project.build[t].out}"
+          del [project.build[t].out]
+
+    if fs.existsSync project.dir.build
+      hasDirs = true
+      logger.info "Deleting #{chalk.magenta './'+project.dir.build}"
       del [project.dir.build], done
+
+    done() unless hasDirs

@@ -1,26 +1,33 @@
-coffeeStylish = require('coffeelint-stylish').reporter
-coffeelintrc  = require '../config/lint/coffeelintrc'
-lazypipe      = require 'lazypipe'
+gulp = require 'gulp'
 
 module.exports = (globalConfig) ->
+
   {args, util, tasks, recipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
 
   {assets, env, dir, pkg, helpers} = project = getProject()
   {files, banner, dest, time, $, logging, watching} = helpers
 
+  fontTypes = ['.eot', '.svg', '.ttf', '.woff']
+
+
   ### ---------------- RECIPE --------------------------------------------- ###
   compile = (stream) ->
     stream
-      .pipe $.if args.watch, $.cached 'main'
       .pipe logging()
 
-      # Compile
-      .pipe $.jade pretty:true, compileDebug:true
-      .on('error', (err) -> logger.error err.message)
+  build = (stream) ->
+    stream
+      .pipe logging()
+
 
   ### ---------------- TASKS ---------------------------------------------- ###
-  jade =
+  fonts =
     compile: ->
-      compile files '.jade'
-        .pipe dest.compile()
+      compile files path:"#{dir.client}/data/fonts", fontTypes
+        .pipe gulp.dest "#{dir.compile}/data/fonts"
+
+        
+    build: ->
+      build files path:"#{dir.client}/data/fonts", fontTypes
+        .pipe gulp.dest "#{dir.build}/data/fonts"

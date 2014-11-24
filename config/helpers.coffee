@@ -10,34 +10,58 @@ path =            require 'path'                  # manipulate file paths
 join =            path.join
 
 gulp =            require 'gulp'                  # streaming build system
-through =         require 'through2'
 lazypipe =        require 'lazypipe'              # re-use partial streams
 runSequence =     require 'run-sequence'          # execute tasks in parallel or series
-combine =         require 'stream-combiner'
-
-browserSync =     require 'browser-sync'
-reload =          browserSync.reload
-
 # <br><br><br>
+
+
 
 
 module.exports = (globalConfig, projectConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
-  {assets, pkg, env, dir, assumptions} = projectConfig
+  {assets, pkg, env, dir, assumptions} = project = projectConfig
 
+
+  time = (f) ->
+    moment().format(f)
+
+  ###
+  Auto-load all (most) Gulp plugins and attach to `$` for easy access
+  ###
   $ = require('gulp-load-plugins')(
     camelize: true
     config: smash.pkg
     scope: ['dependencies']
   )
-
   $.util =        require 'gulp-util'
   $.bowerFiles =  require 'main-bower-files'
-  $.reload =      reload
+  $.browserSync = require 'browser-sync'
+  $.reload =      $.browserSync.reload
+  # <br><br><br>
 
-  # gulp plugins
+  logging  = ->  $.if args.verbose, $.using()
+  watching = ->  $.if args.watch, $.reload(stream: true)
+  caching  = ->  $.if args.watch, $.cached('main')
+  plumbing = ->  $.if args.watch, $.plumber(errorHandler: console.log)
+
+
+  # -------------------------------  API  ---------------------------------
+
+  ###
+  Plugins
+  ###
   $: $
+  # <br><br><br>
+
+  ###
+  Shortcut for conditional logging, watching in a stream
+  ###
+  logging: logging
+  watching: watching
+  plumbing: plumbing
+  caching: caching
+  # <br><br><br>
 
   ###
   Returns a source stream for a given asset type. This gives us
@@ -51,13 +75,36 @@ module.exports = (globalConfig, projectConfig) ->
     options =
       read: read
     excludeVendor = true
-    _excludes = []
+    excludeTest = true
+    excludeIndex = true
 
-    # if args.verbose
-    #   logger.debug "files(): #{ if typeof src is 'string' then src else typeof src}"
+    # Patterns for vendor files to be excluded by default
+    vendorGlob = [
+      "!{#{dir.compile},#{dir.build},#{dir.client}}/components/vendor{,/**}"
+      "!node_modules{,/**}"
+    ]
 
-    # build source array
+    # Patterns to ignore when not running tests
+    testGlob = [
+      "!#{dir.client}/components/test/**"
+    ]
+
+    # Exclude index files for injection reasons
+    indexGlob = [
+      "!#{dir.client}/index.*"
+    ]
+
+    # Patterns for call-specific exclude (params)
+    excludeGlob = if _.isString excludes
+        [excludes]
+      else if _.isArray excludes
+        excludes
+      else
+        []
+
+    # Build source glob for `gulp.src`
     source = if /vendor/.test src
+      excludeVendor = false
       options.base = dir.vendor
       # ------------------------------  /client/components/vendor
       # files('vendor')
@@ -74,19 +121,8 @@ module.exports = (globalConfig, projectConfig) ->
             if _.isArray types then $.bowerFiles(filter: new RegExp types.join '|')
             else null
     else
-      # exclude vendor files
-      _excludes = [
-        "!{#{dir.compile},#{dir.build},#{dir.client}}/components/vendor{,/**}"
-        "!node_modules{,/**}"
-        "!#{dir.client}/components/test/**"
-      ].concat(
-        if _.isString excludes then [excludes]
-        else if _.isArray excludes then excludes
-        else [])
-
       if _.isEmpty arguments
-        # ------------------------------  /client
-        # files('*')
+        # files()
         ["#{dir.client}/**/*.*"]
       else
         switch
@@ -96,10 +132,9 @@ module.exports = (globalConfig, projectConfig) ->
               when /\*/.test(src) then ["#{dir.client}/**/*.*"]
               # files('.js')
               when /\./.test(src) then ["#{dir.client}/**/*#{src}"]
-
-              # ------------------------------  /compile, /build
+              # files('compile')
               when /compile|build/.test src
-                # files('compile')
+
                 options.base = src
                 unless types?
                   ["#{dir[src]}/**/*.*"]
@@ -109,38 +144,51 @@ module.exports = (globalConfig, projectConfig) ->
                     when '*' then ["#{dir[src]}/**/*.*"]
                     # files('compile', '.js')
                     when '.' then ["#{dir[src]}/**/*#{types}"]
+                    # files('compile', ['.js', '.css', '.html'])
                     else
-                      # files('compile', ['.js', '.css', '.html'])
                       if _.isArray types then ("#{dir[src]}/**/*#{type}"  for type in types)
                       else null
               else null
+
           # files(['.js', '.css', '.html'])
           when _.isArray(src) then ("#{dir.client}/**/*#{type}") for type in src
-          # files({path: 'path/to/file'})
           when _.isObject(src) and !_.isArray(src)
             excludeVendor = false
+            excludeIndex = false
             options.base = ''
-            if _.isArray types
-              ("#{src.path}/**/*#{t}") for t in types
-            else
-              ["#{src.path}"]
+            # files({path: 'path/to/files'}, ['.js', '.css', '.html'])
+            if _.isArray types then ("#{src.path}/**/*#{t}" for t in types)
+            # files({path: 'path/to/file.ext'})
+            else ["#{src.path}"]
 
           else null
 
-    # create gulp stream
+    # Create Gulp stream
     unless source?
-      logger.error "!! unknown file target"
+      logger.error "!! Unknown file target '#{src}'. Could not build stream."
     else
       options.base ?= 'client'
-      source = source.concat(_excludes)  if excludeVendor
-      gulp.src source, options
+      source = source.concat vendorGlob   if excludeVendor
+      source = source.concat testGlob     if excludeTest
+      source = source.concat excludeGlob  if excludeGlob.length > 0
+      source = source.concat indexGlob    if excludeIndex
 
+      gulp.src source, options
+        .pipe $.if options.read, plumbing()
+  # <br><br><br>
+
+
+  ###
+  A collection of destination objects targeting folders from
+  the project config. A shortcut for having to write `.pipe(gulp.dest dir compile)`
+  ###
   dest:
-    compile:       -> gulp.dest dir.compile
-    build:         ->   gulp.dest dir.build
+    compile:       ->  gulp.dest dir.compile
+    build:         ->  gulp.dest dir.build
     deploy:        ->  gulp.dest dir.deploy
     client:        ->  gulp.dest dir.client
     compileVendor: ->  gulp.dest dir.vendor
+  # <br><br><br>
 
   ###
   Returns the current time with the given format
@@ -148,13 +196,20 @@ module.exports = (globalConfig, projectConfig) ->
   @param {String} format moment.js time format
   @return {Object}
   ###
-  time: (f) ->
-    moment().format(f)
+  time: time
   # <br><br><br>
 
+  ###
+  Banner placed at the top of all JS files during development.
+  Overridden by value of `banner` from Smashfile unless null
 
-  # Banner placed at the top of all JS files during development
-  banner: "/** \n
-            * APP_NAME
-            */ \n\n"
+  TODO: add Git branch and SHA
+  ###
+  banner: project.banner or "/** \n
+                             * #{pkg.name}  \n
+                             * v. #{pkg.version}  \n
+                             * \n
+                             * Built #{time 'dddd, MMMM Do YYYY, h:mma'}  \n
+                             */ \n\n"
+
   # <br><br><br>

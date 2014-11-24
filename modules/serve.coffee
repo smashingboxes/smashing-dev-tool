@@ -1,5 +1,6 @@
 open = require 'open'
 chalk = require 'chalk'
+_ = require 'lodash'
 
 browserSync = require 'browser-sync'
 reload = browserSync.reload
@@ -7,75 +8,46 @@ reload = browserSync.reload
 module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
-  {assets, helpers, dir, env} = getProject()
-  {serverFiles, $} = helpers
+  {assets, helpers, dir, env, build} = project = getProject()
+  {files, $, logging, watching} = helpers
 
 
   ### ---------------- COMMANDS ------------------------------------------- ###
   commander
     .command('serve [target]')
     .alias('s')
-    .description('Serve source code to the browser for development')
+    .description('Serve source code to the browser for development purposes')
     .action (target)->
-      if typeof target is 'string'
+      args.watch = true
+      serveTask = 'compile'
+      outDir = dir.compile
+
+      # Determine which phase is being watched
+      # and what the output directory for those files is
+      if _.contains (t for t of build), target
+        serveTask = 'build'
+        outDir = build[target].out
+      else
         switch target
           when '', 'dev', 'development', 'compiled'
-            tasks.start 'serve:compiled'
+            serveTask = 'compile'
+            outDir = dir.compile
           when 'prod', 'production', 'build'
-            tasks.start 'serve:built'
-          else
-            tasks.start 'serve:compiled'
-      else
-        tasks.start 'serve:compiled'
+            serveTask = 'build'
+            outDir = dir.build
 
+      # Start BrowserSync server
+      logger.info "Serving files from #{chalk.magenta './'+outDir} with #{chalk.yellow.bold 'BrowserSync'} at #{chalk.green 'localhost:4567'}"
+      browserSync
+        server:
+          baseDir:"./#{outDir}"
+
+      # Reload server when output dir changes
+      tasks.start "#{serveTask}:watch"
+      # , ->
+      #   files serveTask
+      #     .pipe logging()
+      #     .pipe watching()
 
 
   ### ---------------- TASKS ---------------------------------------------- ###
-  tasks.add 'sync:compiled', ->
-    browserSync
-      server:
-        baseDir: './compile'
-
-    helpers.compiledFiles('*')
-      .pipe $.watch()
-      .pipe reload stream:true
-
-  tasks.add 'sync:built', ->
-    browserSync
-      server:
-        baseDir: './build'
-
-    helpers.builtFiles('*')
-      .pipe $.watch()
-      .pipe reload stream:true
-
-  # serve compiled files (dev mode)
-  tasks.add 'serve:compiled', ->
-    # logger.info "Serving #{chalk.red 'compiled'} files with #{chalk.yellow 'project server'} at #{chalk.green 'localhost:4567'}"
-    server = require("#{env.configBase}/#{dir.server}")(globalConfig)
-
-    logger.info "Serving
-      #{chalk.red 'compiled'} files
-      with #{chalk.yellow 'BrowserSync'}
-      at #{chalk.green 'localhost:4567'}"
-
-    args.watch = true
-    tasks.start 'compile:watch'
-
-    # server.start()
-
-
-
-  # serve built files (production mode)
-  tasks.add 'serve:built', ->
-    logger.info "Serving #{chalk.red 'built'} files with #{chalk.yellow 'project server'} at #{chalk.green 'localhost:4567'}"
-    server = require("#{env.configBase}/#{dir.server}")(globalConfig)
-
-    tasks.start 'compile:watch'
-    tasks.start 'build:watch'
-
-    helpers.builtFiles('*')
-      .pipe $.watch()
-      .pipe reload stream:true
-
-    server.start()

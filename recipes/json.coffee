@@ -4,23 +4,23 @@ module.exports = (globalConfig) ->
   {logger, notify, execute} = util
 
   {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, vendorFiles, compiledFiles,  banner, dest, time, $} = helpers
-
-
-  ### ---------------- TASKS ---------------------------------------------- ###
-  tasks.add 'compile:json', ->
-    recipe files '.json'
-      .lint()
-      .pipe $.if args.verbose, $.using()
-      .pipe $.size title:'json'
-      .pipe $.if args.reload, $.reload stream:true
+  {files, banner, dest, time, $, logging, watching} = helpers
 
 
   ### ---------------- RECIPE ----------------------------------------------- ###
-  recipe = (stream) ->
-    stream.lint = ->
-      @
-        .pipe $.jsonlint()
-        .pipe $.jsonlint.reporter()
-      @
+  compile = (stream) ->
     stream
+      .pipe $.if args.watch, $.cached 'main'
+      
+      # Lint
+      .pipe $.jsonlint()
+      .pipe $.jsonlint.reporter()
+
+
+  ### ---------------- TASKS ---------------------------------------------- ###
+  json =
+    compile: ->
+      compile files '.json'
+        .pipe logging()
+        .pipe dest.compile()
+        # .pipe watching()

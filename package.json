@@ -57,6 +57,7 @@
     "gulp-htmlmin": "~0.1.2",
     "gulp-if": "1.2.0",
     "gulp-if-else": "^1.0.2",
+    "gulp-ignore": "^1.2.1",
     "gulp-imacss": "~0.2.3",
     "gulp-imagemin": "~0.5.1",
     "gulp-inject": "^1.0.2",
@@ -74,6 +75,7 @@
     "gulp-open": "~0.2.8",
     "gulp-plumber": "~0.6.1",
     "gulp-prompt": "~0.1.1",
+    "gulp-remember": "^0.2.1",
     "gulp-rename": "^1.2.0",
     "gulp-replace": "~0.3.0",
     "gulp-requirejs": "^0.1.3",
@@ -97,6 +99,7 @@
     "lazy.js": "^0.3.2",
     "lazypipe": "~0.2.1",
     "liftoff": "~0.12.0",
+    "lodash": "^2.4.1",
     "main-bower-files": "^2.0.0",
     "merge-stream": "~0.1.1",
     "method-override": "^2.2.0",
@@ -121,7 +124,8 @@
     "underscore": "~1.6.0",
     "underscore.string": "^2.3.3",
     "vinyl-fs": "^0.3.10",
-    "winston": "~0.7.3"
+    "winston": "~0.7.3",
+    "yargs": "^1.3.3"
   },
   "engines": {
     "node": "~0.10.x",

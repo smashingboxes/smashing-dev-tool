@@ -3,52 +3,45 @@ module.exports = (globalConfig) ->
   {logger, notify, execute} = util
 
   {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, vendorFiles, compiledFiles,  banner, dest, time, $} = helpers
+  {files, banner, dest, time, $, logging, watching} = helpers
+
+  htmlhintrc = require '../config/lint/htmlhintrc'
 
   cfg =
     ngHtml2js:
       moduleName: "views"
       prefix: ''
 
+  ### ---------------- RECIPE --------------------------------------------- ###
+  compile = (stream) ->
+    stream
+      .pipe $.if args.watch, $.cached 'main'
+      
+      # Lint
+      .pipe $.htmlhint htmlhintrc
+      .pipe $.htmlhint.reporter()
+
+  build = (stream) ->
+    stream
+      # Optimize
+      .pipe $.htmlmin collapseWhitespace: true
+
+      # Concat
+      .pipe $.ngHtml2js cfg.ngHtml2js
+      .pipe $.concat 'app-views.js'
+      .pipe $.wrapAmd()
+
 
   ### ---------------- TASKS ---------------------------------------------- ###
-  tasks.add 'compile:html', ->
-    recipe files '.html'
-      .lint()
-      .pipe $.if args.verbose, $.using()
-      .pipe $.size title:'html'
-      .pipe dest.compile()
-      .pipe $.if args.reload, $.reload stream:true
+  html =
+    compile: ->
+      compile files '.html'
+        .pipe logging()
+        .pipe dest.compile()
+        # .pipe watching()
 
-  tasks.add 'build:html', ->
-    recipe files 'compile', '.html'
-      .optimize()
-      .concat()
-      .pipe $.if args.verbose, $.using()
-      .pipe $.size title:'html'
-      .pipe dest.build()
-
-  ### ---------------- RECIPE --------------------------------------------- ###
-  recipe = (stream) ->
-    stream.lint = ->
-      logger.verbose 'linting html'
-      htmlhintrc = require '../config/lint/htmlhintrc'
-      @
-        .pipe $.htmlhint htmlhintrc
-        .pipe $.htmlhint.reporter()
-      @
-
-    stream.concat = ->
-      logger.verbose 'concat html'
-      @
-        .pipe $.ngHtml2js cfg.ngHtml2js
-        .pipe $.concat 'app-views.js'
-        .pipe $.wrapAmd()
-      @
-
-    stream.optimize = ->
-      logger.verbose 'optimizing html'
-      @
-        .pipe $.htmlmin collapseWhitespace: true
-      @
-    stream
+    build: ->
+      build files 'compile', '.html'
+        .pipe logging()
+        .pipe dest.build()
+        # .pipe watching()

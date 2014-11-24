@@ -4,7 +4,10 @@ module.exports = (globalConfig) ->
   {logger, notify, execute} = util
 
   {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, vendorFiles, compiledFiles,  banner, dest, time, $} = helpers
+  {files,  banner, dest, time, $, logging, watching} = helpers
+
+  jsStylish = require 'jshint-stylish'
+  jshintrc = require '../config/lint/jshintrc'
 
   cfg =
     ngAnnotate:
@@ -18,68 +21,45 @@ module.exports = (globalConfig) ->
       config: "#{env.configBase}/#{dir.compile}/main.js"
       transitive: true
 
+  ### ---------------- RECIPE --------------------------------------------- ###
+  compile = (stream) ->
+    stream
+      # .pipe $.angularFilesort()
+      .pipe $.if args.watch, $.cached 'main'
+
+      # Lint
+      .pipe $.jshint jshintrc
+      .pipe $.jshint.reporter jsStylish
+
+      # Post-process
+      .pipe $.header banner
+
+  build = (stream) ->
+    stream
+      .pipe $.angularFilesort()
+
+      # Optimize
+      .pipe $.stripDebug()
+      .pipe $.ngAnnotate cfg.ngAnnotate
+      .pipe $.uglify cfg.uglify
+
+      # Concat
+      .pipe $.concat 'main.js'
+
+
+    stream
 
 
   ### ---------------- TASKS ---------------------------------------------- ###
-  tasks.add 'compile:js', ->
-    recipe files '.js'
-      .lint()
-      .compile()
-      .postProcess()
-      .pipe $.if args.verbose, $.using()
-      .pipe $.size title:'js'
-      .pipe dest.compile()
-      .pipe $.if args.reload, $.reload stream:true
+  js =
+    compile: ->
+      compile files '.js'
+        .pipe logging()
+        .pipe dest.compile()
+        # .pipe watching()
 
-
-  tasks.add 'build:js', ->
-    bowerRequireJS cfg.bowerRequire, (rjsConfigFromBower) ->
-      buildConfig = require '../../config/build.config'
-      recipe files 'compile', '.js'
-        .pipe $.requirejs buildConfig
-        .concat()
-        .optimize()
-        .pipe $.if args.verbose, $.using()
-        .pipe $.size title:'js'
+    build: ->
+      build files 'compile', '.js'
+        .pipe logging()
         .pipe dest.build()
-
-
-
-  ### ---------------- RECIPE --------------------------------------------- ###
-  recipe = (stream) ->
-    stream.lint = ->
-      logger.verbose 'linting js'
-      jsStylish = require 'jshint-stylish'
-      jshintrc = require '../config/lint/jshintrc'
-      @
-        .pipe $.jshint jshintrc
-        .pipe $.jshint.reporter jsStylish
-      @
-
-    stream.compile = ->
-      logger.verbose 'compiling js'
-      @
-
-    stream.postProcess = ->
-      logger.verbose 'post-processing js'
-      @
-        .pipe $.header banner
-      @
-
-    stream.concat = ->
-      logger.verbose 'concat js'
-      buildConfig = require '../config/build.config'
-      @
-        .pipe $.requirejs buildConfig
-        .pipe $.concat 'main.js'
-      @
-
-    stream.optimize = ->
-      logger.verbose 'optimizing js'
-      @
-        .pipe $.stripDebug()
-        .pipe $.ngAnnotate cfg.ngAnnotate
-        .pipe $.uglify cfg.uglify
-      @
-
-    stream
+        # .pipe watching()

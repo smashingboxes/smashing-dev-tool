@@ -3,12 +3,14 @@ open =            require 'open'
 gulp =            require 'gulp'                  # streaming build system
 _ =               require 'underscore'
 chalk =           require 'chalk'
-del =       require 'del'
+del =             require 'del'
 
 
 module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute} = util
+  {assets, env, dir, pkg, helpers} = getProject()
+  {files, $} = helpers
 
   ### ---------------- COMMANDS ------------------------------------------- ###
   commander
@@ -20,9 +22,8 @@ module.exports = (globalConfig) ->
 
   ### ---------------- TASKS ---------------------------------------------- ###
   tasks.add 'docs', (done) ->
-    {assets, env, dir, pkg, helpers} = getProject()
-
-    notify "Groc", "Generating documentation..."
+    # notify "Groc", "Generating documentation..."
+    logger.info "Generating documentation in #{chalk.magenta './'+dir.docs}"
 
     docsGlob = ["README.md"]
     for key, val of assets
@@ -43,16 +44,18 @@ module.exports = (globalConfig) ->
 
     # Dynamically generate .groc.json from config
     fs.writeFile "#{env.configBase}/.groc.json", grocjson, 'utf8', ->
-      logger.info  chalk.green 'Generated .groc.json from config'
+      logger.info "Generated dynamic #{chalk.green '.groc.json'} from project config"  if args.verbose
 
       # Use our copy of Groc to generate documentation for the project
       require("#{smash.root}/node_modules/groc").CLI [], (error)->
         process.exit(1) if error
-        notify "Groc", "Success!"
+        # notify "Groc", "Success!"
         open "#{dir.docs}/index.html"
         done()
 
-  tasks.add 'docs:clean', (cb) ->
-    {assets, env, dir, pkg, helpers} = getProject()
-    $ = helpers.$
-    del [dir.docs]
+  tasks.add 'docs:clean', (done) ->
+    if fs.existsSync dir.docs
+      logger.info "Deleting #{chalk.magenta './'+dir.docs}"
+      del [dir.docs], done
+    else
+      done()

@@ -3,7 +3,7 @@ Liftoff =       require 'liftoff'
 argv =          require('minimist')(process.argv.slice 2)
 chalk =         require 'chalk'
 tildify =       require 'tildify'
-_ =             require 'underscore'
+_ =             require 'lodash'
 
 
 util = require './util'
@@ -12,12 +12,11 @@ assumptions = require './assumptions'
 
 assets = []
 config = {}
+defaultAssets = ['images', 'fonts']
 
 ###
 Configure Liftoff
 ###
-
-
 Smasher = new Liftoff
   name: 'smash'
   processTitle: 'smasher'
@@ -51,21 +50,21 @@ Smasher.launch
       project = require env.configPath
       pkg = require "#{env.configBase}/package"
 
-      # collect asset definitions
-      for asset in project.assets
-        # load preconfigured assets by name
-        if typeof asset is 'string'
-          if assumptions.assets[asset]?
-            logger.verbose "Adding asset type:", chalk.magenta.bold asset
-            assets[asset] = assumptions.assets[asset]
-          else
-            logger.warn chalk.red "Asset type: \"#{asset}\" not recognized. Please provide a definition."
 
-        # use an asset definition object specified in Smashfile
-        else
-          logger.verbose "Adding custom asset definition:", chalk.red.bold asset.name
-          logger.verbose asset
-          assets[asset.ext] = asset
+      # collect asset definitions
+      validType = (a) -> _.isString(a) and _.contains _.keys(assumptions.assets), a
+      projectAssets = _.union _.filter(project.assets, validType), defaultAssets
+      customAssets = _.filter project.assets, _.isObject
+
+      for asset in projectAssets
+        logger.verbose "Adding asset type:", chalk.magenta.bold asset
+        assets[asset] = assumptions.assets[asset]
+
+      for asset in customAssets
+        logger.verbose "Adding custom asset definition:", chalk.red.bold asset.name
+        logger.verbose asset
+        assets[asset.ext] = asset
+
 
       config =
         assets:       assets
@@ -73,6 +72,7 @@ Smasher.launch
         env:          env
         dir:          _.defaults (project.dir or {}), assumptions.dir
         build:        project.build
+        banner:       project.banner
         assumptions:  assumptions
       config.helpers = require('./helpers')(require('./global'), config)
 

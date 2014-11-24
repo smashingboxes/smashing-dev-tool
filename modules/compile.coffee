@@ -6,115 +6,122 @@ merge          = require 'merge-stream'
 amdOptimize    = require 'amd-optimize'
 bowerRequireJS = require 'bower-requirejs'
 del            = require 'del'
+chalk          = require 'chalk'
+fs             = require 'fs'
 
 module.exports = (globalConfig) ->
-  {args, util, tasks, fileRecipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute} = util
+  {args, util, tasks, recipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
+  {logger, notify, execute, merge} = util
   {assets, helpers, dir, env} = getProject()
-  {vendorFiles, mainFile, compiledFiles, files, dest, $} = helpers
+  {files, dest, $, logging, watching} = helpers
 
-  recipes = {}
-  for recipe in ['coffee', 'js', 'styl', 'css', 'jade', 'html', 'json', 'vendor']
+  target = null
+
+
+  # Collect recipe formulae
+  for recipe in ['coffee', 'js', 'styl', 'css', 'jade', 'html', 'json', 'vendor', 'images', 'fonts']
     recipes[recipe] = require("../recipes/#{recipe}")(globalConfig)
 
-  assetTasks = ("compile:#{ext}" for ext, asset of assets)
+  # Build required asset tasks based on project Smashfile
+  assetTasks = ("#{ext}" for ext, asset of assets).concat ['vendor', 'images']
+
+  # Dynamically generate compile tasks from recipe functions
+  runTasks = for ext in assetTasks
+    if fn = recipes[ext]?.compile
+      task = "compile:#{ext}"
+      glob = "#{dir.client}/**/*.#{ext}"
+      doReload = assets[ext]?.reload
+
+      tasks.add task, fn                  # Access task via our Orchestrator instance
+      if args.watch
+        gulp.task task, fn                 # Access task via Gulp's Orchestrator instance
+        gulp.watch glob, (if doReload then [task, $.reload] else [task])  # Reload when watching
+
+      task
+
 
   ### ---------------- COMMANDS ------------------------------------------- ###
   commander
     .command('compile')
     .alias('c')
     .option('-w, --watch', 'Watch files and recompile on change')
-    .option '-r --reload', 'Reload the browser on change'
+    .option('-r --reload', 'Reload the browser on change')
+    .option('-c --cat', 'Output injected index file for inspection')
     .description('compile local assets based on Smashfile')
-    .action ->
-      tasks.start 'compile'
-      # tasks.start 'compile:inject:index'
+    .action (_target) ->
+      target = _target
+      tasks.start 'compile', 'compile:serve'
+
+
 
   ### ---------------- TASKS ---------------------------------------------- ###
-  tasks.add 'compile', ['compile:clean'],  ->
-    tasks.start 'compile:assets'
+  # Clear previous compile results and compile all assets
+  tasks.add 'compile:assets', ['compile:clean'], ->
+    logger.info "Compiling assets..."  if args.verbose
 
-  tasks.add 'compile:assets', assetTasks.concat(['compile:vendor']), (done) ->
-    tasks.start 'compile:inject:index', done
+    app = merge(
+      recipes.coffee.compile()
+      recipes.js.compile()
+      recipes.styl.compile()
+      recipes.css.compile()
+      recipes.html.compile()
+      recipes.jade.compile()
+      recipes.vendor.compile()
+    )
 
+  tasks.add 'compile', ['compile:assets'],  ->
+    injectIndex = ->
+      logger.info "Injecting compiled files into #{chalk.magenta 'index.jade'}"  if args.verbose
 
-  # Inject asset paths into index.html for development
-  injectIndex = ->
-    console.log 'injecting index...'
-    files 'index.jade'
-      .pipe $.if args.verbose, $.using()
+      files path:"#{dir.client}/index.jade"
+        .pipe logging()
 
-      # inject CSS
-      .pipe $.inject files('compile', '.css', false),
-        name: 'app'
-        ignorePath: 'compile'
-        addRootSlash: false
+        # Inject CSS, inject JS
+        .pipe $.inject files('compile', ['.css', '.js'], false),
+          name:'app', ignorePath:'compile', addRootSlash:false
 
-      # inject JS (Angular)
-      .pipe $.inject files('compile', '.js', false).pipe($.angularFilesort()),
-        name: 'app'
-        ignorePath: 'compile'
-        addRootSlash: false
+        # Inject vendor files
+        .pipe $.inject files('vendor', '*', false),
+          name:'vendor', ignorePath:'client', addRootSlash:false
 
-      # inject vendor files
-      .pipe $.inject files('vendor', '*', false),
-        name: 'vendor'
-        ignorePath: 'client'
-        addRootSlash: false
+        # Display injected output in console
+        .pipe $.if args.cat, $.cat()
 
-      .pipe $.if args.verbose, $.cat()
-      .pipe $.jade pretty:true, compileDebug:true
-      .on('error', (err) -> logger.error err.message)
-      .pipe dest.compile()
+        # Compile Jade to HTML
+        .pipe $.jade pretty:true, compileDebug:true
+        .on('error', (err) -> logger.error err.message)
 
-  tasks.add 'compile:inject:index', (done)->
+        # Output HTML
+        .pipe dest.compile()
+
     if args.watch
       gulp.task 'inject:index', injectIndex
-      gulp.watch "index.jade", ['inject:index', $.reload]
+      gulp.watch "#{dir.client}/index.jade", ['inject:index', $.reload]
 
     injectIndex()
-    done()
 
 
+  # Compile assets and watch source for changes, recompiling on event
+  tasks.add 'compile:serve', ->
+    setTimeout (->
+      $.browserSync
+        server:
+          baseDir:          dir.compile
+        watchOptions:
+          debounceDelay:  100
+        logPrefix:      'BrowserSync'
+        logConnections: true
+        logFileChanges: true
+        # logLevel:     'debug'
+        port:           8080
 
-  # Ensure the RequireJS file is primed with Bower components
-  injectDeps = ->
-    files 'vendor'
-      .pipe $.using()
-      # files path: "#{dir.client}/main.coffee"
-      # .pipe $.using()
-      # .pipe $.injec(files('vendor', '.js', false)
-      #   starttag: '# -- paths:vendor --',
-      #   endtag: '# -- endinject --',
-      #   ignorePath: 'client',
-      #   addRootSlash: false,
-      #   transform: (filepath, file, i, length) -> '"' + filepath + '"' + (if i + 1 < length then ',' else '')
-      # )
-      # .pipe $.cat()
-      # .pipe $.coffee bare:true
-      # .pipe dest.compile()
-
-  tasks.add 'compile:inject:deps', ->
-    files 'vendor', '.js'
-      .pipe $.if args.verbose, $.using()
-    # files 'compile'
-      # .pipe dest.compile()
-
-    # if args.watch
-    #   gulp.task 'compile:require', injectDeps
-    #   gulp.watch "#{dir.compile}/main.js", ['compile:require', $.reload]
-    #
-    # injectDeps()
-    # done()
-
-    # files path: "#{dir.client}/main.coffee"
-    #   .pipe $.coffee()
-    #   .pipe $.if args.verbose, $.using()
-    #   .pipe $.size title:'require-main'
-    #   .pipe dest.compile()
-    #   .pipe $.if args.reload, $.reload stream:true
+    ), 5000
 
 
   # Remove previous compilation
   tasks.add 'compile:clean', (done) ->
-    del [dir.compile], done
+    if fs.existsSync dir.compile
+      logger.info "Deleting #{chalk.magenta './'+dir.compile}"
+      del [dir.compile], done
+    else
+      done()
