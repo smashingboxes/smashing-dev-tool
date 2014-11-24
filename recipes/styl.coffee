@@ -13,11 +13,11 @@ module.exports = (globalConfig) ->
       # Compile
       .pipe $.stylus()
       .on('error', (err) -> logger.error err.message)
+
   ### ---------------- TASKS ---------------------------------------------- ###
   styl =
     compile: ->
       compile files '.styl'
-
         .pipe dest.compile()
         .pipe $.if args.watch, $.remember 'styl'
         .pipe watching()

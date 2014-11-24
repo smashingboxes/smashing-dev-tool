@@ -26,18 +26,20 @@ module.exports = (globalConfig) ->
   assetTasks = ("#{ext}" for ext, asset of assets).concat ['vendor', 'images']
 
   # Dynamically generate compile tasks from recipe functions
-  runTasks = for ext in assetTasks
-    if fn = recipes[ext]?.compile
-      task = "compile:#{ext}"
-      glob = "#{dir.client}/**/*.#{ext}"
-      doReload = assets[ext]?.reload
+  runTasks = null
+  registerCompileTasks = ->
+    runTasks = for ext in assetTasks
+      if fn = recipes[ext]?.compile
+        task = "compile:#{ext}"
+        glob = "#{dir.client}/**/*.#{ext}"
+        doReload = assets[ext]?.reload
 
-      tasks.add task, fn                  # Access task via our Orchestrator instance
-      if args.watch
-        gulp.task task, fn                 # Access task via Gulp's Orchestrator instance
-        gulp.watch glob, (if doReload then [task, $.reload] else [task])  # Reload when watching
+        tasks.add task, fn                  # Access task via our Orchestrator instance
+        if args.watch
+          gulp.task task, fn                 # Access task via Gulp's Orchestrator instance
+          gulp.watch glob, (if doReload then [task, $.reload] else [task])  # Reload when watching
 
-      task
+        task
 
 
   ### ---------------- COMMANDS ------------------------------------------- ###
@@ -50,13 +52,17 @@ module.exports = (globalConfig) ->
     .description('compile local assets based on Smashfile')
     .action (_target) ->
       target = _target
-      tasks.start 'compile', 'compile:serve'
+      toRun = ['compile']
+      toRun.push 'compile:serve'  if args.watch
+      tasks.start toRun
 
 
 
   ### ---------------- TASKS ---------------------------------------------- ###
   # Clear previous compile results and compile all assets
   tasks.add 'compile:assets', ['compile:clean'], ->
+    registerCompileTasks()
+
     logger.info "Compiling assets..."  if args.verbose
 
     app = merge(
