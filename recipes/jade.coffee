@@ -1,16 +1,25 @@
+smasher = require '../config/global'
+util = require '../utils/util'
+helpers = require '../utils/helpers'
+
 coffeeStylish = require('coffeelint-stylish').reporter
 coffeelintrc  = require '../config/lint/coffeelintrc'
-lazypipe      = require 'lazypipe'
 
-module.exports = (globalConfig) ->
-  {args, util, tasks, recipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute} = util
+{args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+{dir, env} = project
+{files, $, logging} = helpers
 
-  {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, banner, dest, time, $, logging, watching} = helpers
 
-  ### ---------------- RECIPE --------------------------------------------- ###
-  compile = (stream) ->
+### ---------------- RECIPE --------------------------------------------- ###
+smasher.recipe
+  name:   'Jade'
+  ext:    'jade'
+  type:   'view'
+  doc:    true
+  test:   true
+  lint:   false
+  reload: true
+  compileFn: (stream) ->
     stream
       .pipe $.if args.watch, $.cached 'main'
       .pipe logging()
@@ -19,8 +28,4 @@ module.exports = (globalConfig) ->
       .pipe $.jade pretty:true, compileDebug:true
       .on('error', (err) -> logger.error err.message)
 
-  ### ---------------- TASKS ---------------------------------------------- ###
-  jade =
-    compile: ->
-      compile files '.jade'
-        .pipe dest.compile()
+      .pipe $.ngHtml2js moduleName: 'templates-main'

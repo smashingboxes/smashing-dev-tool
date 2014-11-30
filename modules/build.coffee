@@ -8,9 +8,8 @@ fs =        require 'fs'
 module.exports = (globalConfig) ->
   {args, util, tasks, recipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
   {logger, notify, execute, merge} = util
-  {assets, helpers, dir, env} = getProject()
-  {vendorFiles, mainFile, compiledFiles, files, dest, $} = helpers
-  logging = -> $.if args.verbose, $.using()
+  {assets, helpers, dir, env, merge} = getProject()
+  {files, dest, $, logging, watching} = helpers
 
   target = null
   project = getProject()

@@ -1,27 +1,39 @@
-module.exports = (globalConfig) ->
-  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute} = util
+smasher  = require '../config/global'
+helpers = require '../utils/helpers'
+htmlhintrc = require '../config/lint/htmlhintrc'
 
-  {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, banner, dest, time, $, logging, watching} = helpers
+{args, tasks, recipes, commander, assumptions, rootPath, user, platform, project, util} = smasher
+{logger, notify, execute, merge} = util
+{dir, env} = project
+{files, $, dest} = helpers
 
-  htmlhintrc = require '../config/lint/htmlhintrc'
 
-  cfg =
-    ngHtml2js:
-      moduleName: "views"
-      prefix: ''
+cfg =
+  ngHtml2js:
+    moduleName: "templates-main"
+    prefix: ''
 
-  ### ---------------- RECIPE --------------------------------------------- ###
-  compile = (stream) ->
+### ---------------- RECIPE --------------------------------------------- ###
+smasher.recipe
+  name:   'HTML'
+  ext:    'html'
+  type:   'view'
+  doc:    true
+  test:   true
+  lint:   true
+  reload: true
+  compileFn: (stream) ->
     stream
       .pipe $.if args.watch, $.cached 'main'
-      
+
       # Lint
       .pipe $.htmlhint htmlhintrc
       .pipe $.htmlhint.reporter()
 
-  build = (stream) ->
+      # Convert to JS for templateCache
+      .pipe $.ngHtml2js cfg.ngHtml2js
+
+  buildFn: (stream) ->
     stream
       # Optimize
       .pipe $.htmlmin collapseWhitespace: true
@@ -29,19 +41,3 @@ module.exports = (globalConfig) ->
       # Concat
       .pipe $.ngHtml2js cfg.ngHtml2js
       .pipe $.concat 'app-views.js'
-      .pipe $.wrapAmd()
-
-
-  ### ---------------- TASKS ---------------------------------------------- ###
-  html =
-    compile: ->
-      compile files '.html'
-        .pipe logging()
-        .pipe dest.compile()
-        # .pipe watching()
-
-    build: ->
-      build files 'compile', '.html'
-        .pipe logging()
-        .pipe dest.build()
-        # .pipe watching()

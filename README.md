@@ -1,6 +1,6 @@
 # Smashing Dev Tool
 
-This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automation. By following the conventions this tool is built on, you can instantly add front end tooling and dev ops goodness to any Smashing project. Tell Smasher which asset types you want to include in your Smashfile and it will build a data model of your source code that can be manipulated and queried by other modules.
+This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automation. By following the conventions this tool is built on, you can instantly add front end tooling and dev ops goodness to any Smashing project. Tell smasher which asset types you want to include in your Smashfile and it will build a data model of your source code that can be manipulated and queried by other modules.
 
 
 

@@ -1,33 +1,43 @@
 # Generates config from relavent global enviornment information
 
-argv =          require('minimist')(process.argv.slice 2)
-chalk =         require 'chalk'
-fs =            require 'fs'
-os =            require 'os'
-gitConfig =     require 'git-config'
-Orchestrator =  require 'orchestrator'
-commander =     require 'commander'
-_ =             require 'underscore'
-_str =          require 'underscore.string'
+gulp         = require 'gulp'
+argv         = require('minimist')(process.argv.slice 2)
+chalk        = require 'chalk'
+fs           = require 'fs'
+os           = require 'os'
+Orchestrator = require 'orchestrator'
+commander    = require 'commander'
+_            = require 'underscore'
+_str         = require 'underscore.string'
+dir          = require 'require-dir'
 
-# Smasher
-smashRoot =     process.mainModule.filename.replace '/bin/smash', ''
-smashPkg =      require "#{smashRoot}/package"
-assumptions =   require './assumptions'
-util =          require './util'
-{logger, notify, execute} = util
+# smasher
+smashRoot = process.mainModule.filename.replace '/bin/smash', ''
+smashPkg  = require "#{smashRoot}/package"
+util      = {logger, notify, execute} = require '../utils/util'
 
-
-# User
-config = gitConfig.sync()
-user = config.user or {}
-user.homeDir = homeDir =   process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
-user.username = if config.github?.user? then config.github.user else homeDir?.split("/").pop() or 'root'
-format = (s) -> s.toLowerCase().replace /\s/g, ''
+tasks     = new Orchestrator()
+recipes   = {}
+Recipe    = require('../utils/recipe.coffee')
+assets    = require './assets'
 
 
-# Platform
-platform =
+# # Collect recipe formulae
+# for recipe in ['coffee', 'js', 'styl', 'css', 'jade', 'html', 'json', 'vendor', 'images', 'fonts']
+#   recipes[recipe] = require("../recipes/#{recipe}")(globalConfig)
+#
+# # Build required asset tasks based on project Smashfile
+# assetTasks = ("#{ext}" for ext, asset of assets).concat ['vendor', 'images']
+
+
+# User information
+getUser = ->
+  gitConfig = require('git-config').sync()
+  user = gitConfig.user or {}
+  user.homeDir =  process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
+  user.username = if gitConfig.github?.user? then gitConfig.github.user else user.homeDir?.split("/").pop() or 'root'
+
+getPlatform = ->
   type:               os.type()
   platform:           os.platform()
   hostname:           os.hostname()
@@ -37,23 +47,70 @@ platform =
   cpus:               os.cpus()
   networkInterfaces:  os.networkInterfaces()
 
-finalConfig =
-  args:         argv
-  util:         util
-  assumptions:  assumptions
-  commander:    commander
-  tasks:        new Orchestrator()
-  recipes:  {}
-  user:         user
-  platform:     platform
-  smash:
-    pkg:        smashPkg
-    root:       smashRoot
+# Add a Task (Orchestrator)
+addTask = ->
+  logger.verbose "Registering a new task: #{chalk.cyan arguments[0]}"
+  tasks.add.apply tasks, arguments
 
-project = null
-finalConfig.getProject = ->
-  unless project
-    project = require './project'
-  project
+# Add a Recipe (Gulp)
+addRecipe = (recipe={}) ->
+  ext = if _.isArray recipe.ext then recipe.name else recipe.ext
+  recipes[ext] = r = new Recipe recipe
+  logger.verbose "Registering a recipe for #{chalk.magenta ext}"
 
-module.exports = finalConfig
+  addWatchTask = (target) ->
+    task = "target:#{ext}"
+    glob = "#{target}/**/*#{ext}"
+
+    tasks.add task, recipe[target]
+    gulp.task task, recipe[target]
+    r.watch = ->
+      gulp.watch compileGlob, (if recipe.reload then [task, $.reload] else [task])
+
+  addWatchTask 'compile'
+  addWatchTask 'biild'
+  r
+
+# Add a Command (commander.js)
+addCommand = (name) ->
+  logger.verbose "Registering
+   command '#{chalk.cyan name}'"
+  if name?
+    commander.command name
+  else
+    commander
+
+
+class smasher
+  constructor: ->
+    logger.verbose "Creating new #{chalk.bold.red 'smasher'}!"
+    @pkg         = smashPkg
+    @rootPath    = smashRoot
+
+    @assets      = assets
+    @assumptions = require './assumptions'
+    @project     = require './project'
+
+    @user        = getUser()
+    @platform    = getPlatform()
+    @util        = util
+    @args        = argv
+
+
+    @tasks       = tasks
+    @recipes     = recipes
+    @commander   = commander
+
+  load: (extension) ->
+    logger.info "Loading module for .#{extension} files"  if argv.verbose
+    root = @rootPath
+    require("#{@rootPath}/recipes/#{extension}")
+
+
+
+  task: addTask
+  recipe: addRecipe
+  command: addCommand
+
+smasher::smasher = smasher
+module.exports = new smasher

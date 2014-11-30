@@ -1,28 +1,36 @@
-module.exports = (globalConfig) ->
+smasher   = require '../config/global'
+helpers   = require '../utils/helpers'
+jsStylish = require 'jshint-stylish'
+jshintrc  = require '../config/lint/jshintrc'
 
-  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute} = util
 
-  {assets, env, dir, pkg, helpers} = project = getProject()
-  {files,  banner, dest, time, $, logging, watching} = helpers
+{args, util, tasks, commander, assumptions, smash, user, platform, project} = smasher
+{logger, notify, execute} = util
+{assets, env, dir, pkg} = project
+{files,  banner, dest, time, $, logging, watching} = helpers
 
-  jsStylish = require 'jshint-stylish'
-  jshintrc = require '../config/lint/jshintrc'
+cfg =
+  ngAnnotate:
+    remove: true
+    add: true
+    single_quote: true
+  uglify:
+    mangle: true
+    preserveComments: 'some'
+  bowerRequire:
+    config: "#{env.configBase}/#{dir.compile}/main.js"
+    transitive: true
 
-  cfg =
-    ngAnnotate:
-      remove: true
-      add: true
-      single_quote: true
-    uglify:
-      mangle: true
-      preserveComments: 'some'
-    bowerRequire:
-      config: "#{env.configBase}/#{dir.compile}/main.js"
-      transitive: true
-
-  ### ---------------- RECIPE --------------------------------------------- ###
-  compile = (stream) ->
+### ---------------- RECIPE --------------------------------------------- ###
+smasher.recipe
+  name:   'JavaScript'
+  ext:    'js'
+  type:   'script'
+  doc:    true
+  test:   true
+  lint:   true
+  reload: true
+  compileFn: (stream) ->
     stream
       # .pipe $.angularFilesort()
       .pipe $.if args.watch, $.cached 'main'
@@ -34,7 +42,7 @@ module.exports = (globalConfig) ->
       # Post-process
       .pipe $.header banner
 
-  build = (stream) ->
+  buildFn: (stream) ->
     stream
       .pipe $.angularFilesort()
 
@@ -45,21 +53,3 @@ module.exports = (globalConfig) ->
 
       # Concat
       .pipe $.concat 'main.js'
-
-
-    stream
-
-
-  ### ---------------- TASKS ---------------------------------------------- ###
-  js =
-    compile: ->
-      compile files '.js'
-        .pipe logging()
-        .pipe dest.compile()
-        # .pipe watching()
-
-    build: ->
-      build files 'compile', '.js'
-        .pipe logging()
-        .pipe dest.build()
-        # .pipe watching()

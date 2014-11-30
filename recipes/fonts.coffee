@@ -1,33 +1,19 @@
-gulp = require 'gulp'
+smasher  = require '../config/global'
+helpers = require '../utils/helpers'
 
-module.exports = (globalConfig) ->
+{args, util, tasks, recipes, commander, assumptions, smash, user, platform, project} = smasher
+{logger, notify, execute} = util
 
-  {args, util, tasks, recipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute} = util
+{assets, env, dir, pkg} = project
+{files, banner, dest, time, $, logging, watching} = helpers
 
-  {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, banner, dest, time, $, logging, watching} = helpers
-
-  fontTypes = ['.eot', '.svg', '.ttf', '.woff']
-
-
-  ### ---------------- RECIPE --------------------------------------------- ###
-  compile = (stream) ->
-    stream
-      .pipe logging()
-
-  build = (stream) ->
-    stream
-      .pipe logging()
-
-
-  ### ---------------- TASKS ---------------------------------------------- ###
-  fonts =
-    compile: ->
-      compile files path:"#{dir.client}/data/fonts", fontTypes
-        .pipe gulp.dest "#{dir.compile}/data/fonts"
-
-        
-    build: ->
-      build files path:"#{dir.client}/data/fonts", fontTypes
-        .pipe gulp.dest "#{dir.build}/data/fonts"
+smasher.recipe
+  name:        'fonts'
+  ext:         ['eot', 'svg', 'ttf', 'woff']
+  type:        'data'
+  doc:         false
+  test:        true
+  lint:        false
+  reload:      true
+  passThrough: true
+  path:        "data/fonts"

@@ -1,9 +1,9 @@
-open = require 'open'
-chalk = require 'chalk'
-_ = require 'lodash'
-
+open        = require 'open'
+chalk       = require 'chalk'
+_           = require 'lodash'
+replay      = require 'replay'
 browserSync = require 'browser-sync'
-reload = browserSync.reload
+reload      = browserSync.reload
 
 module.exports = (globalConfig) ->
   {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig

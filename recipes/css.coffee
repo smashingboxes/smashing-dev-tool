@@ -1,35 +1,41 @@
-module.exports = (globalConfig) ->
+smasher  = require '../config/global'
+helpers = require '../utils/helpers'
+csslintrc = require '../config/lint/csslintrc'
 
-  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute} = util
+{args, util, tasks, commander, assumptions, smash, user, platform, project} = smasher
+{logger, notify, execute} = util
+{assets, env, dir, pkg} = project
+{files, banner, dest, time, $, logging, watching} = helpers
 
-  {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, banner, dest, time, $, logging, watching} = helpers
-
-  csslintrc = require '../config/lint/csslintrc'
-
-  cfg =
-    csso:                      false # set to true to prevent structural modifications
-    css2js:
-      splitOnNewline:          true
-      trimSpacesBeforeNewline: true
-      trimTrailingNewline:     true
-    myth:
-      sourcemap:               false
+cfg =
+  csso:                      false # set to true to prevent structural modifications
+  css2js:
+    splitOnNewline:          true
+    trimSpacesBeforeNewline: true
+    trimTrailingNewline:     true
+  myth:
+    sourcemap:               false
 
 
-  ### ---------------- RECIPE --------------------------------------------- ###
-  compile = (stream) ->
+### ---------------- RECIPE --------------------------------------------- ###
+smasher.recipe
+  name:   'CSS'
+  ext:    'css'
+  type:   'style'
+  doc:    true
+  test:   true
+  lint:   true
+  reload: false
+  compileFn: (stream) ->
     stream
       # Lint
-      # .pipe $.csslint csslintrc
-      # .pipe $.csslint.reporter()
+      .pipe $.csslint csslintrc
+      .pipe $.csslint.reporter()
 
       # Post-process
-      .pipe $.myth cfg.myth
+      # .pipe $.myth cfg.myth
 
-
-  build = (stream) ->
+  buildFn: (stream) ->
     stream
       # Optimize
       .pipe $.csso cfg.csso
@@ -40,22 +46,22 @@ module.exports = (globalConfig) ->
       .pipe $.css2js()
       .pipe $.wrapAmd()
 
-      # Minify
+    # Minify
 
 
-  ### ---------------- TASKS ---------------------------------------------- ###
-  css =
-    compile: ->
-      compile files '.css'
-      .pipe $.if args.watch, $.cached 'css'
-      .pipe logging()
-      .pipe dest.compile()
-      .pipe $.if args.watch, $.remember 'css'
-      .pipe watching()
-
-
-    build: ->
-      build files 'compile', '.css'
-      .pipe logging()
-      .pipe dest.compile()
-      .pipe watching()
+### ---------------- TASKS ---------------------------------------------- ###
+# css =
+#   compile: ->
+#     compile files '.css'
+#     .pipe $.if args.watch, $.cached 'css'
+#     .pipe logging()
+#     .pipe dest.compile()
+#     .pipe $.if args.watch, $.remember 'css'
+#     .pipe watching()
+#
+#
+#   build: ->
+#     build files 'compile', '.css'
+#     .pipe logging()
+#     .pipe dest.compile()
+#     .pipe watching()

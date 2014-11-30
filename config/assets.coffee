@@ -1,6 +1,6 @@
-assets    = [
+module.exports = [
   {
-    name:   'html'
+    name:   'HTML'
     ext:    'html'
     type:   'view'
     doc:    true
@@ -9,7 +9,7 @@ assets    = [
     reload: true
   }
   {
-    name:   'jade'
+    name:   'Jade'
     ext:    'jade'
     type:   'view'
     doc:    true
@@ -18,7 +18,7 @@ assets    = [
     reload: true
   }
   {
-    name:   'css'
+    name:   'CSS'
     ext:    'css'
     type:   'style'
     doc:    true
@@ -27,7 +27,7 @@ assets    = [
     reload: false
   }
   {
-    name:   'stylus'
+    name:   'Stylus'
     ext:    'styl'
     type:   'style'
     doc:    false
@@ -36,7 +36,7 @@ assets    = [
     reload: false
   }
   {
-    name:   'js'
+    name:   'JavaScript'
     ext:    'js'
     type:   'script'
     doc:    true
@@ -45,7 +45,7 @@ assets    = [
     reload: true
   }
   {
-    name:   'coffeescript'
+    name:   'CoffeeScript'
     ext:    'coffee'
     type:   'script'
     doc:    true
@@ -54,7 +54,7 @@ assets    = [
     reload: true
   }
   {
-    name:   'json'
+    name:   'JSON'
     ext:    'json'
     type:   'data'
     doc:    false
@@ -81,9 +81,3 @@ assets    = [
     reload: true
   }
 ]
-
-
-eAssets = []
-for a in assets
-  eAssets[a.ext] = a
-module.exports = eAssets

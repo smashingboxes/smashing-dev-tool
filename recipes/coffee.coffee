@@ -1,18 +1,27 @@
+smasher = require '../config/global'
+util = require '../utils/util'
+helpers = require '../utils/helpers'
 
-module.exports = (globalConfig) ->
+{args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+{logger, notify, execute, merge} = util
+{dir, env} = project
+{files, dest, $, logging, watching, banner} = helpers
 
-  {args, util, tasks, recipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute} = util
-
-  {assets, env, dir, pkg, helpers} = project = getProject()
-  {files, banner, dest, time, $, logging, watching} = helpers
-
-  coffeeStylish = require('coffeelint-stylish').reporter
-  coffeelintrc = require '../config/lint/coffeelintrc'
+coffeeStylish = require('coffeelint-stylish').reporter
+coffeelintrc = require '../config/lint/coffeelintrc'
 
 
-  ### ---------------- RECIPE --------------------------------------------- ###
-  compile = (stream) ->
+### ---------------- RECIPE --------------------------------------------- ###
+
+smasher.recipe
+  name:      'CoffeeScript'
+  ext:       'coffee'
+  type:      'script'
+  doc:       true
+  test:      true
+  lint:      true
+  reload:    true
+  compileFn: (stream) ->
     stream
       .pipe $.if args.watch, $.cached 'main'
       .pipe logging()
@@ -27,11 +36,3 @@ module.exports = (globalConfig) ->
 
       # Post-process
       .pipe $.header banner
-
-
-  ### ---------------- TASKS ---------------------------------------------- ###
-  coffee =
-    compile: ->
-      compile files '.coffee'
-        .pipe dest.compile()
-        # .pipe watching()

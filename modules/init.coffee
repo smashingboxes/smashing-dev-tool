@@ -7,7 +7,7 @@ module.exports = (globalConfig) ->
   # Setup
   commander
     .command('setup')
-    .description('set up project to use the Smasher')
+    .description('set up project to use the smasher')
     .option('-b, --bold',         'Display detailed log information')
     .action(->
       {assets, env, dir, pkg, helpers} = getProject()

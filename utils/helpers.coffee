@@ -8,45 +8,50 @@ open =            require 'open'                  # open files
 fs =              require 'fs'
 path =            require 'path'                  # manipulate file paths
 join =            path.join
+args         = require('minimist')(process.argv.slice 2)
 
 gulp =            require 'gulp'                  # streaming build system
 lazypipe =        require 'lazypipe'              # re-use partial streams
 runSequence =     require 'run-sequence'          # execute tasks in parallel or series
+
 # <br><br><br>
 
 
+smashRoot = process.mainModule.filename.replace '/bin/smash', ''
+smashPkg  = require "#{smashRoot}/package"
+
+{dir, pkg} = project = require '../config/project'
+{logger, notify, merge, execute} = util = require '../utils/util'
+
+# {env, dir, assumptions, banner} = project
 
 
-module.exports = (globalConfig, projectConfig) ->
-  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute} = util
-  {assets, pkg, env, dir, assumptions} = project = projectConfig
+###
+Auto-load all (most) Gulp plugins and attach to `$` for easy access
+###
+$ = require('gulp-load-plugins')(
+  camelize: true
+  config: smashPkg
+  scope: ['dependencies']
+)
+$.util =        require 'gulp-util'
+$.bowerFiles =  require 'main-bower-files'
+$.browserSync = require 'browser-sync'
+$.reload =      $.browserSync.reload
+# <br><br><br>
+
+logging  = ->  $.if args.verbose, $.using()
+watching = ->  $.if args.watch, $.reload(stream:        true)
+caching  = ->  $.if args.watch, $.cached('main')
+plumbing = ->  $.if args.watch, $.plumber(errorHandler: console.log)
+
+time     = (f) -> moment().format(f)
 
 
-  time = (f) ->
-    moment().format(f)
-
-  ###
-  Auto-load all (most) Gulp plugins and attach to `$` for easy access
-  ###
-  $ = require('gulp-load-plugins')(
-    camelize: true
-    config: smash.pkg
-    scope: ['dependencies']
-  )
-  $.util =        require 'gulp-util'
-  $.bowerFiles =  require 'main-bower-files'
-  $.browserSync = require 'browser-sync'
-  $.reload =      $.browserSync.reload
-  # <br><br><br>
-
-  logging  = ->  $.if args.verbose, $.using()
-  watching = ->  $.if args.watch, $.reload(stream: true)
-  caching  = ->  $.if args.watch, $.cached('main')
-  plumbing = ->  $.if args.watch, $.plumber(errorHandler: console.log)
 
 
-  # -------------------------------  API  ---------------------------------
+# -------------------------------  API  ---------------------------------
+module.exports =
 
   ###
   Plugins
@@ -205,11 +210,14 @@ module.exports = (globalConfig, projectConfig) ->
 
   TODO: add Git branch and SHA
   ###
-  banner: project.banner or "/** \n
-                             * #{pkg.name}  \n
-                             * v. #{pkg.version}  \n
-                             * \n
-                             * Built #{time 'dddd, MMMM Do YYYY, h:mma'}  \n
+  banner: project?.banner or "/** \n
+
                              */ \n\n"
 
   # <br><br><br>
+
+#
+# * #{smasher.pkg.name}  \n
+# * v. #{smasher.pkg.version}  \n
+# * \n
+# * Built #{time 'dddd, MMMM Do YYYY, h:mma'}  \n

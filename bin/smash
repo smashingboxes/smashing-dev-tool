@@ -3,13 +3,21 @@ argv =          require('minimist')(process.argv.slice 2)
 chalk =         require 'chalk'
 commander =     require 'commander'
 required =      require 'require-dir'
+_ = require 'lodash'
 
-globalConfig = require '../config/global'
-{logger, notify, execute} = globalConfig.util
+smasher = require '../config/global'
+
+
+# Load modules for handling various file types
+smasher.load(asset)  for asset in smasher.project.assets
+smasher.load 'vendor'
+smasher.load 'images'
+smasher.load 'fonts'
+
 
 # Configure Commander.js
 commander
-  .version(globalConfig.smash.pkg.version)
+  # .version(smasher.pkg.version)
   .option('-v, --verbose',         'Display detailed log information')
   .option('-s, --silent',          'Hide all logs and notifications')
   .on '--help', ->
@@ -22,41 +30,38 @@ commander
 
 # MAIN MODULES
 
-# require('../modules/builder')(globalConfig)
-
-
-# App template generation/scaffolding
-require('../modules/generate')(globalConfig)
-
-# Remove compiled files
-require('../modules/clean')(globalConfig)
-
-
-# Initialization
-# require('../modules/init')(globalConfig)
-
+# # App template generation/scaffolding
+# require('../modules/generate')(globalConfig)
+#
+# # Remove compiled files
+# require('../modules/clean')(globalConfig)
+#
+#
+# # Initialization
+# # require('../modules/init')(globalConfig)
+#
 # Compile phase
-require('../modules/compile')(globalConfig)
-
-# Build phase
-require('../modules/build')(globalConfig)
-
-# Deploy phase
-require('../modules/deploy')(globalConfig)
-
-# Test phase
-require('../modules/test')(globalConfig)
-
-# Server
-require('../modules/serve')(globalConfig)
-
-
-
-# Apps
-require('../modules/apps')(globalConfig)
-
-# Documentation generation
-require('../modules/document')(globalConfig)
+require('../modules/compile')
+#
+# # Build phase
+# require('../modules/build')(globalConfig)
+#
+# # Deploy phase
+# require('../modules/deploy')(globalConfig)
+#
+# # Test phase
+# require('../modules/test')(globalConfig)
+#
+# # Server
+# require('../modules/serve')(globalConfig)
+#
+#
+#
+# # Apps
+# require('../modules/apps')(globalConfig)
+#
+# # Documentation generation
+# require('../modules/document')(globalConfig)
 
 commander.parse process.argv
 commander.help()  if !commander.args.length
