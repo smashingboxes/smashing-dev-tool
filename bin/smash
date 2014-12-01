@@ -15,6 +15,39 @@ smasher.load 'images'
 smasher.load 'fonts'
 
 
+# App template generation/scaffolding
+require('../modules/generate')
+
+# Remove compiled files
+require('../modules/clean')
+
+# Initialization
+# require('../modules/init')
+
+# Compile phase
+require('../modules/compile')
+
+# Build phase
+require('../modules/build')
+
+# Deploy phase
+# require('../modules/deploy')
+
+# Test phase
+# require('../modules/test')
+
+# Server
+require('../modules/serve')
+
+# Apps
+# require('../modules/apps')
+
+# Documentation generation
+require('../modules/document')
+
+
+
+
 # Configure Commander.js
 commander
   # .version(smasher.pkg.version)
@@ -26,42 +59,6 @@ commander
     console.log '    $ smash generate app my-new-app'
     console.log '    $ smash generate component base/header'
     console.log ''
-
-
-# MAIN MODULES
-
-# # App template generation/scaffolding
-# require('../modules/generate')(globalConfig)
-#
-# # Remove compiled files
-# require('../modules/clean')(globalConfig)
-#
-#
-# # Initialization
-# # require('../modules/init')(globalConfig)
-#
-# Compile phase
-require('../modules/compile')
-#
-# # Build phase
-# require('../modules/build')(globalConfig)
-#
-# # Deploy phase
-# require('../modules/deploy')(globalConfig)
-#
-# # Test phase
-# require('../modules/test')(globalConfig)
-#
-# # Server
-# require('../modules/serve')(globalConfig)
-#
-#
-#
-# # Apps
-# require('../modules/apps')(globalConfig)
-#
-# # Documentation generation
-# require('../modules/document')(globalConfig)
 
 commander.parse process.argv
 commander.help()  if !commander.args.length

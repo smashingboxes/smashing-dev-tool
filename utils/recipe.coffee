@@ -8,18 +8,17 @@ gulp = require 'gulp'
 module.exports =
   class Recipe
     constructor: (params={}) ->
-      @name      = params.name
-      @ext       = if typeof params.ext is 'string' then [params.ext] else params.ext
-      @type      = params.type or 'data'
-      @doc       = params.doc or false
-      @test      = params.test or false
-      @lint      = params.lint or false
-      @reload    = params.reload or false
-      @compileFn = params.compileFn or (stream) -> stream
-      @buildFn   = params.buildFn   or (stream)-> stream
+      @name        = params.name
+      @ext         = if typeof params.ext is 'string' then [params.ext] else params.ext
+      @type        = params.type or 'data'
+      @doc         = params.doc or false
+      @test        = params.test or false
+      @lint        = params.lint or false
+      @reload      = params.reload or false
+      @compileFn   = params.compileFn or (stream) -> stream
+      @buildFn     = params.buildFn   or (stream)-> stream
       @passThrough = params.passThrough
-      @path = params.path
-
+      @path        = params.path
 
     compile: ->
       if @passThrough

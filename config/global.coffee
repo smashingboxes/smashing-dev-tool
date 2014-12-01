@@ -83,7 +83,7 @@ addCommand = (name) ->
 
 class smasher
   constructor: ->
-    logger.verbose "Creating new #{chalk.bold.red 'smasher'}!"
+    logger.verbose "Creating new #{chalk.bold.red 'smasher'}!"  if argv.verbose
     @pkg         = smashPkg
     @rootPath    = smashRoot
 

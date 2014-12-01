@@ -1,113 +1,105 @@
-gulp =      require 'gulp'
-del =       require 'del'
-chalk =     require 'chalk'
-streamqueue = require 'streamqueue'
-fs =        require 'fs'
+gulp    = require 'gulp'
+_       = require 'lodash'
+del     = require 'del'
+chalk   = require 'chalk'
+fs      = require 'fs'
+
+smasher = require '../config/global'
+project = require '../config/project'
+util    = require '../utils/util'
+helpers = require '../utils/helpers'
+
+{args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+{assets, dir, env} = project
+{logger, notify, execute, merge} = util
+{files, dest, $, logging, watching} = helpers
+
+target = null
 
 
-module.exports = (globalConfig) ->
-  {args, util, tasks, recipes, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute, merge} = util
-  {assets, helpers, dir, env, merge} = getProject()
-  {files, dest, $, logging, watching} = helpers
-
-  target = null
-  project = getProject()
-
-
-  ### ---------------- COMMANDS ------------------------------------------- ###
-  commander
-    .command('build [target]')
-    .description('build local assets for production based on Smashfile')
-    .action (_target) ->
-      target = _target
-      tasks.start 'build'
+### ---------------- COMMANDS ------------------------------------------- ###
+smasher.command('build [target]')
+  .description('build local assets for production based on Smashfile')
+  .option('-c --cat', 'Output injected index file for inspection')
+  .action (_target) ->
+    target = _target
+    toRun = ['build']
+    toRun.push 'build:serve'  if args.watch
+    tasks.start toRun
 
 
-  ### ---------------- TASKS ------------------------------ ---------------- ###
-  tasks.add 'build', ->
+### ---------------- TASKS ------------------------------ ---------------- ###
+smasher.task 'build', ['build:assets'], ->
+  # Determine correct output path
+  outDir = null
+  if target? and project.build?[target]?
+    outDir = project.build[target].out
+    logger.info "Building files from #{chalk.green './'+project.dir.compile} to #{chalk.magenta './'+outDir} for target #{chalk.bold target}"
+  else
+    outDir = project.dir.build
+    logger.info "Building files from #{chalk.green './'+project.dir.compile} to #{chalk.magenta './'+outDir}"
 
-    # determine correct output path
-    outDir = null
-    if target? and project.build?[target]?
-      outDir = project.build[target].out
-      logger.info "Building files from #{chalk.green './'+project.dir.compile} to #{chalk.magenta './'+outDir} for target #{chalk.bold target}"
-    else
-      outDir = project.dir.build
-      logger.info "Building files from #{chalk.green './'+project.dir.compile} to #{chalk.magenta './'+outDir}"
+  injectIndex = ->
+    logger.info "Injecting built files into #{chalk.magenta 'index.jade'}"  if args.verbose
 
-    # Conert app Views to JS
-    views = files('compile', '.html')
-      .pipe $.htmlmin collapseWhitespace: true
-      .pipe $.ngHtml2js moduleName: 'templates-main'
-      .pipe $.concat 'templates-main.js'
-
-    # Merge vendor and app Scripts, optimize
-    scripts = merge(
-      files('compile', '.js').pipe($.ngAnnotate())
-      files('vendor', '.js')
-      views
-    ).pipe($.uglify()).pipe($.concat 'app.js')
-
-
-    # Optimize and output Images
-    images = files path:'client/data/images', ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg']
-      .pipe $.imagemin()
-      .pipe gulp.dest "#{outDir}/images"
+    files path:"#{dir.client}/index.jade"
       .pipe logging()
 
-    # Optimize and output Fonts
-    fonts = files path:'client/data/fonts', ['.eot', '.svg', '.ttf', '.woff']
-      .pipe gulp.dest "#{outDir}/fonts"
-      .pipe logging()
+      # Inject CSS, inject JS
+      .pipe $.inject files('build', ['.css', '.js'], false),
+        name:'app', ignorePath:'build', addRootSlash:false
 
-    # Merge vendor and app Styles, optimize
-    styles = merge(
-      files('compile', '.css')
-      files('vendor', '.css')
-    ).pipe($.concat 'app-styles.css').pipe $.csso()
+      # Display injected output in console
+      .pipe $.if args.cat, $.cat()
 
-    # Output Scripts and Styles to build directory
-    pkg = merge(scripts, styles)
-      .pipe gulp.dest outDir
-      .pipe logging()
-
-
-    # Inject built files into index.html
-    files 'index.jade'
-      .pipe $.using()
-      .pipe $.inject pkg,
-        name: 'app'
-        ignorePath: 'build'
-        addRootSlash: false
-      .pipe logging()
-
-      # convert to HTML and optimize
-      .pipe $.jade()
+      # Compile Jade to HTML
+      .pipe $.jade compileDebug:true
       .on('error', (err) -> logger.error err.message)
-      .pipe $.htmlmin collapseWhitespace: true
 
-      .pipe $.if args.verbose, $.cat()
+      .pipe $.if args.cat, $.cat()
+
+      # Output HTML
       .pipe gulp.dest outDir
+      .pipe logging()
+      .pipe watching()
 
+  if args.watch
+    gulp.task 'inject:index', injectIndex
+    gulp.watch "#{dir.client}/index.jade", ['inject:index']
 
-  tasks.add 'build:watch', ->
-    args.watch = true
+  injectIndex()
 
+smasher.task 'build:assets', ['build:clean'], ->
+  logger.info "Building assets..."  if args.verbose
+  merge.apply @, (r.build()  for r in _.values recipes)
 
-  tasks.add 'build:clean', (done) ->
-    hasDirs = false
+smasher.task 'build:serve', ->
+  setTimeout (->
+    $.browserSync
+      server:
+        baseDir:          dir.build
+      watchOptions:
+        debounceDelay:  100
+      logPrefix:      'BrowserSync'
+      logConnections: args.verbose
+      logFileChanges: args.verbose
+      # logLevel:     'debug'
+      port:           8080
+  ), 5000
 
-    if project.build?
-      hasDirs = true
-      for t of project.build
-        if fs.existsSync project.build[t].out
-          logger.info "Deleting #{chalk.magenta './'+project.build[t].out}"
-          del [project.build[t].out]
+smasher.task 'build:clean', (done) ->
+  hasDirs = false
 
-    if fs.existsSync project.dir.build
-      hasDirs = true
-      logger.info "Deleting #{chalk.magenta './'+project.dir.build}"
-      del [project.dir.build], done
+  if project.build?
+    hasDirs = true
+    for t of project.build
+      if fs.existsSync project.build[t].out
+        logger.info "Deleting #{chalk.magenta './'+project.build[t].out}"
+        del [project.build[t].out]
 
-    done() unless hasDirs
+  if fs.existsSync project.dir.build
+    hasDirs = true
+    logger.info "Deleting #{chalk.magenta './'+project.dir.build}"
+    del [project.dir.build], done
+
+  done() unless hasDirs

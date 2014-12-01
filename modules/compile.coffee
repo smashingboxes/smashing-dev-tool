@@ -1,21 +1,17 @@
-required       = require 'require-dir'
-gulp           = require 'gulp'
-lazypipe       = require 'lazypipe'
-_              = require 'underscore'
-merge          = require 'merge-stream'
-amdOptimize    = require 'amd-optimize'
-bowerRequireJS = require 'bower-requirejs'
-del            = require 'del'
-chalk          = require 'chalk'
-fs             = require 'fs'
+gulp    = require 'gulp'
+_       = require 'lodash'
+del     = require 'del'
+chalk   = require 'chalk'
+fs      = require 'fs'
 
-smasher  = require '../config/global'
+smasher = require '../config/global'
+project = require '../config/project'
+util    = require '../utils/util'
 helpers = require '../utils/helpers'
 
-# module.exports = ->
-{args, util, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
-{logger, notify, execute, merge} = util
+{args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
 {assets, dir, env} = project
+{logger, notify, execute, merge} = util
 {files, dest, $, logging, watching} = helpers
 
 target = null
@@ -33,7 +29,6 @@ smasher.command('compile')
     toRun = ['compile']
     toRun.push 'compile:serve'  if args.watch
     tasks.start toRun
-
 
 
 ### ---------------- TASKS ---------------------------------------------- ###
@@ -69,26 +64,10 @@ smasher.task 'compile', ['compile:assets'],  ->
 
   injectIndex()
 
-
 # Clear previous compile results and compile all assets
 smasher.task 'compile:assets', ['compile:clean'], ->
-  $.browserSync.notify 'Injecting asset paths into index'
-
   logger.info "Compiling assets..."  if args.verbose
-
-  # app = merge(
-  #   recipes.coffee.compile()
-  #   # recipes.js.compile()
-  #   # recipes.styl.compile()
-  #   # recipes.css.compile()
-  #   # recipes.html.compile()
-  #   # # recipes.jade.compile()
-  #   # recipes.vendor.compile()
-  #   # recipes.images.compile()
-  #   # recipes.fonts.compile()
-  # )
-
-  app = merge.apply @, (r.compile()  for r in _.values recipes)
+  merge.apply @, (r.compile()  for r in _.values recipes)
 
 # Compile assets and watch source for changes, recompiling on event
 smasher.task 'compile:serve', ->

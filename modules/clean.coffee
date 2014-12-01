@@ -1,18 +1,19 @@
 gulp =      require 'gulp'
 _ =         require 'underscore'
+smasher  = require '../config/global'
+helpers = require '../utils/helpers'
+
+{args, tasks, recipes, commander, assumptions, rootPath, user, platform, project, util} = smasher
+{logger, notify, execute, merge} = util
+{dir, env} = project
+{files, $, dest} = helpers
 
 
-module.exports = (globalConfig) ->
-  {args, util, tasks, commander, assumptions, smash, user, platform, getProject} = globalConfig
-  {logger, notify, execute} = util
+### ---------------- COMMANDS ------------------------------------------- ###
+commander
+  .command('clean')
+  .description('build local assets based on Smashfile')
+  .action ->
+    toRun = _.pluck _.filter(tasks.tasks, (task, name) -> name.indexOf('clean') >= 0), 'name'
 
-  
-
-  ### ---------------- COMMANDS ------------------------------------------- ###
-  commander
-    .command('clean')
-    .description('build local assets based on Smashfile')
-    .action ->
-      toRun = _.pluck _.filter(tasks.tasks, (task, name) -> name.indexOf('clean') >= 0), 'name'
-
-      tasks.start toRun
+    tasks.start toRun
