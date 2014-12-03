@@ -16,7 +16,7 @@ smasher.recipe
   doc:    false
   test:   false
   lint:   false
-  reload: false
+  reload: true
   compileFn: (stream) ->
     stream
       .pipe $.if args.watch, $.cached 'styl'

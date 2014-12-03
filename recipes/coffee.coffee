@@ -5,14 +5,13 @@ helpers = require '../utils/helpers'
 {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
 {logger, notify, execute, merge} = util
 {dir, env} = project
-{files, dest, $, logging, watching, banner} = helpers
+{files, dest, $, logging, watching, caching, banner} = helpers
 
 coffeeStylish = require('coffeelint-stylish').reporter
 coffeelintrc = require '../config/lint/coffeelintrc'
 
 
 ### ---------------- RECIPE --------------------------------------------- ###
-
 smasher.recipe
   name:      'CoffeeScript'
   ext:       'coffee'
@@ -23,7 +22,7 @@ smasher.recipe
   reload:    true
   compileFn: (stream) ->
     stream
-      .pipe $.if args.watch, $.cached 'main'
+      .pipe caching()
       .pipe logging()
 
       # Lint

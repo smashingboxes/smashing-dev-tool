@@ -22,6 +22,7 @@ smasher.command('serve [target]')
     serveTarget = 'compile'
     outDir = dir.compile
 
+    build = []
     # Determine which phase is being watched
     # and what the output directory for those files is
     if _.contains (t for t of build), target

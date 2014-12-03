@@ -41,8 +41,8 @@ $.reload =      $.browserSync.reload
 # <br><br><br>
 
 logging  = ->  $.if args.verbose, $.using()
-watching = ->  $.if args.watch, $.reload(stream:        true)
-caching  = ->  $.if args.watch, $.cached('main')
+watching = ->  $.if args.watch, $.reload(stream: true)
+caching  = (cache) ->  $.if args.watch, $.cached cache or 'main'
 plumbing = ->  $.if args.watch, $.plumber(errorHandler: console.log)
 
 time     = (f) -> moment().format(f)
@@ -92,6 +92,7 @@ module.exports =
     # Patterns to ignore when not running tests
     testGlob = [
       "!#{dir.client}/components/test/**"
+      "!#{dir.client}/**/*_test*"
     ]
 
     # Exclude index files for injection reasons
@@ -211,13 +212,10 @@ module.exports =
   TODO: add Git branch and SHA
   ###
   banner: project?.banner or "/** \n
-
-                             */ \n\n"
+                              * #{pkg.name}  \n
+                              * v. #{pkg.version}  \n
+                              * \n
+                              * Built #{time 'dddd, MMMM Do YYYY, h:mma'}  \n
+                              */ \n\n"
 
   # <br><br><br>
-
-#
-# * #{smasher.pkg.name}  \n
-# * v. #{smasher.pkg.version}  \n
-# * \n
-# * Built #{time 'dddd, MMMM Do YYYY, h:mma'}  \n

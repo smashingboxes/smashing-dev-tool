@@ -1,11 +1,11 @@
 #!/usr/bin/env coffee
-argv =          require('minimist')(process.argv.slice 2)
-chalk =         require 'chalk'
-commander =     require 'commander'
-required =      require 'require-dir'
-_ = require 'lodash'
+argv      = require('minimist')(process.argv.slice 2)
+chalk     = require 'chalk'
+commander = require 'commander'
+required  = require 'require-dir'
+_         = require 'lodash'
 
-smasher = require '../config/global'
+smasher   = require '../config/global'
 
 
 # Load modules for handling various file types
@@ -40,7 +40,7 @@ require('../modules/build')
 require('../modules/serve')
 
 # Apps
-# require('../modules/apps')
+require('../modules/apps')
 
 # Documentation generation
 require('../modules/document')

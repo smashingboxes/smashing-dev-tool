@@ -1,5 +1,3 @@
-# Generates config from relavent global enviornment information
-
 gulp         = require 'gulp'
 argv         = require('minimist')(process.argv.slice 2)
 chalk        = require 'chalk'
@@ -10,24 +8,17 @@ commander    = require 'commander'
 _            = require 'underscore'
 _str         = require 'underscore.string'
 dir          = require 'require-dir'
+browserSync  = require 'browser-sync'
+reload       = browserSync.reload
 
-# smasher
-smashRoot = process.mainModule.filename.replace '/bin/smash', ''
-smashPkg  = require "#{smashRoot}/package"
-util      = {logger, notify, execute} = require '../utils/util'
+util         = {logger, notify, execute} = require '../utils/util'
+tasks        = new Orchestrator()
+recipes      = {}
+Recipe       = require('../utils/recipe')
+assets       = require './assets'
 
-tasks     = new Orchestrator()
-recipes   = {}
-Recipe    = require('../utils/recipe.coffee')
-assets    = require './assets'
-
-
-# # Collect recipe formulae
-# for recipe in ['coffee', 'js', 'styl', 'css', 'jade', 'html', 'json', 'vendor', 'images', 'fonts']
-#   recipes[recipe] = require("../recipes/#{recipe}")(globalConfig)
-#
-# # Build required asset tasks based on project Smashfile
-# assetTasks = ("#{ext}" for ext, asset of assets).concat ['vendor', 'images']
+smashRoot    = process.mainModule.filename.replace '/bin/smash', ''
+smashPkg     = require "#{smashRoot}/package"
 
 
 # User information
@@ -37,6 +28,7 @@ getUser = ->
   user.homeDir =  process.env.HOME or process.env.HOMEPATH or process.env.USERPROFILE
   user.username = if gitConfig.github?.user? then gitConfig.github.user else user.homeDir?.split("/").pop() or 'root'
 
+# Platform details
 getPlatform = ->
   type:               os.type()
   platform:           os.platform()
@@ -47,40 +39,8 @@ getPlatform = ->
   cpus:               os.cpus()
   networkInterfaces:  os.networkInterfaces()
 
-# Add a Task (Orchestrator)
-addTask = ->
-  logger.verbose "Registering a new task: #{chalk.cyan arguments[0]}"
-  tasks.add.apply tasks, arguments
 
-# Add a Recipe (Gulp)
-addRecipe = (recipe={}) ->
-  ext = if _.isArray recipe.ext then recipe.name else recipe.ext
-  recipes[ext] = r = new Recipe recipe
-  logger.verbose "Registering a recipe for #{chalk.magenta ext}"
-
-  addWatchTask = (target) ->
-    task = "target:#{ext}"
-    glob = "#{target}/**/*#{ext}"
-
-    tasks.add task, recipe[target]
-    gulp.task task, recipe[target]
-    r.watch = ->
-      gulp.watch compileGlob, (if recipe.reload then [task, $.reload] else [task])
-
-  addWatchTask 'compile'
-  addWatchTask 'biild'
-  r
-
-# Add a Command (commander.js)
-addCommand = (name) ->
-  logger.verbose "Registering
-   command '#{chalk.cyan name}'"
-  if name?
-    commander.command name
-  else
-    commander
-
-
+# Central smasher instance
 class smasher
   constructor: ->
     logger.verbose "Creating new #{chalk.bold.red 'smasher'}!"  if argv.verbose
@@ -96,21 +56,33 @@ class smasher
     @util        = util
     @args        = argv
 
-
     @tasks       = tasks
     @recipes     = recipes
     @commander   = commander
 
+  # Load/register recipes by file type
   load: (extension) ->
-    logger.info "Loading module for .#{extension} files"  if argv.verbose
+    logger.info "Loading module for #{extension} files"  if argv.verbose
     root = @rootPath
     require("#{@rootPath}/recipes/#{extension}")
 
+  # Add a Task (Orchestrator)
+  task: ->
+    logger.verbose "Registering #{chalk.yellow 'task'} #{chalk.cyan arguments[0]}"
+    tasks.add.apply tasks, arguments
 
+  # Add a Recipe (Gulp)
+  recipe: (recipe={}) ->
+    ext = if _.isArray recipe.ext then recipe.name else recipe.ext
+    recipes[ext] = r = new Recipe recipe
+    logger.verbose "Registering #{chalk.yellow 'recipe'} for #{chalk.magenta ext}"
 
-  task: addTask
-  recipe: addRecipe
-  command: addCommand
+  # Add a Command (commander.js)
+  command: (name) ->
+    logger.verbose "Registering
+     #{chalk.yellow 'command'} '#{chalk.cyan name}'"
+    if name? then commander.command name else commander
+
 
 smasher::smasher = smasher
 module.exports = new smasher

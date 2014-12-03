@@ -29,10 +29,12 @@ smasher.command('compile')
     toRun = ['compile']
     toRun.push 'compile:serve'  if args.watch
     tasks.start toRun
+    logger.info "Compiling files from #{chalk.green './'+dir.client} to #{chalk.magenta './'+dir.compile}"
+
 
 
 ### ---------------- TASKS ---------------------------------------------- ###
-smasher.task 'compile', ['compile:assets'],  ->
+smasher.task 'compile', ['compile:assets'], ->
   injectIndex = ->
     logger.info "Injecting compiled files into #{chalk.magenta 'index.jade'}"  if args.verbose
 
@@ -67,7 +69,12 @@ smasher.task 'compile', ['compile:assets'],  ->
 # Clear previous compile results and compile all assets
 smasher.task 'compile:assets', ['compile:clean'], ->
   logger.info "Compiling assets..."  if args.verbose
-  merge.apply @, (r.compile()  for r in _.values recipes)
+  merge.apply @, (
+    for r in _.values recipes
+      r.watch() if args.watch
+      r.compile()
+  )
+
 
 # Compile assets and watch source for changes, recompiling on event
 smasher.task 'compile:serve', ->
@@ -78,12 +85,11 @@ smasher.task 'compile:serve', ->
       watchOptions:
         debounceDelay:  100
       logPrefix:      'BrowserSync'
-      logConnections: args.verbose
-      logFileChanges: args.verbose
+      logConnections: true
+      logFileChanges: true
       # logLevel:     'debug'
       port:           8080
-
-  ), 5000
+  ), 8000
 
 # Remove previous compilation
 smasher.task 'compile:clean', (done) ->

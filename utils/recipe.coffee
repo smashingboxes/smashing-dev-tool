@@ -1,9 +1,16 @@
-smasher = require '../config/global'
-helpers = require '../utils/helpers'
 gulp = require 'gulp'
+chalk = require 'chalk'
+argv         = require('minimist')(process.argv.slice 2)
 
-{dir} = project = require '../config/project'
-{files, $, dest, logging} = helpers
+
+helpers = require '../utils/helpers'
+util = require '../utils/util'
+project = require '../config/project'
+
+
+{dir} = project
+{files, $, dest, logging, watching} = helpers
+{logger} = util
 
 module.exports =
   class Recipe
@@ -20,7 +27,8 @@ module.exports =
       @passThrough = params.passThrough
       @path        = params.path
 
-    compile: ->
+    compile: =>
+      logger.info "Compiling #{chalk.magenta @ext} files"  if argv.verbose
       if @passThrough
         files(path:"#{dir.client}/#{@path}", (".#{e}" for e in @ext))
           .pipe logging()
@@ -32,12 +40,20 @@ module.exports =
       else
         @compileFn files(".#{e}" for e in @ext)
           .pipe dest.compile()
+          .pipe $.if @reload, watching()
 
-    build: (stream) ->
+    build: =>
+      logger.info "Building #{chalk.magenta @ext} files"  if argv.verbose
       if @passThrough
         files(path:@path, (".#{e}" for e in @ext))
           .pipe logging()
           .pipe dest.build()
       else
         @buildFn files(".#{e}" for e in @ext)
+          .pipe logging()
           .pipe dest.build()
+
+    watch: =>
+      logger.info "Watching #{chalk.magenta @ext} files"
+      gulp.task "compile:#{@ext}", @compile
+      gulp.watch "client/**/*.#{@ext}", if @reload then ["compile:#{@ext}"] else ["compile:#{@ext}", $.reload]
