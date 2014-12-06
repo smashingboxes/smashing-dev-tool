@@ -15,6 +15,7 @@ helpers = require '../utils/helpers'
 {files, dest, $, logging, watching} = helpers
 
 target = null
+compileTasks = ['compile:assets', 'compile:index']
 
 
 ### ---------------- COMMANDS ------------------------------------------- ###
@@ -26,17 +27,15 @@ smasher.command('compile')
   .description('compile local assets based on Smashfile')
   .action (_target) ->
     target = _target
-    toRun = ['compile']
-    toRun.push 'compile:serve'  if args.watch
-    tasks.start toRun
-    logger.info "Compiling files from #{chalk.green './'+dir.client} to #{chalk.magenta './'+dir.compile}"
-
-
+    compileTasks.push 'compile:serve'  if args.watch
+    tasks.start compileTasks
 
 ### ---------------- TASKS ---------------------------------------------- ###
-smasher.task 'compile', ['compile:assets'], ->
+
+# Injects assets into index.jade and compiles
+smasher.task 'compile:index', ['compile:assets'], ->
   injectIndex = ->
-    logger.info "Injecting compiled files into #{chalk.magenta 'index.jade'}"  if args.verbose
+    logger.verbose "Injecting compiled files into #{chalk.magenta 'index.jade'}"
 
     files path:"#{dir.client}/index.jade"
       .pipe logging()
@@ -68,13 +67,12 @@ smasher.task 'compile', ['compile:assets'], ->
 
 # Clear previous compile results and compile all assets
 smasher.task 'compile:assets', ['compile:clean'], ->
-  logger.info "Compiling assets..."  if args.verbose
+  logger.info "Compiling assets from #{chalk.green './'+dir.client} to #{chalk.magenta './'+dir.compile}"
   merge.apply @, (
     for r in _.values recipes
       r.watch() if args.watch
       r.compile()
   )
-
 
 # Compile assets and watch source for changes, recompiling on event
 smasher.task 'compile:serve', ->

@@ -32,6 +32,7 @@ smasher.recipe
 
       # Compile
       .pipe $.coffee bare:true
+      .pipe $.angularFilesort()
 
       # Post-process
       .pipe $.header banner

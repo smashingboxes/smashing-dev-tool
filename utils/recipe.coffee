@@ -1,14 +1,13 @@
-gulp = require 'gulp'
-chalk = require 'chalk'
-argv         = require('minimist')(process.argv.slice 2)
-
+gulp    = require 'gulp'
+chalk   = require 'chalk'
+argv    = require('minimist')(process.argv.slice 2)
 
 helpers = require '../utils/helpers'
-util = require '../utils/util'
+util    = require '../utils/util'
 project = require '../config/project'
 
 
-{dir} = project
+{dir, assumptions} = project
 {files, $, dest, logging, watching} = helpers
 {logger} = util
 
@@ -27,6 +26,7 @@ module.exports =
       @passThrough = params.passThrough
       @path        = params.path
 
+
     compile: =>
       logger.info "Compiling #{chalk.magenta @ext} files"  if argv.verbose
       if @passThrough
@@ -43,17 +43,29 @@ module.exports =
           .pipe $.if @reload, watching()
 
     build: =>
+      # Specific build target
+      buildOpts = project.build?[argv._[1]]
+      target = buildOpts?.out or dir.build
+
       logger.info "Building #{chalk.magenta @ext} files"  if argv.verbose
       if @passThrough
-        files(path:@path, (".#{e}" for e in @ext))
+        files(path:"#{dir.compile}/#{@path}", (".#{e}" for e in @ext))
           .pipe logging()
-          .pipe dest.build()
+          .pipe gulp.dest "#{target}/#{@path}"
       else
-        @buildFn files(".#{e}" for e in @ext)
+        @buildFn files 'compile', (".#{e}" for e in @ext)
           .pipe logging()
-          .pipe dest.build()
+          .pipe gulp.dest target
 
     watch: =>
       logger.info "Watching #{chalk.magenta @ext} files"
       gulp.task "compile:#{@ext}", @compile
       gulp.watch "client/**/*.#{@ext}", if @reload then ["compile:#{@ext}"] else ["compile:#{@ext}", $.reload]
+
+    # Get the name of the concat'd file to be created for a given asset type
+    getOutFile: ->
+      buildOpts = project.build?[argv._[1]]
+      if buildOpts
+        buildOpts["#{@type}s"] or assumptions.build["#{@type}s"]
+      else
+        assumptions.build["#{@type}s"]

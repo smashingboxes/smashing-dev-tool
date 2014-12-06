@@ -8,7 +8,7 @@ open =            require 'open'                  # open files
 fs =              require 'fs'
 path =            require 'path'                  # manipulate file paths
 join =            path.join
-args         = require('minimist')(process.argv.slice 2)
+args              = require('minimist')(process.argv.slice 2)
 
 gulp =            require 'gulp'                  # streaming build system
 lazypipe =        require 'lazypipe'              # re-use partial streams
@@ -20,8 +20,9 @@ runSequence =     require 'run-sequence'          # execute tasks in parallel or
 smashRoot = process.mainModule.filename.replace '/bin/smash', ''
 smashPkg  = require "#{smashRoot}/package"
 
-{dir, pkg} = project = require '../config/project'
+{dir, pkg, assumptions} = project = require '../config/project'
 {logger, notify, merge, execute} = util = require '../utils/util'
+
 
 # {env, dir, assumptions, banner} = project
 
@@ -67,6 +68,7 @@ module.exports =
   plumbing: plumbing
   caching: caching
   # <br><br><br>
+
 
   ###
   Returns a source stream for a given asset type. This gives us
@@ -182,7 +184,6 @@ module.exports =
       gulp.src source, options
         .pipe $.if options.read, plumbing()
   # <br><br><br>
-
 
   ###
   A collection of destination objects targeting folders from

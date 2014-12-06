@@ -5,7 +5,7 @@ csslintrc = require '../config/lint/csslintrc'
 {args, util, tasks, commander, assumptions, smash, user, platform, project} = smasher
 {logger, notify, execute} = util
 {assets, env, dir, pkg} = project
-{files, banner, dest, time, $, logging, watching} = helpers
+{files, banner, dest, time, $, logging, watching, getOutName} = helpers
 
 cfg =
   csso:                      false # set to true to prevent structural modifications
@@ -15,6 +15,9 @@ cfg =
     trimTrailingNewline:     true
   myth:
     sourcemap:               false
+
+buildOpts = project.build?[args._[1]] or {}
+target = buildOpts?.out or dir.build
 
 
 ### ---------------- RECIPE --------------------------------------------- ###
@@ -33,7 +36,7 @@ smasher.recipe
       .pipe $.csslint.reporter()
 
       # Post-process
-      # .pipe $.myth cfg.myth
+      .pipe $.myth cfg.myth
 
   buildFn: (stream) ->
     stream
@@ -41,10 +44,10 @@ smasher.recipe
       .pipe $.csso cfg.csso
 
       # Concat
-      .pipe $.if args.watch, $.continuousConcat 'app-styles.css'
-      .pipe $.if !args.watch, $.concat 'app-styles.css'
-      .pipe $.css2js()
-      .pipe $.wrapAmd()
+      .pipe $.if args.watch, $.continuousConcat @getOutFile()
+      .pipe $.if !args.watch, $.concat @getOutFile()
+      # .pipe $.css2js()
+      # .pipe $.wrapAmd()
 
     # Minify
 

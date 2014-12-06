@@ -36,7 +36,6 @@ notify = exports.notify = (title, message, type) ->
   n.notify msg
   logger.info msg.message
 
-
 # execute cli commands
 execute = exports.execute = (command, cb)->
   exec command, (err, stdout, stderr) ->

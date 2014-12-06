@@ -13,6 +13,9 @@ cfg =
     moduleName: "templates-main"
     prefix: ''
 
+buildOpts = project.build?[args._[1]] or {}
+target = buildOpts?.out or dir.build
+
 ### ---------------- RECIPE --------------------------------------------- ###
 smasher.recipe
   name:   'HTML'
@@ -40,4 +43,4 @@ smasher.recipe
 
       # Concat
       .pipe $.ngHtml2js cfg.ngHtml2js
-      .pipe $.concat 'app-views.js'
+      .pipe $.concat @getOutFile()

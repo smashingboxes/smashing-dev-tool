@@ -43,13 +43,11 @@ We lean heavily on the Google JavaScript Style Guide naming conventions and prop
 
 
 
-# Asset Types
-
+# Supported asset types
 exports.assets = require './assets'
 
-exports.test = 
+exports.test =
   prefix: 'test_'
-
 
 # Directory names
 exports.dir =
@@ -63,3 +61,9 @@ exports.dir =
   deploy:  'deploy'
 
   docs:    'docs'
+
+# Build defaults
+exports.build =
+  styles:  'app.css'
+  views:   'app-views.js'
+  scripts: 'app.js'
