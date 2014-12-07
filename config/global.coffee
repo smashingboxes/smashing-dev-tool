@@ -73,22 +73,21 @@ class smasher
     logger.info "Loading module: #{chalk.red name}"  if argv.verbose
     require("../modules/#{name}")
 
-  # initialize the module for the given command
+  # Initialize the module(s) needed for the given command
   initCmd: (cmd) ->
     self = @
-    if _.chain(@modules).pluck('commands').flatten().contains(cmd).value()
-      if mod = (_.find @modules, (m) -> _.contains m.commands, cmd)
-        if mod.dependencies
-          for dep in mod.dependencies
-            d = _.findWhere(@modules, name: dep)
-            d.init.call self, self
-        mod.init.call self, self
-        return
+    if mod = (_.find @modules, (m) -> _.contains m.commands, cmd)
+      if mod.dependencies
+        for dep in mod.dependencies
+          d = _.findWhere(@modules, name: dep)
+          d.init.call self, self
+      mod.init.call self, self
+      return
 
-    logger.error 'Could not find command'
+    logger.error 'Could not find command' if cmd
     @commander.help()
 
-  # Add a Task (Orchestrator)
+  # Register a Task (Orchestrator)
   task: ->
     logger.verbose "Registering #{chalk.yellow 'task'} #{chalk.cyan arguments[0]}"
     tasks.add.apply tasks, arguments
@@ -99,12 +98,13 @@ class smasher
     recipes[ext] = r = new Recipe recipe
     logger.verbose "Registering #{chalk.yellow 'recipe'} for #{chalk.magenta ext}"
 
-  # Add a Command (commander.js)
+  # Register a Command (commander.js)
   command: (name) ->
     logger.verbose "Registering
      #{chalk.yellow 'command'} '#{chalk.cyan name}'"
     if name? then commander.command name else commander
 
+  # Register a module that will create tasks and commands
   module: (mod={}) ->
     logger.info "Registering module: #{chalk.red mod.name}"  if argv.verbose
     @modules.push mod

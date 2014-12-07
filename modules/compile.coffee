@@ -41,8 +41,6 @@ smasher.module
     ### ---------------- COMMANDS ------------------------------------------- ###
     smasher.command('compile')
       .alias('c')
-      .option('-w, --watch', 'Watch files and recompile on change')
-      .option('-r --reload', 'Reload the browser on change')
       .option('-c --cat', 'Output injected index file for inspection')
       .description('compile local assets based on Smashfile')
       .action (_target) ->

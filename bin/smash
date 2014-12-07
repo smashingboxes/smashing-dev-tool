@@ -6,6 +6,10 @@ required  = require 'require-dir'
 _         = require 'lodash'
 
 smasher   = require '../config/global'
+smasher.commander
+  .option('-v, --verbose', 'Display detailed logs and notifications')
+  .option('-s, --silent', 'Hide all logs and notifications')
+  .option('-w, --watch', 'Monitor files for changes and reload browser(s)')
 
 # Load modules to register commands and tasks
 require "../modules/#{m}" for m in [
@@ -20,7 +24,6 @@ require "../modules/#{m}" for m in [
   'init'
   'apps'
   'document'
-
   'help'
 ]
 
@@ -28,4 +31,4 @@ require "../modules/#{m}" for m in [
 smasher.initCmd argv._[0]
 
 # Parse the arguments for Commander.js
-commander.parse process.argv
+smasher.commander.parse process.argv
