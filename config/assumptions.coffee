@@ -44,7 +44,7 @@ We lean heavily on the Google JavaScript Style Guide naming conventions and prop
 
 
 # Supported asset types
-exports.assets = require './assets'
+# exports.assets = require './assets'
 
 exports.test =
   prefix: 'test_'

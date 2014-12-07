@@ -6,7 +6,6 @@ coffeeStylish = require('coffeelint-stylish').reporter
 coffeelintrc  = require '../config/lint/coffeelintrc'
 
 {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
-{dir, env} = project
 {files, $, logging} = helpers
 
 

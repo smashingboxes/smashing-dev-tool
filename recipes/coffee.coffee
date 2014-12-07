@@ -4,7 +4,6 @@ helpers = require '../utils/helpers'
 
 {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
 {logger, notify, execute, merge} = util
-{dir, env} = project
 {files, dest, $, logging, watching, caching, banner} = helpers
 
 coffeeStylish = require('coffeelint-stylish').reporter

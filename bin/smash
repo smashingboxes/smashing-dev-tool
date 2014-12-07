@@ -7,58 +7,25 @@ _         = require 'lodash'
 
 smasher   = require '../config/global'
 
+# Load modules to register commands and tasks
+require "../modules/#{m}" for m in [
+  'generate'
+  'compile'
+  'build'
+  'deploy'
+  'test'
+  'serve'
+  'clean'
 
-# Load modules for handling various file types
-smasher.load(asset)  for asset in smasher.project.assets
-smasher.load 'vendor'
-smasher.load 'images'
-smasher.load 'fonts'
+  'init'
+  'apps'
+  'document'
 
+  'help'
+]
 
-# App template generation/scaffolding
-require('../modules/generate')
+# Lookup the module needed for this command and init(smasher)
+smasher.initCmd argv._[0]
 
-# Remove compiled files
-require('../modules/clean')
-
-# Initialization
-# require('../modules/init')
-
-# Compile phase
-require('../modules/compile')
-
-# Build phase
-require('../modules/build')
-
-# Deploy phase
-# require('../modules/deploy')
-
-# Test phase
-# require('../modules/test')
-
-# Server
-require('../modules/serve')
-
-# Apps
-require('../modules/apps')
-
-# Documentation generation
-require('../modules/document')
-
-
-
-
-# Configure Commander.js
-commander
-  # .version(smasher.pkg.version)
-  .option('-v, --verbose',         'Display detailed log information')
-  .option('-s, --silent',          'Hide all logs and notifications')
-  .on '--help', ->
-    console.log '  Examples:'
-    console.log ''
-    console.log '    $ smash generate app my-new-app'
-    console.log '    $ smash generate component base/header'
-    console.log ''
-
+# Parse the arguments for Commander.js
 commander.parse process.argv
-commander.help()  if !commander.args.length

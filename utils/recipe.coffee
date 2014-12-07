@@ -6,8 +6,8 @@ helpers = require '../utils/helpers'
 util    = require '../utils/util'
 project = require '../config/project'
 
-
-{dir, assumptions} = project
+assumptions = require '../config/assumptions'
+{dir} = project
 {files, $, dest, logging, watching} = helpers
 {logger} = util
 
@@ -26,7 +26,7 @@ module.exports =
       @passThrough = params.passThrough
       @path        = params.path
 
-
+    # Compile this recipe's filetypes into un-optimized, web-ready assets
     compile: =>
       logger.info "Compiling #{chalk.magenta @ext} files"  if argv.verbose
       if @passThrough
@@ -42,8 +42,9 @@ module.exports =
           .pipe dest.compile()
           .pipe $.if @reload, watching()
 
+    # Build this recipe's compiled assets into optimized, packaged distrobutions
     build: =>
-      # Specific build target
+      # Compute specific build target
       buildOpts = project.build?[argv._[1]]
       target = buildOpts?.out or dir.build
 
@@ -57,12 +58,13 @@ module.exports =
           .pipe logging()
           .pipe gulp.dest target
 
+    # Watch this recipe's filetypes and recompile them when they change
     watch: =>
       logger.info "Watching #{chalk.magenta @ext} files"
       gulp.task "compile:#{@ext}", @compile
       gulp.watch "client/**/*.#{@ext}", if @reload then ["compile:#{@ext}"] else ["compile:#{@ext}", $.reload]
 
-    # Get the name of the concat'd file to be created for a given asset type
+    # Get the name of the built/packaged file to be created for this recipe
     getOutFile: ->
       buildOpts = project.build?[argv._[1]]
       if buildOpts

@@ -2,9 +2,8 @@ smasher  = require '../config/global'
 helpers = require '../utils/helpers'
 csslintrc = require '../config/lint/csslintrc'
 
-{args, util, tasks, commander, assumptions, smash, user, platform, project} = smasher
+{args, util, tasks, commander, assumptions, smash, user, platform} = smasher
 {logger, notify, execute} = util
-{assets, env, dir, pkg} = project
 {files, banner, dest, time, $, logging, watching, getOutName} = helpers
 
 cfg =
@@ -15,9 +14,6 @@ cfg =
     trimTrailingNewline:     true
   myth:
     sourcemap:               false
-
-buildOpts = project.build?[args._[1]] or {}
-target = buildOpts?.out or dir.build
 
 
 ### ---------------- RECIPE --------------------------------------------- ###

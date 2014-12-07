@@ -7,7 +7,6 @@ _ = require 'lodash'
 
 {args, util, tasks, commander, assumptions, smash, user, platform, project} = smasher
 {logger, notify, execute} = util
-{assets, env, dir, pkg} = project
 {files,  banner, dest, time, $, logging, watching, caching, getOutFile} = helpers
 
 
@@ -19,10 +18,6 @@ cfg =
   uglify:
     mangle: true
     preserveComments: 'some'
-  bowerRequire:
-    config: "#{env.configBase}/#{dir.compile}/main.js"
-    transitive: true
-
 
 ### ---------------- RECIPE --------------------------------------------- ###
 smasher.recipe

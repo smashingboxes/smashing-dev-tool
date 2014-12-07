@@ -1,3 +1,4 @@
+
 gulp         = require 'gulp'
 argv         = require('minimist')(process.argv.slice 2)
 chalk        = require 'chalk'
@@ -15,7 +16,6 @@ util         = {logger, notify, execute} = require '../utils/util'
 tasks        = new Orchestrator()
 recipes      = {}
 Recipe       = require('../utils/recipe')
-assets       = require './assets'
 
 smashRoot    = process.mainModule.filename.replace '/bin/smash', ''
 smashPkg     = require "#{smashRoot}/package"
@@ -40,6 +40,7 @@ getPlatform = ->
   networkInterfaces:  os.networkInterfaces()
 
 
+
 # Central smasher instance
 class smasher
   constructor: ->
@@ -47,24 +48,45 @@ class smasher
     @pkg         = smashPkg
     @rootPath    = smashRoot
 
-    @assets      = assets
+    @assets      = []
     @assumptions = require './assumptions'
     @project     = require './project'
 
     @user        = getUser()
     @platform    = getPlatform()
     @util        = util
-    @args        = argv
+    @args        = argv._
 
     @tasks       = tasks
     @recipes     = recipes
     @commander   = commander
+    @modules = []
 
   # Load/register recipes by file type
   load: (extension) ->
     logger.info "Loading module for #{extension} files"  if argv.verbose
     root = @rootPath
     require("#{@rootPath}/recipes/#{extension}")
+
+  # Load a module by name
+  loadModule: (name) ->
+    logger.info "Loading module: #{chalk.red name}"  if argv.verbose
+    require("../modules/#{name}")
+
+  # initialize the module for the given command
+  initCmd: (cmd) ->
+    self = @
+    if _.chain(@modules).pluck('commands').flatten().contains(cmd).value()
+      if mod = (_.find @modules, (m) -> _.contains m.commands, cmd)
+        if mod.dependencies
+          for dep in mod.dependencies
+            d = _.findWhere(@modules, name: dep)
+            d.init.call self, self
+        mod.init.call self, self
+        return
+
+    logger.error 'Could not find command'
+    @commander.help()
 
   # Add a Task (Orchestrator)
   task: ->
@@ -82,6 +104,10 @@ class smasher
     logger.verbose "Registering
      #{chalk.yellow 'command'} '#{chalk.cyan name}'"
     if name? then commander.command name else commander
+
+  module: (mod={}) ->
+    logger.info "Registering module: #{chalk.red mod.name}"  if argv.verbose
+    @modules.push mod
 
 
 smasher::smasher = smasher

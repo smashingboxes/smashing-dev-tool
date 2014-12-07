@@ -4,17 +4,12 @@ htmlhintrc = require '../config/lint/htmlhintrc'
 
 {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project, util} = smasher
 {logger, notify, execute, merge} = util
-{dir, env} = project
 {files, $, dest} = helpers
-
 
 cfg =
   ngHtml2js:
     moduleName: "templates-main"
     prefix: ''
-
-buildOpts = project.build?[args._[1]] or {}
-target = buildOpts?.out or dir.build
 
 ### ---------------- RECIPE --------------------------------------------- ###
 smasher.recipe

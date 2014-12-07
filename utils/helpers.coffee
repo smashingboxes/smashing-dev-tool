@@ -20,11 +20,8 @@ runSequence =     require 'run-sequence'          # execute tasks in parallel or
 smashRoot = process.mainModule.filename.replace '/bin/smash', ''
 smashPkg  = require "#{smashRoot}/package"
 
-{dir, pkg, assumptions} = project = require '../config/project'
-{logger, notify, merge, execute} = util = require '../utils/util'
-
-
-# {env, dir, assumptions, banner} = project
+{dir, pkg, assumptions}          = project = require '../config/project'
+{logger, notify, merge, execute} = util    = require '../utils/util'
 
 
 ###
