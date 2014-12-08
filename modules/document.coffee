@@ -16,9 +16,9 @@ smasher.module
   commands: ['docs']
   init: (smasher) ->
 
-    {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+    {tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
     {assets, dir, env} = project
-    {logger, notify, execute, merge} = util
+    {args, logger, notify, execute, merge} = util
     {files, dest, $, logging, watching} = helpers
 
 

@@ -26,5 +26,3 @@ smasher.recipe
       # Compile
       .pipe $.jade pretty:true, compileDebug:true
       .on('error', (err) -> logger.error err.message)
-
-      .pipe $.ngHtml2js moduleName: 'templates-main'

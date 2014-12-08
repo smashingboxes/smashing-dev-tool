@@ -1,6 +1,5 @@
 gulp    = require 'gulp'
 chalk   = require 'chalk'
-argv    = require('minimist')(process.argv.slice 2)
 
 helpers = require '../utils/helpers'
 util    = require '../utils/util'
@@ -9,7 +8,7 @@ project = require '../config/project'
 assumptions = require '../config/assumptions'
 {dir} = project
 {files, $, dest, logging, watching} = helpers
-{logger} = util
+{args, logger} = util
 
 module.exports =
   class Recipe
@@ -28,7 +27,7 @@ module.exports =
 
     # Compile this recipe's filetypes into un-optimized, web-ready assets
     compile: =>
-      logger.info "Compiling #{chalk.magenta @ext} files"  if argv.verbose
+      logger.verbose "Compiling #{chalk.magenta @ext} files"
       if @passThrough
         files(path:"#{dir.client}/#{@path}", (".#{e}" for e in @ext))
           .pipe logging()
@@ -45,10 +44,10 @@ module.exports =
     # Build this recipe's compiled assets into optimized, packaged distrobutions
     build: =>
       # Compute specific build target
-      buildOpts = project.build?[argv._[1]]
+      buildOpts = project.build?[args._[1]]
       target = buildOpts?.out or dir.build
 
-      logger.info "Building #{chalk.magenta @ext} files"  if argv.verbose
+      logger.verbose "Building #{chalk.magenta @ext} files"
       if @passThrough
         files(path:"#{dir.compile}/#{@path}", (".#{e}" for e in @ext))
           .pipe logging()
@@ -60,13 +59,13 @@ module.exports =
 
     # Watch this recipe's filetypes and recompile them when they change
     watch: =>
-      logger.info "Watching #{chalk.magenta @ext} files"
+      logger.verbose "Watching #{chalk.magenta @ext} files"
       gulp.task "compile:#{@ext}", @compile
       gulp.watch "client/**/*.#{@ext}", if @reload then ["compile:#{@ext}"] else ["compile:#{@ext}", $.reload]
 
     # Get the name of the built/packaged file to be created for this recipe
     getOutFile: ->
-      buildOpts = project.build?[argv._[1]]
+      buildOpts = project.build?[args._[1]]
       if buildOpts
         buildOpts["#{@type}s"] or assumptions.build["#{@type}s"]
       else

@@ -1,6 +1,5 @@
 
 gulp         = require 'gulp'
-argv         = require('minimist')(process.argv.slice 2)
 chalk        = require 'chalk'
 fs           = require 'fs'
 os           = require 'os'
@@ -12,7 +11,7 @@ dir          = require 'require-dir'
 browserSync  = require 'browser-sync'
 reload       = browserSync.reload
 
-util         = {logger, notify, execute} = require '../utils/util'
+util         = {args, logger, notify, execute} = require '../utils/util'
 tasks        = new Orchestrator()
 recipes      = {}
 Recipe       = require('../utils/recipe')
@@ -40,11 +39,10 @@ getPlatform = ->
   networkInterfaces:  os.networkInterfaces()
 
 
-
 # Central smasher instance
 class smasher
   constructor: ->
-    logger.verbose "Creating new #{chalk.bold.red 'smasher'}!"  if argv.verbose
+    logger.verbose "Creating new #{chalk.bold.red 'smasher'}!"  if args.verbose
     @pkg         = smashPkg
     @rootPath    = smashRoot
 
@@ -55,7 +53,7 @@ class smasher
     @user        = getUser()
     @platform    = getPlatform()
     @util        = util
-    @args        = argv._
+    @args        = args
 
     @tasks       = tasks
     @recipes     = recipes
@@ -64,13 +62,13 @@ class smasher
 
   # Load/register recipes by file type
   load: (extension) ->
-    logger.info "Loading module for #{extension} files"  if argv.verbose
+    logger.info "Loading module for #{extension} files"  if args.verbose
     root = @rootPath
     require("#{@rootPath}/recipes/#{extension}")
 
   # Load a module by name
   loadModule: (name) ->
-    logger.info "Loading module: #{chalk.red name}"  if argv.verbose
+    logger.info "Loading module: #{chalk.red name}"  if args.verbose
     require("../modules/#{name}")
 
   # Initialize the module(s) needed for the given command
@@ -106,7 +104,7 @@ class smasher
 
   # Register a module that will create tasks and commands
   module: (mod={}) ->
-    logger.info "Registering module: #{chalk.red mod.name}"  if argv.verbose
+    logger.info "Registering module: #{chalk.red mod.name}"  if args.verbose
     @modules.push mod
 
 

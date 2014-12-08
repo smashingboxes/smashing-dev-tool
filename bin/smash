@@ -7,9 +7,13 @@ _         = require 'lodash'
 
 smasher   = require '../config/global'
 smasher.commander
-  .option('-v, --verbose', 'Display detailed logs and notifications')
-  .option('-s, --silent', 'Hide all logs and notifications')
-  .option('-w, --watch', 'Monitor files for changes and reload browser(s)')
+  .option '-a, --auto',     'auto-accept defaults where possible'
+  .option '-w, --watch',    'monitor files for changes and reload browser(s)'
+  .option '-s, --serve',    'compile assets and launch a static server'
+  .option '-v, --verbose',  'display detailed logs and notifications'
+  .option '-m, --mute',     'hide all logs and notifications'
+  .option '-c, --cat',      '\'cat\' results of file injection to console'
+
 
 # Load modules to register commands and tasks
 require "../modules/#{m}" for m in [
@@ -20,7 +24,6 @@ require "../modules/#{m}" for m in [
   'test'
   'serve'
   'clean'
-
   'init'
   'apps'
   'document'

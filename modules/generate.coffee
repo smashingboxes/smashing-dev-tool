@@ -14,7 +14,7 @@ template = null
 templateFiles = null
 overwriteDir = false
 
-templates = ['ember', 'polymer', 'angular', 'angular-amd']
+templates = ['ember', 'polymer', 'simple', 'angular', 'angular-amd']
 
 replaceDot = (path) ->
   if path.basename[0] is "_"
@@ -26,9 +26,9 @@ smasher.module
   name:     'generate'
   commands: ['generate', 'new']
   init: (smasher) ->
-    {args, tasks, recipes, commander, assumptions, rootPath, user, platform} = smasher
-    {logger, notify, execute, merge} = require '../utils/util'
-    {files, $, dest}                 = require '../utils/helpers'
+    {tasks, recipes, commander, assumptions, rootPath, user, platform} = smasher
+    {args, logger, notify, execute, merge}                             = require '../utils/util'
+    {files, $, dest}                                                   = require '../utils/helpers'
 
     ### ---------------- COMMANDS ------------------------------------------- ###
     smasher
@@ -71,7 +71,7 @@ smasher.module
         message:  'What type of app do you want to generate?'
         type:     'list'
         choices:  templates
-        default:  'angular'
+        default:  'simple'
       }], ({template}) ->
         unless template and fs.existsSync "#{rootPath}/templates/#{template}"
           logger.error "Could not find template '#{chalk.red template}'"
@@ -98,6 +98,7 @@ smasher.module
     smasher.task 'generate:prompt-new-app', ['generate:load-template'], (done) ->
       logger.info 'Gathering information'
       inquirer.prompt prompts, (ans) ->
+        console.log ans
         ans.appNameSlug = _.str.slugify ans?.appName
         answers = ans
         done()

@@ -4,6 +4,7 @@ del     = require 'del'
 chalk   = require 'chalk'
 fs      = require 'fs'
 
+
 smasher = require '../config/global'
 project = require '../config/project'
 util    = require '../utils/util'
@@ -13,29 +14,19 @@ smasher.module
   name:     'compile'
   commands: ['compile']
   init: (smasher) ->
-    {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+    {tasks, recipes, assumptions, rootPath, user, platform, project} = smasher
     {assets, dir, env} = project
-    {logger, notify, execute, merge} = util
+    {args, logger, notify, execute, merge} = util
     {files, dest, $, logging, watching} = helpers
 
     target = null
     compileTasks = ['compile:assets', 'compile:index']
 
-
     # Load recipes for handling various file types
-    smasher.load a for a in [
-      'js'
-      'coffee'
-      'css'
-      'styl'
-      'html'
-      'jade'
-      'json'
-
-      'vendor'
-      'images'
-      'fonts'
-    ]
+    baseAssets = ['vendor', 'images', 'fonts']
+    defaultAssets = ['js', 'coffee', 'css', 'styl', 'html', 'jade', 'json']
+    for a in _.intersection(project.assets, defaultAssets).concat(baseAssets)
+      smasher.load a
 
 
     ### ---------------- COMMANDS ------------------------------------------- ###
@@ -101,7 +92,7 @@ smasher.module
           watchOptions:
             debounceDelay:  100
           logPrefix:      'BrowserSync'
-          logConnections: true
+          # logConnections: true
           logFileChanges: true
           # logLevel:     'debug'
           port:           8080
