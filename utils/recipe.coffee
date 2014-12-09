@@ -60,8 +60,14 @@ module.exports =
     # Watch this recipe's filetypes and recompile them when they change
     watch: =>
       logger.verbose "Watching #{chalk.magenta @ext} files"
-      gulp.task "compile:#{@ext}", @compile
-      gulp.watch "client/**/*.#{@ext}", if @reload then ["compile:#{@ext}"] else ["compile:#{@ext}", $.reload]
+
+      if @passThrough
+        gulp.task "compile:#{@name}", @compile
+        gulp.watch "#{dir.client}/#{@path}/**/*{#{".#{e}" for e in @ext}}", if @reload then ["compile:#{@name}"] else ["compile:#{@name}", $.reload]
+      else
+        gulp.task "compile:#{@ext}", @compile
+        gulp.watch "client/**/*.#{@ext}", if @reload then ["compile:#{@ext}"] else ["compile:#{@ext}", $.reload]
+
 
     # Get the name of the built/packaged file to be created for this recipe
     getOutFile: ->
