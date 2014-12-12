@@ -14,7 +14,8 @@ template = null
 templateFiles = null
 overwriteDir = false
 
-templates = ['ember', 'polymer', 'simple', 'angular', 'angular-amd']
+# templates = ['ember', 'polymer', 'simple', 'angular', 'angular-amd']
+templates = ['angular', 'angular-amd', 'simple']
 
 replaceDot = (path) ->
   if path.basename[0] is "_"
@@ -73,11 +74,11 @@ smasher.module
         choices:  templates
         default:  'simple'
       }], ({template}) ->
-        unless template and fs.existsSync "#{rootPath}/templates/#{template}"
+        unless template and fs.existsSync "#{rootPath}/src/templates/#{template}"
           logger.error "Could not find template '#{chalk.red template}'"
           process.exit 1
 
-        prompts = require "#{rootPath}/templates/#{template}/prompts.json"
+        prompts = require "#{rootPath}/src/templates/#{template}/prompts.json"
         # replace prompt default placeholders with global config values where appropriate
         for prompt in prompts
           if prompt.default and (typeof prompt.default is 'string') and (prompt.default.match /default\./)
@@ -89,8 +90,8 @@ smasher.module
 
         templateFiles = ->
           gulp.src [
-            "!#{rootPath}/templates/#{template}/prompts.json"
-            "#{rootPath}/templates/#{template}/**/*"
+            "!#{rootPath}/src/templates/#{template}/prompts.json"
+            "#{rootPath}/src/templates/#{template}/**/*"
           ]
         done()
 

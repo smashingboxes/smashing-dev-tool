@@ -113,7 +113,6 @@ class smasher
   # Register a module that will create tasks and commands
   module: (mod={}) ->
     self = @
-    console.log _.contains @modules, mod
     unless _.findWhere(@modules, name:mod.name)?
       logger.info "Registering module: #{chalk.red mod.name}"  if args.verbose
       @modules.push mod

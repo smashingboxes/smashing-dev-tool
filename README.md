@@ -4,9 +4,21 @@ This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automatio
 
 
 
-## Installation
+## Installation (Alpha Instructions)
 
-`npm install -g smasher`
+For now, the easiest way to use this tool is via `npm link`. Eventually it will be installable via the public NPM registry.
+
+First clone this repository somewhere on your machine, `cd` to that directory and run `npm link`:
+
+```
+  $ git clone git@github.com:smashingboxes/smashing-dev-tool.git
+  $ cd smashing-dev-tool
+  $ npm link
+```
+
+This will make the contents of the folder available as a globally installed NPM plugin. Running `git pull` in this directory will update the tool.
+
+The 'smash' command should now be available globally.
 
 
 ## Example Smashfile

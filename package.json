@@ -1,11 +1,11 @@
 {
-  "name": "fe_build",
+  "name": "smasher",
   "version": "0.0.1",
   "private": true,
   "author": "Biko Tushinde",
   "repository": {
     "type": "git",
-    "url": "https://github.com/btushinde/fe_build"
+    "url": "https://github.com/smashingboxes/smashing-dev-tool"
   },
   "main": "./bin/smash",
   "scripts": {},

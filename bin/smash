@@ -26,11 +26,6 @@ smasher.loadModule m for m in [
   'apps'
   'document'
   'help'
-  'help'
-  'help'
-  'help'
-  'help'
-  'help'
 ]
 
 # Lookup the module needed for this command and init(smasher)
