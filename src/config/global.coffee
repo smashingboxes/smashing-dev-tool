@@ -60,30 +60,36 @@ class smasher
     @commander   = commander
     @modules = []
 
-  # Load/register recipes by file type
-  load: (extension) ->
-    logger.info "Loading module for #{extension} files"  if args.verbose
+  # Load/register components by name
+  load: (type, name) ->
     root = @rootPath
-    require("#{@rootPath}/recipes/#{extension}")
+    switch type
+      when 'recipe'
+        unless @recipes[name]
+          logger.verbose "Loading recipe: #{chalk.blue name}"
+          require "#{@rootPath}/src/recipes/#{name}"
+        else
+          logger.warn "Reccipe #{chalk.red name} is already registered"
 
-  # Load a module by name
-  loadModule: (name) ->
-    logger.info "Loading module: #{chalk.red name}"  if args.verbose
-    require("../modules/#{name}")
+      when 'module'
+        unless _.findWhere(@modules, name:name)
+          logger.verbose "Loading module: #{chalk.red name}"
+          require "#{@rootPath}/src/modules/#{name}"
+        else
+          logger.warn "Module #{chalk.red name} is already registered"
+
+  loadModule: (name) -> @load 'module', name
+  loadRecipe: (name) -> @load 'recipe', name
+
 
   # Initialize the module(s) needed for the given command
   initCmd: (cmd) ->
-    self = @
     if mod = (_.find @modules, (m) -> _.contains m.commands, cmd)
-      if mod.dependencies
-        for dep in mod.dependencies
-          d = _.findWhere(@modules, name: dep)
-          d.init.call self, self
-      mod.init.call self, self
-      return
+      tasks.start "load-module:#{mod.name}"
+    else
+      logger.error 'Could not find command' if cmd
+      @commander.help()
 
-    logger.error 'Could not find command' if cmd
-    @commander.help()
 
   # Register a Task (Orchestrator)
   task: ->
@@ -93,8 +99,10 @@ class smasher
   # Add a Recipe (Gulp)
   recipe: (recipe={}) ->
     ext = if _.isArray recipe.ext then recipe.name else recipe.ext
-    recipes[ext] = r = new Recipe recipe
     logger.verbose "Registering #{chalk.yellow 'recipe'} for #{chalk.magenta ext}"
+    recipes[ext] = r = new Recipe recipe
+
+
 
   # Register a Command (commander.js)
   command: (name) ->
@@ -104,8 +112,20 @@ class smasher
 
   # Register a module that will create tasks and commands
   module: (mod={}) ->
-    logger.info "Registering module: #{chalk.red mod.name}"  if args.verbose
-    @modules.push mod
+    self = @
+    console.log _.contains @modules, mod
+    unless _.findWhere(@modules, name:mod.name)?
+      logger.info "Registering module: #{chalk.red mod.name}"  if args.verbose
+      @modules.push mod
+
+      {dependencies, name} = mod
+      lDeps = if dependencies? then ("load-module:#{d}" for d in dependencies) else []
+      lName = "load-module:#{name}"
+
+      self.task lName, lDeps, (done) ->
+        mod.init.call self, self
+        done()
+
 
 
 smasher::smasher = smasher

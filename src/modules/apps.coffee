@@ -12,8 +12,8 @@ smasher.module
   name:     'apps'
   commands: ['apps', 'bump']
   init: (smasher) ->
-    {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
-    {logger, notify, execute, merge} = util
+    {tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+    {logger, notify, execute, merge, args} = util
     {files, dest, $, logging, watching} = helpers
 
 

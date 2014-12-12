@@ -5,8 +5,8 @@ jshintrc  = require '../config/lint/jshintrc'
 _ = require 'lodash'
 
 
-{args, util, tasks, commander, assumptions, smash, user, platform, project} = smasher
-{logger, notify, execute} = util
+{util, tasks, commander, assumptions, smash, user, platform, project} = smasher
+{logger, notify, execute, args} = util
 {files,  banner, dest, time, $, logging, watching, caching, getOutFile} = helpers
 
 

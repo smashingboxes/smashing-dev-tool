@@ -14,16 +14,14 @@ smasher.module
   commands: ['build']
   dependencies: ['compile']
   init: (smasher) ->
-    {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+    {tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
     {assets, dir, env} = project
-    {logger, notify, execute, merge} = util
+    {logger, notify, execute, merge, args} = util
     {files, dest, $, logging, watching} = helpers
-
-    smasher.initCmd 'compile'
 
     target = dir.build
     buildOpts = null
-    buildTasks = ['build:assets']
+    buildTasks = ['build:index']
 
 
     ### ---------------- COMMANDS ------------------------------------------- ###
@@ -40,15 +38,14 @@ smasher.module
     smasher.task 'build:assets', ['build:clean', 'compile:assets'], ->
       logger.info "Building assets from #{chalk.magenta './'+project.dir.compile} to #{chalk.red './'+target}"
       logger.verbose 'Building assets...'
-      merge(
-        recipes.js.build()
-        recipes.css.build()
-        recipes.html.build()
 
-        recipes.images.build()
+      # Ensure needed recipes are loaded and call build(), returning a stream
+      merge.apply @, (for a in ['css', 'js', 'html', 'images', 'fonts', 'vendor']
+        smasher.loadRecipe(a) unless recipes[a]
+        recipes[a].build()
       )
 
-    smasher.task 'build:index', ->
+    smasher.task 'build:index', ['build:assets'], ->
       logger.info "Building index file..."  if args.verbose
       injectIndex = ->
         logger.info "Injecting built files into #{chalk.magenta 'index.jade'}"  if args.verbose
@@ -57,8 +54,12 @@ smasher.module
           .pipe logging()
 
           # Inject CSS, inject JS
-          .pipe $.inject files('build', ['.css', '.js'], false),
+          .pipe $.inject files('build', ['.js'], true).pipe($.angularFilesort()),
             name:'app', ignorePath:'build', addRootSlash:false
+
+          # # Inject vendor files
+          # .pipe $.inject files('vendor', '*', false).pipe(dest.build()),
+          #   name:'vendor', ignorePath:'build', addRootSlash:false
 
           # Display injected output in console
           .pipe $.if args.cat, $.cat()
@@ -75,8 +76,8 @@ smasher.module
           .pipe watching()
 
       if args.watch
-        gulp.task 'inject:index', injectIndex
-        gulp.watch "#{dir.client}/index.jade", ['inject:index']
+        gulp.task 'inject:index:build', injectIndex
+        gulp.watch "#{dir.client}/index.jade", ['inject:index:build']
 
       injectIndex()
 

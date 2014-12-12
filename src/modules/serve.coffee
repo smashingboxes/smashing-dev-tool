@@ -12,9 +12,9 @@ smasher.module
   commands: ['serve']
   dependencies: ['compile', 'build']
   init: (smasher) ->
-    {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+    {tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
     {assets, dir, env} = project
-    {logger, notify, execute, merge} = util
+    {logger, notify, execute, merge, args} = util
     {files, dest, $, logging, watching} = helpers
 
 
@@ -42,7 +42,8 @@ smasher.module
               serveTarget = 'build'
               outDir = dir.build
 
-
-
         # Start BrowserSync server
-        tasks.start serveTarget, "#{serveTarget}:serve"
+        args.watch = true  if serveTarget is 'compile'
+        smasher.task "#{serveTarget}", ["#{serveTarget}:index"], (done) ->
+          tasks.start "#{serveTarget}:serve", done
+        tasks.start "#{serveTarget}"

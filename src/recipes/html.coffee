@@ -2,8 +2,8 @@ smasher  = require '../config/global'
 helpers = require '../utils/helpers'
 htmlhintrc = require '../config/lint/htmlhintrc'
 
-{args, tasks, recipes, commander, assumptions, rootPath, user, platform, project, util} = smasher
-{logger, notify, execute, merge} = util
+{tasks, recipes, commander, assumptions, rootPath, user, platform, project, util} = smasher
+{logger, notify, execute, merge, args} = util
 {files, $, dest} = helpers
 
 cfg =
@@ -29,7 +29,7 @@ smasher.recipe
       .pipe $.htmlhint.reporter()
 
       # Convert to JS for templateCache
-      .pipe $.ngHtml2js cfg.ngHtml2js
+      # .pipe $.ngHtml2js cfg.ngHtml2js
 
   buildFn: (stream) ->
     stream

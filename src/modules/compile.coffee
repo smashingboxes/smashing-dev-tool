@@ -23,10 +23,11 @@ smasher.module
     compileTasks = ['compile:assets', 'compile:index']
 
     # Load recipes for handling various file types
-    baseAssets = ['vendor', 'images', 'fonts']
-    defaultAssets = ['js', 'coffee', 'css', 'styl', 'html', 'jade', 'json']
-    for a in _.intersection(project.assets, defaultAssets).concat(baseAssets)
-      smasher.load a
+    loadRecipes = ->
+      baseAssets = ['vendor', 'images', 'fonts']
+      defaultAssets = ['js', 'coffee', 'css', 'styl', 'html', 'jade', 'json']
+      toLoad = _.intersection(project.assets, defaultAssets).concat(baseAssets)
+      smasher.loadRecipe a for a in toLoad
 
 
     ### ---------------- COMMANDS ------------------------------------------- ###
@@ -69,13 +70,14 @@ smasher.module
           .pipe $.reload stream:true
 
       if args.watch
-        gulp.task 'inject:index', injectIndex
-        gulp.watch "#{dir.client}/index.jade", ['inject:index']
+        gulp.task 'inject:index:compile', injectIndex
+        gulp.watch "#{dir.client}/index.jade", ['inject:index:compile']
 
       injectIndex()
 
     # Clear previous compile results and compile all assets
     smasher.task 'compile:assets', ['compile:clean'], ->
+      loadRecipes()
       logger.info "Compiling assets from #{chalk.green './'+dir.client} to #{chalk.magenta './'+dir.compile}"
       merge.apply @, (
         for r in _.values recipes

@@ -1,9 +1,11 @@
 smasher  = require '../config/global'
 helpers = require '../utils/helpers'
 csslintrc = require '../config/lint/csslintrc'
+_ = require 'lodash'
 
-{args, util, tasks, commander, assumptions, smash, user, platform} = smasher
-{logger, notify, execute} = util
+
+{util, tasks, commander, assumptions, smash, user, platform} = smasher
+{logger, notify, execute, args} = util
 {files, banner, dest, time, $, logging, watching, getOutName} = helpers
 
 cfg =
@@ -40,7 +42,7 @@ smasher.recipe
       .pipe $.csso cfg.csso
 
       # Concat
-      .pipe $.if args.watch, $.continuousConcat @getOutFile()
+      .pipe $.if (args.watch and _.contains args, 'build'), $.continuousConcat @getOutFile()
       .pipe $.if !args.watch, $.concat @getOutFile()
       # .pipe $.css2js()
       # .pipe $.wrapAmd()

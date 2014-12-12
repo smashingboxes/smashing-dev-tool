@@ -9,8 +9,8 @@ smasher.module
   commands: ['clean']
   dependencies: ['compile', 'build', 'document']
   init: (smasher) ->
-    {args, tasks, recipes, commander, assumptions, rootPath, user, platform, project, util} = smasher
-    {logger, notify, execute, merge} = util
+    {tasks, recipes, commander, assumptions, rootPath, user, platform, project, util} = smasher
+    {logger, notify, execute, merge, args} = util
     {dir, env} = project
     {files, $, dest} = helpers
 

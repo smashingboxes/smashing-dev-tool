@@ -1,11 +1,8 @@
 #!/usr/bin/env coffee
 argv      = require('minimist')(process.argv.slice 2)
 chalk     = require 'chalk'
-commander = require 'commander'
-required  = require 'require-dir'
-_         = require 'lodash'
 
-smasher   = require '../config/global'
+smasher   = require '../src/config/global'
 smasher.commander
   .option '-a, --auto',     'auto-accept defaults where possible'
   .option '-w, --watch',    'monitor files for changes and reload browser(s)'
@@ -16,7 +13,8 @@ smasher.commander
 
 
 # Load modules to register commands and tasks
-require "../modules/#{m}" for m in [
+
+smasher.loadModule m for m in [
   'generate'
   'compile'
   'build'
@@ -27,6 +25,11 @@ require "../modules/#{m}" for m in [
   'init'
   'apps'
   'document'
+  'help'
+  'help'
+  'help'
+  'help'
+  'help'
   'help'
 ]
 

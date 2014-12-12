@@ -8,7 +8,6 @@ open =            require 'open'                  # open files
 fs =              require 'fs'
 path =            require 'path'                  # manipulate file paths
 join =            path.join
-args              = require('minimist')(process.argv.slice 2)
 
 gulp =            require 'gulp'                  # streaming build system
 lazypipe =        require 'lazypipe'              # re-use partial streams
@@ -21,7 +20,7 @@ smashRoot = process.mainModule.filename.replace '/bin/smash', ''
 smashPkg  = require "#{smashRoot}/package"
 
 {dir, pkg, assumptions}          = project = require '../config/project'
-{logger, notify, merge, execute} = util    = require '../utils/util'
+{logger, notify, merge, execute, args} = util    = require '../utils/util'
 
 
 ###
@@ -84,7 +83,7 @@ module.exports =
 
     # Patterns for vendor files to be excluded by default
     vendorGlob = [
-      "!{#{dir.compile},#{dir.build},#{dir.client}}/components/vendor{,/**}"
+      "!{#{dir.client}}/components/vendor{,/**}"
       "!node_modules{,/**}"
     ]
 
@@ -139,7 +138,7 @@ module.exports =
               when /\./.test(src) then ["#{dir.client}/**/*#{src}"]
               # files('compile')
               when /compile|build/.test src
-
+                # excludeVendor = false if src is 'build'
                 options.base = src
                 unless types?
                   ["#{dir[src]}/**/*.*"]
@@ -179,7 +178,6 @@ module.exports =
       source = source.concat indexGlob    if excludeIndex
 
       gulp.src source, options
-        .pipe $.if options.read, plumbing()
   # <br><br><br>
 
   ###

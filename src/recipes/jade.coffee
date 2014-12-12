@@ -5,8 +5,14 @@ helpers = require '../utils/helpers'
 coffeeStylish = require('coffeelint-stylish').reporter
 coffeelintrc  = require '../config/lint/coffeelintrc'
 
-{args, tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+{tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+{args} = util
 {files, $, logging} = helpers
+
+cfg =
+  ngHtml2js:
+    moduleName: "templates-main"
+    prefix: ''
 
 
 ### ---------------- RECIPE --------------------------------------------- ###
@@ -26,3 +32,6 @@ smasher.recipe
       # Compile
       .pipe $.jade pretty:true, compileDebug:true
       .on('error', (err) -> logger.error err.message)
+
+
+      # .pipe $.ngHtml2js cfg.ngHtml2js
