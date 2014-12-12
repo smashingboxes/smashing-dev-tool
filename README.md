@@ -18,7 +18,7 @@ First clone this repository somewhere on your machine, `cd` to that directory an
 
 This will make the contents of the folder available as a globally installed NPM plugin. Running `git pull` in this directory will update the tool.
 
-The 'smash' command should now be available globally.
+The `smash` command should now be available globally.
 
 
 ## Example Smashfile
