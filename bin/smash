@@ -10,6 +10,7 @@ smasher.commander
   .option '-v, --verbose',  'display detailed logs and notifications'
   .option '-m, --mute',     'hide all logs and notifications'
   .option '-c, --cat',      '\'cat\' results of file injection to console'
+  .option '-d, --debug'
 
 
 # Load modules to register commands and tasks

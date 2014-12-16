@@ -1,6 +1,6 @@
 # Project-specific helpers for accessing source code consistiently regardless of project
 
-_ =               require 'underscore'                # array and object utilities
+_ =               require 'lodash'                # array and object utilities
 chalk =           require 'chalk'
 tildify =         require 'tildify'
 moment =          require 'moment'                # time/date utils
@@ -19,7 +19,7 @@ runSequence =     require 'run-sequence'          # execute tasks in parallel or
 smashRoot = process.mainModule.filename.replace '/bin/smash', ''
 smashPkg  = require "#{smashRoot}/package"
 
-{dir, pkg, assumptions}          = project = require '../config/project'
+{dir, pkg, assumptions, build}          = project       = require '../config/project'
 {logger, notify, merge, execute, args} = util    = require '../utils/util'
 
 
@@ -41,9 +41,9 @@ logging  = ->  $.if args.verbose, $.using()
 watching = ->  $.if args.watch, $.reload(stream: true)
 caching  = (cache) ->  $.if args.watch, $.cached cache or 'main'
 plumbing = ->  $.if args.watch, $.plumber(errorHandler: console.log)
-
 time     = (f) -> moment().format(f)
 
+isBuilding = _.contains args._, 'build'
 
 
 
@@ -59,10 +59,11 @@ module.exports =
   ###
   Shortcut for conditional logging, watching in a stream
   ###
-  logging: logging
-  watching: watching
-  plumbing: plumbing
-  caching: caching
+  logging:    logging
+  watching:   watching
+  plumbing:   plumbing
+  caching:    caching
+  isBuilding: isBuilding
   # <br><br><br>
 
 
@@ -75,109 +76,98 @@ module.exports =
   @return {Object}
   ###
   files: (src, types, read=true, excludes) ->
-    options =
-      read: read
-    excludeVendor = true
-    excludeTest = true
-    excludeIndex = true
+    fileArgs = arguments
 
-    # Patterns for vendor files to be excluded by default
-    vendorGlob = [
-      "!{#{dir.client}}/components/vendor{,/**}"
-      "!node_modules{,/**}"
-    ]
+    # Incorporate local build config from smashfile
+    buildConfig = _.values(project.build)[0]
+    alts = (alt for alt in buildConfig?.alternates)
 
-    # Patterns to ignore when not running tests
-    testGlob = [
-      "!#{dir.client}/components/test/**"
-      "!#{dir.client}/**/*_test*"
-    ]
+    # Helpers
+    isExt = (s) -> _.isString(s) and s[0] is '.'
+    isntExt = (s)-> _.isString(s) and s[0] isnt '.'
+    invert = -> _.map(arguments[0], (g) -> "!#{g}")  # negate a glob
 
-    # Exclude index files for injection reasons
-    indexGlob = [
-      "!#{dir.client}/index.*"
-    ]
 
-    # Patterns for call-specific exclude (params)
-    excludeGlob = if _.isString excludes
-        [excludes]
-      else if _.isArray excludes
-        excludes
-      else
-        []
+    # Build file extension filter
+    _filter =
+      if      a = _.find(fileArgs, _.isArray) then  a
+      else if a = _.find(fileArgs, isExt)     then [a]
+      else ['.*']
 
-    # Build source glob for `gulp.src`
-    source = if /vendor/.test src
-      excludeVendor = false
-      options.base = dir.vendor
-      # ------------------------------  /client/components/vendor
-      # files('vendor')
-      unless types?
-        $.bowerFiles()
-      else
-        switch types[0]
-          # files('vendor', '*')
-          when '*' then $.bowerFiles()
-          # files('vendor', '.js')
-          when '.' then $.bowerFiles(filter: new RegExp types)
-          else
-            # files('vendor', ['.js', '.css', '.html'])
-            if _.isArray types then $.bowerFiles(filter: new RegExp types.join '|')
-            else null
-    else
-      if _.isEmpty arguments
-        # files()
-        ["#{dir.client}/**/*.*"]
-      else
-        switch
-          when _.isString(src)
-            switch
-              # files('*')
-              when /\*/.test(src) then ["#{dir.client}/**/*.*"]
-              # files('.js')
-              when /\./.test(src) then ["#{dir.client}/**/*#{src}"]
-              # files('compile')
-              when /compile|build/.test src
-                # excludeVendor = false if src is 'build'
-                options.base = src
-                unless types?
-                  ["#{dir[src]}/**/*.*"]
-                else
-                  switch types[0]
-                    # files('compile', '*')
-                    when '*' then ["#{dir[src]}/**/*.*"]
-                    # files('compile', '.js')
-                    when '.' then ["#{dir[src]}/**/*#{types}"]
-                    # files('compile', ['.js', '.css', '.html'])
-                    else
-                      if _.isArray types then ("#{dir[src]}/**/*#{type}"  for type in types)
-                      else null
-              else null
+    # Compute file query folder/scope
+    _target =
+      if _.find(fileArgs, _.isPlainObject) then 'path'
+      else if a = _.find(fileArgs, isntExt)
+        if _.contains(['vendor', 'build', 'compile', 'test'], a) then a else 'client'
+      else 'client'
 
-          # files(['.js', '.css', '.html'])
-          when _.isArray(src) then ("#{dir.client}/**/*#{type}") for type in src
-          when _.isObject(src) and !_.isArray(src)
-            excludeVendor = false
-            excludeIndex = false
-            options.base = ''
-            # files({path: 'path/to/files'}, ['.js', '.css', '.html'])
-            if _.isArray types then ("#{src.path}/**/*#{t}" for t in types)
-            # files({path: 'path/to/file.ext'})
-            else ["#{src.path}"]
+    # Find `read` flag
+    _read =
+      if (reed = _.find fileArgs, _.isBoolean)? then reed
+      else if _config?.read? then _config.read
+      else true
 
-          else null
+    # Find config object
+    _config = if a = _.find(fileArgs, _.isPlainObject) then a else {}
 
-    # Create Gulp stream
-    unless source?
-      logger.error "!! Unknown file target '#{src}'. Could not build stream."
-    else
-      options.base ?= 'client'
-      source = source.concat vendorGlob   if excludeVendor
-      source = source.concat testGlob     if excludeTest
-      source = source.concat excludeGlob  if excludeGlob.length > 0
-      source = source.concat indexGlob    if excludeIndex
+    # Compute base path
+    _base = if _config?.path? then _config.path else dir[_target]
 
-      gulp.src source, options
+
+    # Glob helpers
+    getExcludes = ->
+      ex = switch
+        when _.isString excludes  then [excludes]
+        when _.isArray excludes   then  excludes
+        else []
+      if isBuilding and buildConfig.exclude?
+        ex = ex.concat buildConfig.exclude
+      invert ex
+
+    getAlternates = ->
+      for alt in alts
+        if isBuilding
+          "!#{alt[0]}"
+        else
+          "!#{alt[1]}"
+
+    globs =
+      vendor:       ["**/components/vendor{,/**}"]
+      vendorMain:   $.bowerFiles filter:new RegExp _filter.join '|'
+      test:         ["#{dir.client}/**/*_test*"]
+      index:        ["#{dir.client}/index.*"]
+      alternates:   getAlternates() or []
+      exclude:      getExcludes() or []
+
+    # Build source glob for Gulp
+    srcBase = ["#{_base}/**/*+(#{ _filter.join '|' })"]
+    source = switch _target
+      when 'client', 'compile', 'build'
+        srcBase
+          .concat globs.exclude
+          .concat invert globs.test
+          .concat globs.alternates
+          .concat invert globs.vendor
+
+      when 'test'   then globs.test
+      when 'vendor' then globs.vendorMain
+      when 'path'
+        ex = if isBuilding and buildConfig.exclude? then invert buildConfig.exclude else []
+        if _config.path.indexOf '.' >= 0 then [_config.path].concat ex else srcBase.concat ex
+      else logger.error "!! Unknown file target '#{src}'. Could not build stream."
+
+    if args.debug
+      logger.debug
+        target: chalk.red _target
+        base:   chalk.green _base
+        filter: chalk.yellow _filter
+        read:   chalk.red _read
+        path:   chalk.magenta _config?.path or ''
+        exclude: chalk.yellow globs.exclude
+      logger.debug chalk.magenta srcBase
+      console.log source
+
+    gulp.src source, read: _read, base: dir[_target] or ''
   # <br><br><br>
 
   ###
@@ -204,7 +194,6 @@ module.exports =
   ###
   Banner placed at the top of all JS files during development.
   Overridden by value of `banner` from Smashfile unless null
-
   TODO: add Git branch and SHA
   ###
   banner: project?.banner or "/** \n
@@ -213,5 +202,4 @@ module.exports =
                               * \n
                               * Built #{time 'dddd, MMMM Do YYYY, h:mma'}  \n
                               */ \n\n"
-
   # <br><br><br>

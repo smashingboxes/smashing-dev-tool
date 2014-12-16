@@ -2,13 +2,17 @@ fs =              require 'fs'
 open =            require 'open'
 gulp =            require 'gulp'                  # streaming build system
 
+karma =           require('karma').server
+
 smasher = require '../config/global'
+helpers = require '../utils/helpers'
 smasher.module
   name:     'test'
   commands: ['test']
   init: (smasher) ->
-    {util, tasks, commander, assumptions, smash, user, platform, getProject} = smasher
-    {logger, notify, execute, args} = util
+    {util, tasks, commander, assumptions, smash, user, platform, getProject, rootPath} = smasher
+    {logger, notify, execute, args, merge} = util
+    {files, $, logging} = helpers
 
 
     ### ---------------- COMMANDS ------------------------------------------- ###
@@ -18,10 +22,19 @@ smasher.module
       .option('-w, --watch',     'Watch files and run unit tests on file save')
       .description('Run available tests for source code')
       .action((options) ->
-        if options.watch
-          logger.info 'Watching files and runnign unit tests'
-        else
-          logger.info 'Running all tests once.'
+        configPath = "#{rootPath}/src/config/karma.conf.coffee"
+        logger.info "Running tests#{if args.watch then ' and watching for changes' else ''}..."
+
+        merge(
+          files 'compile', ['.css', '.js']
+          files 'test'
+        ).pipe $.using()
+
+        # .pipe $.karma
+        #   configFile: configPath
+        #   action:     if args.watch then 'watch' else 'run'
+        # .on 'error', (err) -> throw err
+
       ).on '--help', ->
         console.log '  Examples:'
         console.log ''
