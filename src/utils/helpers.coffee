@@ -80,13 +80,15 @@ module.exports =
 
     # Incorporate local build config from smashfile
     buildConfig = _.values(project.build)[0]
-    alts = (alt for alt in buildConfig?.alternates)
+    alts = if buildConfig?.alternates?
+      (alt for alt in buildConfig?.alternates)
+    else []
 
     # Helpers
     isExt = (s) -> _.isString(s) and s[0] is '.'
     isntExt = (s)-> _.isString(s) and s[0] isnt '.'
     invert = -> _.map(arguments[0], (g) -> "!#{g}")  # negate a glob
-
+    isFilePath = (p) -> /\./.test p
 
     # Build file extension filter
     _filter =
@@ -120,16 +122,16 @@ module.exports =
         when _.isString excludes  then [excludes]
         when _.isArray excludes   then  excludes
         else []
-      if isBuilding and buildConfig.exclude?
-        ex = ex.concat buildConfig.exclude
       invert ex
+
+    getBuildExcludes = ->
+      if isBuilding and buildConfig.exclude?
+        invert buildConfig.exclude
+      else []
 
     getAlternates = ->
       for alt in alts
-        if isBuilding
-          "!#{alt[0]}"
-        else
-          "!#{alt[1]}"
+        if isBuilding then "!#{alt[0]}" else "!#{alt[1]}"
 
     globs =
       vendor:       ["**/components/vendor{,/**}"]
@@ -138,33 +140,44 @@ module.exports =
       index:        ["#{dir.client}/index.*"]
       alternates:   getAlternates() or []
       exclude:      getExcludes() or []
+      buildExclude: getBuildExcludes() or []
 
     # Build source glob for Gulp
-    srcBase = ["#{_base}/**/*+(#{ _filter.join '|' })"]
+    filterBase = "+(#{ _filter.join '|' })"
+    pathBase = "#{_base}/**/*"
     source = switch _target
       when 'client', 'compile', 'build'
-        srcBase
-          .concat globs.exclude
+        [pathBase + filterBase]
+
           .concat invert globs.test
-          .concat globs.alternates
+          .concat        globs.alternates
           .concat invert globs.vendor
+          .concat        globs.exclude
+          .concat        globs.buildExclude
 
       when 'test'   then globs.test
       when 'vendor' then globs.vendorMain
       when 'path'
-        ex = if isBuilding and buildConfig.exclude? then invert buildConfig.exclude else []
-        if _config.path.indexOf '.' >= 0 then [_config.path].concat ex else srcBase.concat ex
+        (if isFilePath _config.path then [_config.path] else [pathBase])
+          .concat globs.buildExclude
+
       else logger.error "!! Unknown file target '#{src}'. Could not build stream."
 
+    # Debug logging
     if args.debug
       logger.debug
         target: chalk.red _target
         base:   chalk.green _base
-        filter: chalk.yellow _filter
-        read:   chalk.red _read
         path:   chalk.magenta _config?.path or ''
+        pathBase: chalk.white pathBase
+        filter: chalk.yellow _filter
+        filterBase: chalk.white filterBase
+
+      logger.debug
+        read:   chalk.red _read
         exclude: chalk.yellow globs.exclude
-      logger.debug chalk.magenta srcBase
+        buildExclude: chalk.yellow globs.buildExclude
+
       console.log source
 
     gulp.src source, read: _read, base: dir[_target] or ''

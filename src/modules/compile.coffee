@@ -23,12 +23,7 @@ smasher.module
     compileTasks = ['compile:assets', 'compile:index']
 
     # Load recipes for handling various file types
-    loadRecipes = ->
-      baseAssets = ['vendor', 'images', 'fonts']
-      defaultAssets = ['js', 'coffee', 'css', 'styl', 'html', 'jade', 'json']
-      toLoad = _.intersection(project.assets, defaultAssets).concat(baseAssets)
-      smasher.loadRecipe a for a in toLoad
-
+    smasher.loadRecipes()
 
     ### ---------------- COMMANDS ------------------------------------------- ###
     smasher.command('compile')
@@ -77,7 +72,6 @@ smasher.module
 
     # Clear previous compile results and compile all assets
     smasher.task 'compile:assets', ['compile:clean'], ->
-      loadRecipes()
       logger.info "Compiling assets from #{chalk.green './'+dir.client} to #{chalk.magenta './'+dir.compile}"
       merge.apply @, (
         for r in _.values recipes

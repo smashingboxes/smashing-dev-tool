@@ -10,7 +10,7 @@ smasher.module
   name:     'test'
   commands: ['test']
   init: (smasher) ->
-    {util, tasks, commander, assumptions, smash, user, platform, getProject, rootPath} = smasher
+    {util, tasks, commander, assumptions, smash, user, platform, recipes, rootPath} = smasher
     {logger, notify, execute, args, merge} = util
     {files, $, logging} = helpers
 
@@ -25,10 +25,15 @@ smasher.module
         configPath = "#{rootPath}/src/config/karma.conf.coffee"
         logger.info "Running tests#{if args.watch then ' and watching for changes' else ''}..."
 
-        merge(
-          files 'compile', ['.css', '.js']
-          files 'test'
-        ).pipe $.using()
+        smasher.loadRecipes()
+        re =  smasher.recipes.fonts
+
+        re.compile()
+
+        # merge(
+        #   files 'compile', ['.css', '.js']
+        #   files 'test'
+        # ).pipe $.using()
 
         # .pipe $.karma
         #   configFile: configPath

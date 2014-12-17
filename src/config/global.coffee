@@ -1,3 +1,13 @@
+###
+
+# Class: Smasher
+
+The Smasher class serves as the main API and management interface for the tool.
+It glues together and exposes the functionality of the various sub-pieces of the
+build system and provides a straightforward means of extending functionality on
+the fly while still utilizing all of the built-in goodness Smasher has to offer.
+###
+
 
 gulp         = require 'gulp'
 chalk        = require 'chalk'
@@ -78,9 +88,19 @@ class smasher
         else
           logger.warn "Module #{chalk.red name} is already registered"
 
+  # Convenience wrappers around @load()
   loadModule: (name) -> @load 'module', name
   loadRecipe: (name) -> @load 'recipe', name
 
+  # Compute relavent recipes based on project and load them
+  loadRecipes: ->
+    unless @recipesLoaded
+      logger.verbose 'Loading file recipes based on project...'
+      baseAssets = ['vendor', 'images', 'fonts']
+      defaultAssets = ['js', 'coffee', 'css', 'styl', 'html', 'jade', 'json']
+      toLoad = _.intersection(@project.assets, defaultAssets).concat(baseAssets)
+      @loadRecipe a for a in toLoad
+    @recipesLoaded = true
 
   # Initialize the module(s) needed for the given command
   initCmd: (cmd) ->
@@ -91,18 +111,19 @@ class smasher
       @commander.help()
 
 
+
+  # ------------ Registering Components --------------
+
   # Register a Task (Orchestrator)
   task: ->
     logger.verbose "Registering #{chalk.yellow 'task'} #{chalk.cyan arguments[0]}"
     tasks.add.apply tasks, arguments
 
-  # Add a Recipe (Gulp)
+  # Register a Recipe (Gulp)
   recipe: (recipe={}) ->
     ext = if _.isArray recipe.ext then recipe.name else recipe.ext
     logger.verbose "Registering #{chalk.yellow 'recipe'} for #{chalk.magenta ext}"
     recipes[ext] = r = new Recipe recipe
-
-
 
   # Register a Command (commander.js)
   command: (name) ->
@@ -110,7 +131,7 @@ class smasher
      #{chalk.yellow 'command'} '#{chalk.cyan name}'"
     if name? then commander.command name else commander
 
-  # Register a module that will create tasks and commands
+  # Register a Module that will create tasks and commands
   module: (mod={}) ->
     self = @
     unless _.findWhere(@modules, name:mod.name)?
