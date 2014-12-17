@@ -37,12 +37,11 @@ $.browserSync = require 'browser-sync'
 $.reload =      $.browserSync.reload
 # <br><br><br>
 
-logging  = ->  $.if args.verbose, $.using()
-watching = ->  $.if args.watch, $.reload(stream: true)
-caching  = (cache) ->  $.if args.watch, $.cached cache or 'main'
-plumbing = ->  $.if args.watch, $.plumber(errorHandler: console.log)
-time     = (f) -> moment().format(f)
-
+logging    = ->  $.if args.verbose, $.using()
+watching   = ->  $.if args.watch, $.reload(stream: true)
+caching    = (cache) ->  $.if args.watch, $.cached cache or 'main'
+plumbing   = ->  $.if args.watch, $.plumber(errorHandler: console.log)
+time       = (f) -> moment().format(f)
 isBuilding = _.contains args._, 'build'
 
 
@@ -51,7 +50,7 @@ isBuilding = _.contains args._, 'build'
 module.exports =
 
   ###
-  Plugins
+  Gulp Plugins
   ###
   $: $
   # <br><br><br>
@@ -92,9 +91,9 @@ module.exports =
 
     # Build file extension filter
     _filter =
-      if      a = _.find(fileArgs, _.isArray) then  a
+      (if      a = _.find(fileArgs, _.isArray) then  a
       else if a = _.find(fileArgs, isExt)     then [a]
-      else ['.*']
+      else ['.*']).join '|'
 
     # Compute file query folder/scope
     _target =
@@ -113,7 +112,12 @@ module.exports =
     _config = if a = _.find(fileArgs, _.isPlainObject) then a else {}
 
     # Compute base path
-    _base = if _config?.path? then _config.path else dir[_target]
+    _path = [
+      if p = _config?.path
+        if isFilePath p then p
+        else "#{p}/**/*+(#{_filter})"
+      else "#{dir[_target]}/**/*+(#{_filter})"
+    ]
 
 
     # Glob helpers
@@ -135,49 +139,38 @@ module.exports =
 
     globs =
       vendor:       ["**/components/vendor{,/**}"]
-      vendorMain:   $.bowerFiles filter:new RegExp _filter.join '|'
+      vendorMain:   $.bowerFiles filter:new RegExp _filter
       test:         ["#{dir.client}/**/*_test*"]
       index:        ["#{dir.client}/index.*"]
-      alternates:   getAlternates() or []
-      exclude:      getExcludes() or []
-      buildExclude: getBuildExcludes() or []
+      alternates:   getAlternates()     or []
+      exclude:      getExcludes()       or []
+      buildExclude: getBuildExcludes()  or []
 
     # Build source glob for Gulp
-    filterBase = "+(#{ _filter.join '|' })"
-    pathBase = "#{_base}/**/*"
     source = switch _target
       when 'client', 'compile', 'build'
-        [pathBase + filterBase]
-
-          .concat invert globs.test
+        _path
           .concat        globs.alternates
           .concat invert globs.vendor
+          .concat invert globs.test
           .concat        globs.exclude
           .concat        globs.buildExclude
-
       when 'test'   then globs.test
       when 'vendor' then globs.vendorMain
       when 'path'
-        (if isFilePath _config.path then [_config.path] else [pathBase])
+        _path
           .concat globs.buildExclude
-
       else logger.error "!! Unknown file target '#{src}'. Could not build stream."
 
     # Debug logging
     if args.debug
       logger.debug
-        target: chalk.red _target
-        base:   chalk.green _base
-        path:   chalk.magenta _config?.path or ''
-        pathBase: chalk.white pathBase
-        filter: chalk.yellow _filter
-        filterBase: chalk.white filterBase
-
+        target:       chalk.red     _target
+        path:         chalk.magenta _path
       logger.debug
-        read:   chalk.red _read
-        exclude: chalk.yellow globs.exclude
-        buildExclude: chalk.yellow globs.buildExclude
-
+        read:         chalk.red     _read
+        exclude:      chalk.yellow  globs.exclude
+        buildExclude: chalk.yellow  globs.buildExclude
       console.log source
 
     gulp.src source, read: _read, base: dir[_target] or ''
