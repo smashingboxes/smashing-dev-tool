@@ -1,14 +1,13 @@
+_         = require 'lodash'
 smasher   = require '../config/global'
 helpers   = require '../utils/helpers'
 jsStylish = require 'jshint-stylish'
 jshintrc  = require '../config/lint/jshintrc'
-_ = require 'lodash'
 
 
 {util, tasks, commander, assumptions, smash, user, platform, project} = smasher
 {logger, notify, execute, args} = util
 {files,  banner, dest, time, $, logging, watching, caching, getOutFile} = helpers
-
 
 cfg =
   ngAnnotate:
@@ -18,6 +17,7 @@ cfg =
   uglify:
     mangle: true
     preserveComments: 'some'
+
 
 ### ---------------- RECIPE --------------------------------------------- ###
 smasher.recipe
@@ -30,6 +30,7 @@ smasher.recipe
   reload: true
   compileFn: (stream) ->
     stream
+      .pipe $.angularFilesort()
       .pipe logging()
       .pipe caching()
 

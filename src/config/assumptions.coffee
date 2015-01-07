@@ -62,7 +62,12 @@ exports.dir =
 
   docs:    'docs'
 
-# Build defaults
+# Compile stage defaults
+exports.compile =
+  html2js: false
+
+
+# Build stage defaults
 exports.build =
   styles:  'app.css'
   views:   'app-views.js'

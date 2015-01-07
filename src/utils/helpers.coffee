@@ -37,12 +37,13 @@ $.browserSync = require 'browser-sync'
 $.reload =      $.browserSync.reload
 # <br><br><br>
 
-logging    = ->  $.if args.verbose, $.using()
-watching   = ->  $.if args.watch, $.reload(stream: true)
-caching    = (cache) ->  $.if args.watch, $.cached cache or 'main'
-plumbing   = ->  $.if args.watch, $.plumber(errorHandler: console.log)
-time       = (f) -> moment().format(f)
-isBuilding = _.contains args._, 'build'
+logging     = ->  $.if args.verbose, $.using()
+watching    = ->  $.if args.watch, $.reload(stream: true)
+caching     = (cache) ->  $.if args.watch, $.cached cache or 'main'
+plumbing    = ->  $.if args.watch, $.plumber(errorHandler: console.log)
+time        = (f) -> moment().format(f)
+isBuilding  = _.contains args._, 'build'
+isCompiling = _.contains args._, 'compile'
 
 
 
@@ -78,7 +79,9 @@ module.exports =
     fileArgs = arguments
 
     # Incorporate local build config from smashfile
-    buildConfig = _.values(project.build)[0]
+    buildConfig   = _.values(project.build)[0]
+    compileConfig = project.compile
+
     alts = if buildConfig?.alternates?
       (alt for alt in buildConfig?.alternates)
     else []
@@ -120,7 +123,7 @@ module.exports =
     ]
 
 
-    # Glob helpers
+    # Build out properly formatted
     getExcludes = ->
       ex = switch
         when _.isString excludes  then [excludes]
@@ -133,18 +136,24 @@ module.exports =
         invert buildConfig.exclude
       else []
 
+    getCompileExcludes = ->
+      if compileConfig.exclude?
+        invert compileConfig.exclude
+      else []
+
     getAlternates = ->
       for alt in alts
         if isBuilding then "!#{alt[0]}" else "!#{alt[1]}"
 
     globs =
-      vendor:       ["**/components/vendor{,/**}"]
-      vendorMain:   $.bowerFiles filter:new RegExp _filter
-      test:         ["#{dir.client}/**/*_test*"]
-      index:        ["#{dir.client}/index.*"]
-      alternates:   getAlternates()     or []
-      exclude:      getExcludes()       or []
-      buildExclude: getBuildExcludes()  or []
+      vendor:         ["**/components/vendor{,/**}"]
+      vendorMain:     $.bowerFiles filter:new RegExp _filter
+      test:           ["#{dir.client}/**/*_test*"]
+      index:          ["#{dir.client}/index.*"]
+      alternates:     getAlternates()     or []
+      exclude:        getExcludes()
+      buildExclude:   getBuildExcludes()
+      compileExclude: getCompileExcludes()
 
     # Build source glob for Gulp
     source = switch _target
@@ -154,13 +163,16 @@ module.exports =
           .concat invert globs.vendor
           .concat invert globs.test
           .concat        globs.exclude
-          .concat        globs.buildExclude
+          .concat        (if isBuilding  then globs.buildExclude   else [])
+          .concat        (if isBuilding  then globs.compileExclude else [])
       when 'test'   then globs.test
       when 'vendor' then globs.vendorMain
       when 'path'
         _path
-          .concat globs.buildExclude
+          .concat        (if isBuilding  then globs.buildExclude   else [])
+          .concat        (if isBuilding  then globs.compileExclude else [])
       else logger.error "!! Unknown file target '#{src}'. Could not build stream."
+
 
     # Debug logging
     if args.debug

@@ -67,3 +67,4 @@ module.exports =
   env:          env
   dir:          _.defaults (project.dir or {}), assumptions.dir
   build:        project.build or assumptions.build
+  compile:      project.compile or assumptions.compile
