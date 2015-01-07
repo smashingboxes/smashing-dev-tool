@@ -19,7 +19,7 @@ smasher.recipe
   test:   true
   lint:   false
   reload: false
-  path:  "data/images"
+  path:  "images"
   passThrough: true
 
 #

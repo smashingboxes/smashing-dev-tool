@@ -59,11 +59,12 @@ module.exports =
   ###
   Shortcut for conditional logging, watching in a stream
   ###
-  logging:    logging
-  watching:   watching
-  plumbing:   plumbing
-  caching:    caching
-  isBuilding: isBuilding
+  logging:     logging
+  watching:    watching
+  plumbing:    plumbing
+  caching:     caching
+  isBuilding:  isBuilding
+  isCompiling: isCompiling
   # <br><br><br>
 
 
@@ -145,9 +146,15 @@ module.exports =
       for alt in alts
         if isBuilding then "!#{alt[0]}" else "!#{alt[1]}"
 
+
+    cfg =
+      bower:
+        includeDev: (if isBuilding then false else 'inclusive')
+        filter:     new RegExp _filter
+
     globs =
       vendor:         ["**/components/vendor{,/**}"]
-      vendorMain:     $.bowerFiles filter:new RegExp _filter
+      vendorMain:     $.bowerFiles cfg.bower
       test:           ["#{dir.client}/**/*_test*"]
       index:          ["#{dir.client}/index.*"]
       alternates:     getAlternates()     or []
