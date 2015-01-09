@@ -92,7 +92,7 @@ smasher.module
           logFileChanges: true
           # logLevel:     'debug'
           port:           8080
-      ), 5000
+      ), 1000
 
     # Remove previous compilation
     smasher.task 'compile:clean', (done) ->

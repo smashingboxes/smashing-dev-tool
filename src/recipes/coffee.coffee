@@ -4,7 +4,7 @@ helpers = require '../utils/helpers'
 
 {tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
 {logger, notify, execute, merge, args} = util
-{files, dest, $, logging, watching, caching, banner} = helpers
+{files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = helpers
 
 coffeeStylish = require('coffeelint-stylish').reporter
 coffeelintrc = require '../config/lint/coffeelintrc'
@@ -28,11 +28,8 @@ smasher.recipe
       .pipe $.coffeelint coffeelintrc
       .pipe $.coffeelint.reporter()
 
-
       # Compile
       .pipe $.coffee bare:true
-
-
       .pipe $.angularFilesort()
 
       # Post-process

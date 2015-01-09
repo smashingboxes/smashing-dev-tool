@@ -91,7 +91,7 @@
     "gulp-uglify": "~0.3.0",
     "gulp-uncss": "~0.4.3",
     "gulp-using": "0.0.1",
-    "gulp-util": "~2.2.14",
+    "gulp-util": "^2.2.20",
     "gulp-wait": "0.0.2",
     "gulp-watch": "~0.6.4",
     "gulp-wrap-amd": "~0.3.0",

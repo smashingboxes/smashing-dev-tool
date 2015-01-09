@@ -40,10 +40,20 @@ $.reload =      $.browserSync.reload
 logging     = ->  $.if args.verbose, $.using()
 watching    = ->  $.if args.watch, $.reload(stream: true)
 caching     = (cache) ->  $.if args.watch, $.cached cache or 'main'
-plumbing    = ->  $.if args.watch, $.plumber(errorHandler: console.log)
+
 time        = (f) -> moment().format(f)
 isBuilding  = _.contains args._, 'build'
 isCompiling = _.contains args._, 'compile'
+
+
+
+
+onError = (err) ->
+  $.util.beep()
+  # console.error err
+  @emit 'end'
+plumbing    = ->  $.plumber(errorHandler: onError)
+stopPlumbing = -> $.plumber.stop()
 
 
 
@@ -59,12 +69,14 @@ module.exports =
   ###
   Shortcut for conditional logging, watching in a stream
   ###
-  logging:     logging
-  watching:    watching
-  plumbing:    plumbing
-  caching:     caching
-  isBuilding:  isBuilding
-  isCompiling: isCompiling
+  logging:      logging
+  watching:     watching
+  plumbing:     plumbing
+  stopPlumbing: stopPlumbing
+  caching:      caching
+  isBuilding:   isBuilding
+  isCompiling:  isCompiling
+  onError:      onError
   # <br><br><br>
 
 
@@ -74,7 +86,7 @@ module.exports =
   and allows us to use a much cleaner syntax when building tasks.
   @method files
   @param {...String} types The desired file types
-  @return {Object}
+  @return {Stream}
   ###
   files: (src, types, read=true, excludes) ->
     fileArgs = arguments
@@ -192,7 +204,8 @@ module.exports =
         buildExclude: chalk.yellow  globs.buildExclude
       console.log source
 
-    gulp.src source, read: _read, base: dir[_target] or ''
+    gulp.src(source, read: _read, base: dir[_target] or '')
+      .pipe $.plumber(errorHandler: onError)
   # <br><br><br>
 
   ###
