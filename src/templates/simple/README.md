@@ -1,63 +1,28 @@
-weaveeup-angular-client
+<%= appNameSlug %>
 ======================
 
-[![Build Status](https://magnum.travis-ci.com/smashingboxes/weaveup-angular-client.svg?token=UXcjT4VgrwApWHZhXXAk&branch=master)](https://magnum.travis-ci.com/smashingboxes/weaveup-angular-client)
+## Prerequisites
 
-# WeaveUp Custimization Tool
++ [Node/NPM](http://nodejs.org/)
++ [Bower](http://bower.io/)
++ [Smashing Dev Tool](https://github.com/smashingboxes/smashing-dev-tool)
 
-## Getting Started
 
-### Intallation
+## Development
 
-Install the package
-`bower install https://github.com/smashingboxes/weavup-angular-client --save`
+For local setup:
 
-Include it in your project
-`<link rel="stylesheet" href="path/to/client/weavup-customizer.css" />`
-`<script src="path/to/client/weaveup-customizer.js"></script>`
-
-For now, you should also copy all the images from the `path/to/client/images`
-directory. You can easily set up a grunt task to do this.
-
-### Usage
-
-```html
-<weaveup-customizer
-  design-config="customizeDesign"
-  on-close="closeThisSomehow()"
-  on-complete="completeThisSomehow(designSettings)"></weaveup-customizer>
+```
+git clone git@github.com:smashingboxes/<%= appNameSlug %>.git
+cd <%= appNameSlug %>
+bower install
+smash serve
 ```
 
-The design-config expects an object in the following format
+This application is being built with the experimental [Smashing Dev Tool](https://github.com/smashingboxes/smashing-dev-tool). Once the dev tool is installed, the following commands are available from within the project repo:
 
-```js
-{
-  drawing: {
-    svg: "an svg file",
-    original_color_way: [colorWay]
-  },
-  colorWay: [colorWay],
-  repeatCount: 5,
-  repeatType: "half-brick"
-}
-```
-
-_Note: the design-config object must already be populated with data when this
-directive is loaded_
-
-When complete it calls the `on-complete` function with the following
-designSettings object
-
-```js
-{
-  colorWay: [newColorWay],
-  repeatCount: 5,
-  repeatType: "half-drop",
-  rasterUrl: "blob:http://localhost/raster-image"
-}
-```
-
-The current supported repeat types are `basic, half-drop, half-brick, center`
-
-### Example
-Check out the example app in this repository
++ `smash compile`: compile the project source into unoptimized HTML, JS and CSS ready for the browser
++ `smash serve`: run a BrowserSync-based development server and re-compile on file changes
++ `smash build`: build the compiled source into a minified, otpimized set of files for deployment
++ `smash docs`: generate a static documentation site for this codebase
++ `smash clean`: remove all generated files (`/compile`, `/build`, `/docs`)
