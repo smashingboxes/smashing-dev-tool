@@ -2,9 +2,10 @@
 smasher  = require '../config/global'
 helpers = require '../utils/helpers'
 
-{util, tasks, recipes, commander, assumptions, smash, user, platform, project} = smasher
+{util, tasks, recipes, commander, assumptions, smash, user, platform, project, rootPath} = smasher
 {logger, notify, execute, args} = util
 {files,  banner, dest, time, $, logging, watching} = helpers
+
 
 
 ### ---------------- RECIPE ----------------------------------------------- ###
