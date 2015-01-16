@@ -30,7 +30,7 @@ smasher.module
       .alias('c')
       .option('-c --cat', 'Output injected index file for inspection')
       .description('compile local assets based on Smashfile')
-      .action (_target) ->
+      .action (_target) ->        
         target = _target
         compileTasks.push 'compile:serve'  if args.watch
         tasks.start compileTasks
@@ -47,11 +47,15 @@ smasher.module
 
           # Inject CSS, inject JS
           .pipe $.inject files('compile', ['.css', '.js'], false),
-            name:'app', ignorePath:'compile', addRootSlash:false
+            name:         'app'
+            ignorePath:   'compile'
+            addRootSlash: false
 
           # Inject vendor files
           .pipe $.inject files('vendor', '*', false),
-            name:'vendor', ignorePath:'client', addRootSlash:false
+            name:         'vendor'
+            ignorePath:   'client'
+            addRootSlash: false
 
           # Display injected output in console
           .pipe $.if args.cat, $.cat()

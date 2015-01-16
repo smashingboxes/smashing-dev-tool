@@ -9,8 +9,8 @@ helpers = require '../utils/helpers'
 
 ### ---------------- RECIPE ----------------------------------------------- ###
 smasher.recipe
-  name:   'Stylus'
-  ext:    'styl'
+  name:   'Sass'
+  ext:    'scss'
   type:   'style'
   doc:    false
   test:   false
@@ -19,10 +19,14 @@ smasher.recipe
   compileFn: (stream) ->
     stream
       .pipe $.sourcemaps.init()
-      .pipe $.if args.watch, $.cached 'styl'
+      .pipe $.if args.watch, $.cached 'scss'
       .pipe logging()
 
+      # Lint
+      .pipe $.scssLint()
+
       # Compile
-      .pipe $.stylus()
+      .pipe $.sass()
       .on('error', (err) -> logger.error err.message)
+
       .pipe $.sourcemaps.write './maps'

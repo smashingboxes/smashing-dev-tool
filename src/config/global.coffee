@@ -97,7 +97,7 @@ class smasher
     unless @recipesLoaded
       logger.verbose 'Loading file recipes based on project...'
       baseAssets = ['vendor', 'images', 'fonts']
-      defaultAssets = ['js', 'coffee', 'css', 'styl', 'html', 'jade', 'json']
+      defaultAssets = ['js', 'coffee', 'css', 'styl', 'scss', 'html', 'jade', 'json']
       toLoad = _.intersection(@project.assets, defaultAssets).concat(baseAssets)
       @loadRecipe a for a in toLoad
     @recipesLoaded = true

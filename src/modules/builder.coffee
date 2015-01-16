@@ -45,9 +45,8 @@ module.exports = (globalConfig) ->
     # TODO: move recipes to globalConfig
     # TODO: recipes.coffee files.coffee()...
     recipes = {}
-    for recipe in ['coffee', 'js', 'styl', 'css', 'jade', 'html']
+    for recipe in ['coffee', 'js', 'styl', 'scss', 'css', 'jade', 'html']
       recipes[recipe] = require("../recipes/#{recipe}")(globalConfig)
-    console.log recipes
 
     bowerRequire =
       config: "#{env.configBase}/#{dir.compile}/main.js"
