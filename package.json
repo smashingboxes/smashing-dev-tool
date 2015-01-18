@@ -1,7 +1,6 @@
 {
   "name": "smasher",
   "version": "0.1.0",
-  "private": true,
   "author": "Biko Tushinde",
   "repository": {
     "type": "git",
