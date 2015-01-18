@@ -6,7 +6,7 @@ util    = require '../utils/util'
 project = require '../config/project'
 
 assumptions = require '../config/assumptions'
-{dir} = project
+{dir, overrides} = project
 {files, $, dest, logging, watching} = helpers
 {args, logger} = util
 
@@ -23,7 +23,9 @@ module.exports =
       @compileFn   = params.compileFn or (stream) -> stream
       @buildFn     = params.buildFn   or (stream)-> stream
       @passThrough = params.passThrough
-      @path        = params.path
+      @path        = if params.passThrough then (overrides?.assets?[@name]?.path or params.path) else params.path
+      console.log @path
+
 
     # Compile this recipe's filetypes into un-optimized, web-ready assets
     compile: =>

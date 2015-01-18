@@ -63,6 +63,7 @@ liftoff.launch
 
 module.exports =
   assets:       project.assets or assets
+  overrides:    project.overrides or {}
   pkg:          pkg
   env:          env
   dir:          _.defaults (project.dir or {}), assumptions.dir

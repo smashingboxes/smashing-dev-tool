@@ -42,8 +42,8 @@ smasher.recipe
       .pipe logging()
 
       # Compile
-      .pipe $.jadeInheritance basedir:'client'
-      .pipe $.filter (file) -> !/\/_/.test(file.path) || !/^_/.test(file.relative)  # filter out partials (folders and files starting with "_" )
+      # .pipe $.jadeInheritance basedir:'client'
+      # .pipe $.filter (file) -> !(/\/_/).test(file.path) || (!/^_/).test(file.relative)  # filter out partials (folders and files starting with "_" )
 
       .pipe $.jade pretty:true, compileDebug:true
       .on('error', (err) -> logger.error err.message)
