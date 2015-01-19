@@ -24,7 +24,6 @@ module.exports =
       @buildFn     = params.buildFn   or (stream)-> stream
       @passThrough = params.passThrough
       @path        = if params.passThrough then (overrides?.assets?[@name]?.path or params.path) else params.path
-      console.log @path
 
 
     # Compile this recipe's filetypes into un-optimized, web-ready assets
