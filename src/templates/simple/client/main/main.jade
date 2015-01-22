@@ -1,14 +1,17 @@
 .container
   .jumbotron
-    h1 <%= appNameSlug %>
-    br
+    header
+      img.logo(src="data/images/sb-logo.svg")
+      h1 <%= appNameSlug %>
+    
     section.main
-      h4 You're now cooking with:
+      h2: small Featuring:
       ul.list
-        li jQuery
-        li Lodash
         li Bootstrap
+        li Lodash
+        li jQuery
         li AngularJS
         li AngularRoute
-        
-  div(ng-controller='SettingsCtrl')
+
+    
+    
