@@ -11,6 +11,7 @@
   "bin": {
     "smash": "./bin/smash"
   },
+  "preferGlobal": true, 
   "dependencies": {
     "amd-optimize": "^0.2.4",
     "async2": "^0.1.7",
