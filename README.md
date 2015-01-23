@@ -6,54 +6,51 @@ This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automatio
 
 + [Node/NPM](http://nodejs.org/)
 + [Bower](http://bower.io/)
-+ CoffeeScript (`npm install -g coffee-script`)
 
-
-## Installation (Alpha Instructions)
-
-For now, the easiest way to use this tool is via `npm link`. Eventually it will be installable via the public NPM registry.
-
-First clone this repository somewhere on your machine, `cd` to that directory and run `npm link`:
+## Installation (Beta Instructions)
+smashing-dev-tool is available via the NPM registry. It currently depends on Bower and CoffeeScript gobally.
 
 ```
-  $ git clone git@github.com:smashingboxes/smashing-dev-tool.git
-  $ cd smashing-dev-tool
-  $ npm link
+  $ npm install -g coffee-script bower smashing-dev-tool
 ```
 
-This will make the contents of the folder available as a globally installed NPM plugin. Running `git pull` in this directory will update the tool.
-
-The `smash` command should now be available globally.
-
-
-## Example Smashfile
-
-```coffeescript
-
-    module.exports = 
-
-      # file types to be compiled/built
-	  assets: [
-	    'coffee'
-	    'css'
-	    'styl'
-	    'jade'
-	    'json'
-	  ]
-	  
-	  # override default directory conventions
-	  dir:
-	    client: 'WebContent'
-	    server: 'src'
-```
+The `smash` command should now be available globally. Some commands are only available from inside a project with a valid `smashfile.coffee`.
 
 ## Available Commands
+
+### Global
++ `smash new <some-project-name>`: generate a new `smashing-dev-tool`-compatible project in a folder called "<some-project-name>" and `bower install` dependecies for the chosen template
+
+### Per-project
 
 + `smash compile`: compile the project source into unoptimized HTML, JS and CSS ready for the browser
 + `smash serve`: run a BrowserSync-based development server and re-compile on file changes
 + `smash build`: build the compiled source into a minified, otpimized set of files for deployment
 + `smash docs`: generate a static documentation site for this codebase
 + `smash clean`: remove all generated files (`/compile`, `/build`, `/docs`)
++ `smash bump [patch|minor|major|prerelease]`: bump the version by the specified importance level and tag the repo (reuqires a `git init`'d project repo)
+
+## Example Smashfile
+
+In each project the `smashfile.coffee` file contains local config used by smashing-dev-tool to compile/build/document front-end assets. Default assumptions made by the tool can be overridden here on a project specific basis. 
+
+```
+module.exports =
+
+  # file types to be compiled/built
+  assets: [
+    'coffee'
+    'css'
+    'styl'
+    'jade'
+    'json'
+  ]
+
+  # override default directory conventions
+  dir:
+    client: 'WebContent'
+    server: 'src'
+```
 
 
 ## TODO/Future
@@ -64,4 +61,3 @@ The `smash` command should now be available globally.
 + Component guide generation
 + API mocking, test data generation
 + UI/UX deliverables generated from source code (style tiles, etc.)
-+ Provisioning of dev resources (DigitalOcean, GitHub, AWS)
