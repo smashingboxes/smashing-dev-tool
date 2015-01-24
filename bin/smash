@@ -23,7 +23,6 @@ smasher.loadModule m for m in [
   'test'
   'serve'
   'clean'
-  'init'
   'apps'
   'document'
   'help'

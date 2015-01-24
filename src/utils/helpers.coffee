@@ -10,9 +10,6 @@ path =            require 'path'                  # manipulate file paths
 join =            path.join
 
 gulp =            require 'gulp'                  # streaming build system
-lazypipe =        require 'lazypipe'              # re-use partial streams
-runSequence =     require 'run-sequence'          # execute tasks in parallel or series
-
 # <br><br><br>
 
 

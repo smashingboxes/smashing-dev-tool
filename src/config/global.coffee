@@ -17,7 +17,6 @@ Orchestrator = require 'orchestrator'
 commander    = require 'commander'
 _            = require 'underscore'
 _str         = require 'underscore.string'
-dir          = require 'require-dir'
 browserSync  = require 'browser-sync'
 reload       = browserSync.reload
 

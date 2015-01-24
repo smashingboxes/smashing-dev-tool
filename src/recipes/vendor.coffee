@@ -1,6 +1,4 @@
-through2       = require 'through2'
-gulp           = require 'gulp'
-bowerRequireJS = require 'bower-requirejs'
+
 smasher = require '../config/global'
 
 smasher.recipe
