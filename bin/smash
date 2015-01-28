@@ -13,6 +13,10 @@ DevTool.load = (name) -> DevTool.use require "../src/modules/#{name}"
 DevTool.load 'util'
 log = DevTool.util.logger
 
+# Configure Orchestrator instance
+orchestrator = new Orchestrator()
+DevTool.orchestrator = orchestrator
+
 # Register a Task (Orchestrator)
 DevTool._tasks = []
 DevTool.task = (name, deps, fn) ->
@@ -37,8 +41,8 @@ DevTool.load mod for mod in [
   # gather information
   'user'
   'platform'
-  'project'
   'assumptions'
+  'project'
 
   # set up tools
   'helpers'
@@ -61,12 +65,11 @@ DevTool.init (err)->
   log.info 'Init complete.'
   pkg = DevTool.pkg
 
-  # Configure Orchestrator instance
-  orchestrator = new Orchestrator()
+
   DevTool.startTask = ->
-    orchestrator.start.apply undefined, 'docs'
+
   orchestrator.add(task.name, task.deps, task.fn) for task in DevTool._tasks
-  # orchestrator.start 'docs'
+
 
   # Configure Commander.js instance
   log.info 'Starting Commander.js'

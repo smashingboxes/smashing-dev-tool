@@ -10,10 +10,6 @@
   "usage": "[command] <cmd args>",
   "options": [
     {
-      "option": "-h, --help",
-      "description": "output usage information"
-    },
-    {
       "option": "-V, --version",
       "description": "output the version number"
     },

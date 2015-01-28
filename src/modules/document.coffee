@@ -9,59 +9,64 @@ module.exports =
   name:     'document'
   init: (donee) ->
     self = @
-    {startTask, commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
-    {assets, dir, env} = project
+    {startTask, commander, assumptions, rootPath, pkg, user, platform, util, helpers} = self
     {args, logger, notify, execute, merge} = util
     {files, dest, $, logging, watching} = helpers
 
+    @project.then (project) ->
+      # console.log project
+      {assets, dir, env} = project
 
-    ### ---------------- COMMANDS ------------------------------------------- ###
-    @command
-      cmd: 'docs'
-      description: 'Generate documentation based on source code'
-      action: ->
-        startTask 'docs'
-        console.log 'doccing!'
+      ### ---------------- COMMANDS ------------------------------------------- ###
+      self.command
+        cmd: 'docs'
+        description: 'Generate documentation based on source code'
+        action: ->
+          logger.warn 'doccing!'
+          self.orchestrator.start 'docs'
+          # self.startTask 'docs'
 
 
-    ### ---------------- TASKS ---------------------------------------------- ###
-    @task 'docs', (done) ->
-      # notify "Groc", "Generating documentation..."
-      self.util.logger.info "Generating documentation in #{chalk.magenta './'+dir.docs}"
 
-      docsGlob = ["README.md"]
+      ### ---------------- TASKS ---------------------------------------------- ###
+      self.task 'docs', (done) ->
+        # notify "Groc", "Generating documentation..."
+        logger.info "Generating documentation in #{chalk.magenta './'+dir.docs}"
 
-      for asset in assets
-        docsGlob.push "#{dir.client}/**/*.#{asset}"
-        docsGlob.push "#{dir.server}/**/*.#{asset}"
+        docsGlob = ["README.md"]
 
-      grocjson = JSON.stringify {
-        'glob': docsGlob
-        'except': [
-          "#{dir.client}/components/vendor/**/*"
-        ]
-        'github':           false
-        'out':              dir.docs
-        'repository-url':   @pkg.repository?.url or ''
-        'silent':           !args.verbose?
-      }, null, 2
+        for asset in assets
+          docsGlob.push "#{dir.client}/**/*.#{asset}"
+          docsGlob.push "#{dir.server}/**/*.#{asset}"
 
-      # Dynamically generate .groc.json from config
-      fs.writeFile "#{env.configBase}/.groc.json", grocjson, 'utf8', ->
-        logger.info "Generated dynamic #{chalk.green '.groc.json'} from project config"  if args.verbose
 
-        # Use our copy of Groc to generate documentation for the project
-        require("#{@rootPath}/node_modules/groc").CLI [], (error)->
-          process.exit(1) if error
-          # notify "Groc", "Success!"
-          open "#{dir.docs}/index.html"
+        grocjson = JSON.stringify {
+          'glob': docsGlob
+          'except': [
+            "#{dir.client}/components/vendor/**/*"
+          ]
+          'github':           false
+          'out':              dir.docs
+          'repository-url':   self.pkg.repository?.url or ''
+          'silent':           !args.verbose?
+        }, null, 2
+
+        # Dynamically generate .groc.json from config
+        fs.writeFile "#{env.configBase}/.groc.json", grocjson, 'utf8', ->
+          logger.info "Generated dynamic #{chalk.green '.groc.json'} from project config"  if args.verbose
+
+          # Use our copy of Groc to generate documentation for the project
+          require("#{self.rootPath}/node_modules/groc").CLI [], (error)->
+            process.exit(1) if error
+            # notify "Groc", "Success!"
+            open "#{dir.docs}/index.html"
+            done()
+
+      self.task 'docs:clean', (done) ->
+        if fs.existsSync dir.docs
+          logger.info "Deleting #{chalk.magenta './'+dir.docs}"
+          del [dir.docs], done
+        else
           done()
 
-    @task 'docs:clean', (done) ->
-      if fs.existsSync dir.docs
-        logger.info "Deleting #{chalk.magenta './'+dir.docs}"
-        del [dir.docs], done
-      else
-        done()
-
-    donee()
+      donee()
