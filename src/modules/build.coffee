@@ -4,48 +4,46 @@ del     = require 'del'
 chalk   = require 'chalk'
 fs      = require 'fs'
 
-smasher = require '../config/global'
-project = require '../config/project'
-util    = require '../utils/util'
-helpers = require '../utils/helpers'
-
-smasher.module
+module.exports =
   name:     'build'
-  commands: ['build']
-  dependencies: ['compile']
-  init: (smasher) ->
-    {tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
-    {assets, dir, env} = project
-    {logger, notify, execute, merge, args} = util
-    {files, dest, $, logging, watching} = helpers
+  init: (donee) ->
+    self = @
+    {startTask, commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
+    {logger, notify, execute, merge} = util
+    {files, $, dest} = helpers
 
-    target = dir.build
+    target = dir?.build
     buildOpts = null
     buildTasks = ['build:index']
 
 
     ### ---------------- COMMANDS ------------------------------------------- ###
-    smasher.command('build [target]')
-      .description('build local assets for production based on Smashfile')
-      .option('-c --cat', 'Output injected index file for inspection')
-      .action (_target) ->
+    @command
+      cmd: 'build [target]'
+      alias: 'b'
+      description: 'build local assets for production based on Smashfile'
+      options: [
+        opt: '-c --cat'
+        description: 'Output injected index file for inspection'
+      ]
+      action: (_target) ->
         buildOpts = project.build?[_target] or {}
         target = buildOpts?.out or dir.build
-        tasks.start buildTasks
+        startTask buildTasks
 
 
     ### ---------------- TASKS ---------------------------------------------- ###
-    smasher.task 'build:assets', ['build:clean', 'compile:assets'], ->
+    @task 'build:assets', ['build:clean', 'compile:assets'], ->
       logger.info "Building assets from #{chalk.magenta './'+project.dir.compile} to #{chalk.red './'+target}"
       logger.verbose 'Building assets...'
 
       # Ensure needed recipes are loaded and call build(), returning a stream
       merge.apply @, (for a in ['css', 'js', 'html', 'images', 'fonts', 'vendor']
-        smasher.loadRecipe(a) unless recipes[a]
+        @loadRecipe(a) unless recipes[a]
         recipes[a].build()
       )
 
-    smasher.task 'build:index', ['build:assets'], ->
+    @task 'build:index', ['build:assets'], ->
       logger.info "Building index file..."  if args.verbose
       injectIndex = ->
         logger.info "Injecting built files into #{chalk.magenta 'index.jade'}"  if args.verbose
@@ -81,7 +79,7 @@ smasher.module
 
       injectIndex()
 
-    smasher.task 'build:serve', ->
+    @task 'build:serve', ->
       setTimeout (->
         $.browserSync
           server:
@@ -95,7 +93,7 @@ smasher.module
           port:           8080
       ), 5000
 
-    smasher.task 'build:clean', (done) ->
+    @task 'build:clean', (done) ->
       toDelete = _.chain(project.build)
         .pluck 'out'
         .concat [dir.build]
@@ -106,3 +104,4 @@ smasher.module
         logger.info "Deleting #{chalk.magenta ('./'+d for d in toDelete).join(', ')}"
         del toDelete, done
       else done()
+    donee()

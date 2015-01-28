@@ -46,29 +46,33 @@ We lean heavily on the Google JavaScript Style Guide naming conventions and prop
 # Supported asset types
 # exports.assets = require './assets'
 
-exports.test =
-  prefix: 'test_'
 
-# Directory names
-exports.dir =
-  client:  'client'
-  server:  'server'
+module.exports =
+  name: 'assumptions'
+  attach: ->
+    @assumptions =
+      test:
+        prefix: 'test_'
 
-  vendor:  'client/components/vendor'
+      # Directory names
+      dir:
+        client:  'client'
+        server:  'server'
 
-  compile: 'compile'
-  build:   'build'
-  deploy:  'deploy'
+        vendor:  'client/components/vendor'
 
-  docs:    'docs'
+        compile: 'compile'
+        build:   'build'
+        deploy:  'deploy'
 
-# Compile stage defaults
-exports.compile =
-  html2js: false
+        docs:    'docs'
 
+      # Compile stage defaults
+      compile:
+        html2js: false
 
-# Build stage defaults
-exports.build =
-  styles:  'app.css'
-  views:   'app-views.js'
-  scripts: 'app.js'
+      # Build stage defaults
+      build:
+        styles:  'app.css'
+        views:   'app-views.js'
+        scripts: 'app.js'

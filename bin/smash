@@ -1,35 +1,94 @@
 #!/usr/bin/env coffee
-argv      = require('minimist')(process.argv.slice 2)
-chalk     = require 'chalk'
+_            = require 'lodash'
+argv         = require('minimist')(process.argv.slice 2)
+chalk        = require 'chalk'
+broadway     = require 'broadway'
+commander    = require 'commander'
+Orchestrator = require 'orchestrator'
 
-smasher   = require '../src/config/global'
-smasher.commander
-  .option '-a, --auto',     'auto-accept defaults where possible'
-  .option '-w, --watch',    'monitor files for changes and reload browser(s)'
-  .option '-s, --serve',    'compile assets and launch a static server'
-  .option '-v, --verbose',  'display detailed logs and notifications'
-  .option '-m, --mute',     'hide all logs and notifications'
-  .option '-c, --cat',      '\'cat\' results of file injection to console'
-  .option '-d, --debug'
+# Create Broadway instance
+DevTool = new broadway.App()
+DevTool.load = (name) -> DevTool.use require "../src/modules/#{name}"
+
+DevTool.load 'util'
+log = DevTool.util.logger
+
+# Register a Task (Orchestrator)
+DevTool._tasks = []
+DevTool.task = (name, deps, fn) ->
+  log.verbose "Registering #{chalk.yellow 'task'} #{chalk.cyan name}"
+  if typeof deps is 'function'
+    fn = deps
+    deps = []
+  DevTool._tasks.push
+    name: name
+    deps: deps
+    fn: fn
+
+# Register a Command (commander.js)
+DevTool.commands = []
+DevTool.command = (command) ->
+  log.verbose "Registering #{chalk.yellow 'command'} '#{chalk.cyan command.cmd}'"
+  DevTool.commands.push command
 
 
-# Load modules to register commands and tasks
+# Load components
+DevTool.load mod for mod in [
+  # gather information
+  'user'
+  'platform'
+  'project'
+  'assumptions'
 
-smasher.loadModule m for m in [
+  # set up tools
+  'helpers'
+  'recipes'
+
+  # register commands and tasks
   'generate'
   'compile'
   'build'
-  'deploy'
   'test'
   'serve'
   'clean'
   'apps'
   'document'
-  'help'
 ]
 
-# Lookup the module needed for this command and init(smasher)
-smasher.initCmd argv._[0]
 
-# Parse the arguments for Commander.js
-smasher.commander.parse process.argv
+# Start application
+DevTool.init (err)->
+  log.info 'Init complete.'
+  pkg = DevTool.pkg
+
+  # Configure Orchestrator instance
+  orchestrator = new Orchestrator()
+  DevTool.startTask = ->
+    orchestrator.start.apply undefined, 'docs'
+  orchestrator.add(task.name, task.deps, task.fn) for task in DevTool._tasks
+  # orchestrator.start 'docs'
+
+  # Configure Commander.js instance
+  log.info 'Starting Commander.js'
+  commander = require 'commander'
+
+  # Read CLI options from package.json
+  commander
+    .version pkg.version
+    .description pkg.description
+    .usage pkg.usage
+  commander.option(opt.option, opt.description) for opt in pkg.options
+
+  # Register commands with commander.js
+  for cmd in DevTool.commands
+    x = commander.command(cmd.cmd)
+    x.alias(cmd.alias)  if cmd.alias?
+    x.description(cmd.description)
+    if cmd.options
+      x.option(o.opt, o.description) for o in cmd.options
+    x.action(cmd.action)
+
+  log.data 'Commander.js complete'
+  # Parse args for Commander.js
+  if process.argv.slice(2).length is 0 then commander.help()
+  else commander.parse process.argv

@@ -20,36 +20,36 @@ replaceDot = (path) ->
     path.basename = ".#{path.basename.slice 1}"
   path
 
-smasher = require '../config/global'
-smasher.module
-  name:     'generate'
-  commands: ['generate', 'new']
-  init: (smasher) ->
-    {tasks, recipes, commander, assumptions, rootPath, user, platform} = smasher
-    {args, logger, notify, execute, merge}                             = require '../utils/util'
-    {files, $, dest}                                                   = require '../utils/helpers'
+
+module.exports =
+  name: 'generate'
+  init: (donee) ->
+    {startTask, commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = @
+    {logger, notify, execute, merge} = util
+    {files, $, dest} = helpers
+
 
     ### ---------------- COMMANDS ------------------------------------------- ###
-    smasher
-      .command('new <name>')
-      .alias('n')
-      .description('generate app from template')
-      .action (name, options) ->
+    @command
+      cmd: 'new <name>'
+      alias: 'n'
+      description: 'generate app from template'
+      action: (name, options) ->
+        console.log 'NEW TIME!'
         target = name
-        tasks.start 'generate:app'
+        startTask 'generate:app'
 
-    smasher
-      .command('generate <name>')
-      .alias('g')
-      .description('generate component from template')
-      .action (name, options) ->
+    @command
+      cmd: 'generate <name>'
+      alias: 'g'
+      description: 'generate component from template'
+      action: (name, options) ->
         target = name
-        tasks.start 'generate:component'
-
+        startTask 'generate:component'
 
     ### ---------------- TASKS ---------------------------------------------- ###
     # Handle existing folder
-    smasher.task 'generate:check-dir', (done) ->
+    @task 'generate:check-dir', (done) ->
       if fs.existsSync target
         inquirer.prompt [{
           name:     'overwrite'
@@ -64,7 +64,7 @@ smasher.module
         done()
 
     # Load the requested template, prompts and files reference
-    smasher.task 'generate:load-template', ['generate:check-dir'], (done) ->
+    @task 'generate:load-template', ['generate:check-dir'], (done) ->
       inquirer.prompt [{
         name:     'template'
         message:  'What type of app do you want to generate?'
@@ -94,7 +94,7 @@ smasher.module
         done()
 
     # Prompt for template variables
-    smasher.task 'generate:prompt-new-app', ['generate:load-template'], (done) ->
+    @task 'generate:prompt-new-app', ['generate:load-template'], (done) ->
       logger.info 'Gathering information'
       inquirer.prompt prompts, (ans) ->
         console.log ans
@@ -103,7 +103,7 @@ smasher.module
         done()
 
     # Generate app from template files
-    smasher.task 'generate:app', ['generate:prompt-new-app'], ->
+    @task 'generate:app', ['generate:prompt-new-app'], ->
       logger.info "Generating app '#{chalk.magenta(answers.appNameSlug)}' from template '#{chalk.yellow template}'"
       logger.info "Creating project directory #{chalk.magenta target}"
 
@@ -118,6 +118,9 @@ smasher.module
         .pipe $.install()
 
     # Scaffold Tasks
-    smasher.task 'generate:component', (done) ->
+    @task 'generate:component', (done) ->
       logger.info "Generating #{chalk.magenta('components/' + target)}"
       done()
+
+
+    donee()

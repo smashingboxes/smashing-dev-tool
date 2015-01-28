@@ -5,33 +5,29 @@ chalk   = require 'chalk'
 fs      = require 'fs'
 open    = require 'open'
 
-smasher = require '../config/global'
-project = require '../config/project'
-util    = require '../utils/util'
-helpers = require '../utils/helpers'
-
-
-smasher.module
+module.exports =
   name:     'document'
-  commands: ['docs']
-  init: (smasher) ->
-
-    {tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
+  init: (donee) ->
+    self = @
+    {startTask, commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
     {assets, dir, env} = project
     {args, logger, notify, execute, merge} = util
     {files, dest, $, logging, watching} = helpers
 
 
     ### ---------------- COMMANDS ------------------------------------------- ###
-    smasher.command('docs')
-      .description('Generate documentation based on source code')
-      .action ->
-        tasks.start 'docs'
+    @command
+      cmd: 'docs'
+      description: 'Generate documentation based on source code'
+      action: ->
+        startTask 'docs'
+        console.log 'doccing!'
+
 
     ### ---------------- TASKS ---------------------------------------------- ###
-    smasher.task 'docs', (done) ->
+    @task 'docs', (done) ->
       # notify "Groc", "Generating documentation..."
-      logger.info "Generating documentation in #{chalk.magenta './'+dir.docs}"
+      self.util.logger.info "Generating documentation in #{chalk.magenta './'+dir.docs}"
 
       docsGlob = ["README.md"]
 
@@ -46,7 +42,7 @@ smasher.module
         ]
         'github':           false
         'out':              dir.docs
-        'repository-url':   smasher.pkg.repository?.url or ''
+        'repository-url':   @pkg.repository?.url or ''
         'silent':           !args.verbose?
       }, null, 2
 
@@ -55,15 +51,17 @@ smasher.module
         logger.info "Generated dynamic #{chalk.green '.groc.json'} from project config"  if args.verbose
 
         # Use our copy of Groc to generate documentation for the project
-        require("#{smasher.rootPath}/node_modules/groc").CLI [], (error)->
+        require("#{@rootPath}/node_modules/groc").CLI [], (error)->
           process.exit(1) if error
           # notify "Groc", "Success!"
           open "#{dir.docs}/index.html"
           done()
 
-    smasher.task 'docs:clean', (done) ->
+    @task 'docs:clean', (done) ->
       if fs.existsSync dir.docs
         logger.info "Deleting #{chalk.magenta './'+dir.docs}"
         del [dir.docs], done
       else
         done()
+
+    donee()

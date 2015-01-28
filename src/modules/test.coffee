@@ -2,32 +2,28 @@ fs =              require 'fs'
 open =            require 'open'
 gulp =            require 'gulp'                  # streaming build system
 
-
-smasher = require '../config/global'
-helpers = require '../utils/helpers'
-smasher.module
+module.exports =
   name:     'test'
-  commands: ['test']
-  init: (smasher) ->
-    {util, tasks, commander, assumptions, smash, user, platform, recipes, rootPath} = smasher
-    {logger, notify, execute, args, merge} = util
-    {files, $, logging} = helpers
-
+  init: (donee) ->
+    self = @
+    {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
+    {logger, notify, execute, merge} = util
+    {files, $, dest} = helpers
 
     ### ---------------- COMMANDS ------------------------------------------- ###
-    commander
-      .command('test')
-      .alias('t')
-      .option('-w, --watch',     'Watch files and run unit tests on file save')
-      .description('Run available tests for source code')
-      .action((options) ->
+    @command
+      cmd: 'test'
+      alias: 't'
+      option: '-w, --watch',     'Watch files and run unit tests on file save'
+      description: 'Run available tests for source code'
+      action: (options) ->
         # configPath = "#{rootPath}/src/config/karma.conf.coffee"
         logger.info "Running tests..."
 
-
-
-      ).on '--help', ->
+      help: ->
         console.log '  Examples:'
         console.log ''
         console.log '    $ smash test --watch'
         console.log ''
+
+      donee()

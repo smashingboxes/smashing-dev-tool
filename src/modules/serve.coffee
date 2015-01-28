@@ -2,27 +2,21 @@ open        = require 'open'
 chalk       = require 'chalk'
 _           = require 'lodash'
 
-smasher = require '../config/global'
-project = require '../config/project'
-util    = require '../utils/util'
-helpers = require '../utils/helpers'
-
-smasher.module
+module.exports =
   name:     'serve'
-  commands: ['serve']
-  dependencies: ['compile', 'build']
-  init: (smasher) ->
-    {tasks, recipes, commander, assumptions, rootPath, user, platform, project} = smasher
-    {assets, dir, env} = project
-    {logger, notify, execute, merge, args} = util
-    {files, dest, $, logging, watching} = helpers
-
+  init: (donee) ->
+    self = @
+    {startTask, project, util, helpers} = self
+    {logger, notify, execute, merge} = util
+    {files, $, dest} = helpers
+    {assets, env, dir} = project
 
     ### ---------------- COMMANDS ------------------------------------------- ###
-    smasher.command('serve [target]')
-      .alias('s')
-      .description('Serve source code to the browser for development purposes')
-      .action (target)->
+    @command
+      cmd: 'serve [target]'
+      alias: 's'
+      description: 'Serve source code to the browser for development purposes'
+      action: (target) ->
         args.watch = true
         serveTarget = 'compile'
         outDir = dir.compile
@@ -44,6 +38,8 @@ smasher.module
 
         # Start BrowserSync server
         args.watch = true  if serveTarget is 'compile'
-        smasher.task "#{serveTarget}", ["#{serveTarget}:index"], (done) ->
-          tasks.start "#{serveTarget}:serve", done
-        tasks.start "#{serveTarget}"
+        self.task "#{serveTarget}", ["#{serveTarget}:index"], (done) ->
+          startTask "#{serveTarget}:serve", done
+        startTask "#{serveTarget}"
+
+    donee()
