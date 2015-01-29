@@ -63,6 +63,10 @@ DevTool.load mod for mod in [
 DevTool.init (err)->
   log.info 'Init complete.'
   pkg = DevTool.pkg
+  DevTool.on 'task:start', (task) ->
+    console.log task
+    console.log orchestrator.start task
+
 
   DevTool.startTask = (toRun, cb) ->
     log.debug 'Starting task:',toRun

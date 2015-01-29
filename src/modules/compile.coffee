@@ -8,9 +8,10 @@ module.exports =
   name: 'compile'
   init: (donee) ->
     self = @
-    {recipes, commander, recipes, assumptions, rootPath, pkg, util, helpers} = self
+    {recipes, commander, recipes, assumptions, rootPath, pkg, project, util, helpers} = self
     {logger, notify, execute, merge, args} = self.util
     {files, $, dest, logging} = self.helpers
+    {dir} = self.project
 
     target = null
     compileTasks = ['compile:assets', 'compile:index']
@@ -35,6 +36,8 @@ module.exports =
     # ### ---------------- TASKS ---------------------------------------------- ###
 
     # Injects assets into index.jade and compiles
+    @task 'compile', ['compile:index'], (done) ->
+      self.startTask 'compile:serve'
     @task 'compile:index', ['compile:assets'], ->
       console.log 'compile index!'
       dir = self.project.dir

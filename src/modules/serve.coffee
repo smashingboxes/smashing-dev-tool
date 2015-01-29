@@ -6,10 +6,10 @@ module.exports =
   name:     'serve'
   init: (donee) ->
     self = @
-    {project, util, helpers} = self
-    {logger, notify, execute, merge} = util
-    {files, $, dest} = helpers
-    {assets, env, dir} = project
+    {project, util, helpers, project} = self
+    {logger, notify, execute, merge, args} = self.util
+    {files, $, dest} = self.helpers
+    {assets, env, dir} = self.project
 
     ### ---------------- COMMANDS ------------------------------------------- ###
     @command
@@ -17,6 +17,7 @@ module.exports =
       alias: 's'
       description: 'Serve source code to the browser for development purposes'
       action: (target) ->
+        {dir} = self.project
         args.watch = true
         serveTarget = 'compile'
         outDir = dir.compile
@@ -36,10 +37,12 @@ module.exports =
               serveTarget = 'build'
               outDir = dir.build
 
+
         # Start BrowserSync server
         args.watch = true  if serveTarget is 'compile'
-        self.task "#{serveTarget}", ["#{serveTarget}:index"], (done) ->
-          self.startTask "#{serveTarget}:serve", done
-        self.startTask "#{serveTarget}"
+
+        self.startTask  "#{serveTarget}"
+        # self.emit 'task:start', "#{serveTarget}"
+
 
     donee()
