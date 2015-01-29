@@ -35,13 +35,12 @@ DevTool.command = (command) ->
   log.verbose "Registering #{chalk.yellow 'command'} '#{chalk.cyan command.cmd}'"
   DevTool.commands.push command
 
-
 # Load components
 DevTool.load mod for mod in [
   # gather information
+  'assumptions'
   'user'
   'platform'
-  'assumptions'
   'project'
 
   # set up tools
@@ -65,17 +64,17 @@ DevTool.init (err)->
   log.info 'Init complete.'
   pkg = DevTool.pkg
 
-
-  DevTool.startTask = ->
-
+  DevTool.startTask = (toRun, cb) ->
+    log.debug 'Starting task:',toRun
+    orchestrator.start toRun, ->
+      cb?()
   orchestrator.add(task.name, task.deps, task.fn) for task in DevTool._tasks
-
 
   # Configure Commander.js instance
   log.info 'Starting Commander.js'
   commander = require 'commander'
 
-  # Read CLI options from package.json
+  # Read CLI config from `package.json`
   commander
     .version pkg.version
     .description pkg.description

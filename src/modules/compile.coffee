@@ -7,14 +7,15 @@ fs      = require 'fs'
 module.exports =
   name: 'compile'
   init: (donee) ->
-    {startTask, recipes, commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = @
-    {logger, notify, execute, merge} = util
-    {files, $, dest} = helpers
     self = @
+    {recipes, commander, recipes, assumptions, rootPath, pkg, util, helpers} = self
+    {logger, notify, execute, merge, args} = self.util
+    {files, $, dest, logging} = self.helpers
 
     target = null
     compileTasks = ['compile:assets', 'compile:index']
 
+    self.on 'clean', ->self.startTask 'compile:clean'
 
     # ### ---------------- COMMANDS ------------------------------------------- ###
     @command
@@ -28,19 +29,23 @@ module.exports =
       action: (_target) ->
         target = _target
         compileTasks.push 'compile:serve'  if args.watch
-        startTask compileTasks
+        self.startTask compileTasks
 
 
     # ### ---------------- TASKS ---------------------------------------------- ###
 
     # Injects assets into index.jade and compiles
     @task 'compile:index', ['compile:assets'], ->
+      console.log 'compile index!'
+      dir = self.project.dir
+      {files, $, dest, logging} = self.helpers
+
       injectIndex = ->
+
         logger.verbose "Injecting compiled files into #{chalk.magenta 'index.jade'}"
 
         files path:"#{dir.client}/index.jade"
           .pipe logging()
-
           # Inject CSS, inject JS
           .pipe $.inject files('compile', ['.css', '.js'], false),
             name:         'app'
@@ -63,7 +68,7 @@ module.exports =
           # Output HTML
           .pipe dest.compile()
           .pipe $.reload stream:true
-
+        # console.log 'injecting..........................'
       if args.watch
         gulp.task 'inject:index:compile', injectIndex
         gulp.watch "#{dir.client}/index.jade", ['inject:index:compile']
@@ -72,11 +77,12 @@ module.exports =
 
     # Clear previous compile results and compile all assets
     @task 'compile:assets', ['compile:clean'], ->
+      {dir} = self.project
       logger.info "Compiling assets from #{chalk.green './'+dir.client} to #{chalk.magenta './'+dir.compile}"
       merge.apply @, (
-        for r in _.values recipes
-          r.watch() if args.watch
-          r.compile()
+        for r in _.values self.recipes
+          r.watch?() if args.watch
+          r.compile?()
       )
 
     # Compile assets and watch source for changes, recompiling on event
@@ -96,6 +102,7 @@ module.exports =
 
     # Remove previous compilation
     @task 'compile:clean', (done) ->
+      {dir} = self.project
       if fs.existsSync dir.compile
         logger.info "Deleting #{chalk.magenta './'+dir.compile}"
         del [dir.compile], done

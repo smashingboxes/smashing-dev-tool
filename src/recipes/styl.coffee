@@ -2,14 +2,17 @@
 # smasher  = require '../config/global'
 #
 # {commander, assumptions, rootPath, user, platform, project, helpers, util} = smasher
-# {logger, notify, execute, merge, args} = util
-# {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = helpers
+
+#  = helpers
 
 ### ---------------- RECIPE ----------------------------------------------- ###
 
 module.exports =
   name: 'recipe-styl'
   attach: ->
+    self = @
+    {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = self.helpers
+    {logger, notify, execute, merge, args} = self.util
     @register
       name:   'Stylus'
       ext:    'styl'
@@ -19,6 +22,7 @@ module.exports =
       lint:   false
       reload: true
       compileFn: (stream) ->
+
         stream
           .pipe $.sourcemaps.init()
           .pipe $.if args.watch, $.cached 'styl'

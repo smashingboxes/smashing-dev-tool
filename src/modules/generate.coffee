@@ -24,7 +24,8 @@ replaceDot = (path) ->
 module.exports =
   name: 'generate'
   init: (donee) ->
-    {startTask, commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = @
+    self = @
+    {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
     {logger, notify, execute, merge} = util
     {files, $, dest} = helpers
 
@@ -37,7 +38,7 @@ module.exports =
       action: (name, options) ->
         console.log 'NEW TIME!'
         target = name
-        startTask 'generate:app'
+        self.startTask 'generate:app'
 
     @command
       cmd: 'generate <name>'
@@ -45,7 +46,7 @@ module.exports =
       description: 'generate component from template'
       action: (name, options) ->
         target = name
-        startTask 'generate:component'
+        self.startTask 'generate:component'
 
     ### ---------------- TASKS ---------------------------------------------- ###
     # Handle existing folder

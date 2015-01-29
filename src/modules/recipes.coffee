@@ -14,9 +14,11 @@ module.exports =
   attach: (options) ->
     self = @
     @project.then (project) ->
-      {assets, dir, env, overrides} = project
+      {assets, dir, env, overrides} = self.project
       {files, dest, $, logging, watching} = self.helpers
       {args, logger, notify, execute, merge} = self.util
+
+      RecipeManager.helpers =  self.helpers
 
 
       # ------------------ recipes ---------------------
@@ -38,15 +40,15 @@ module.exports =
         # Compile this recipe's filetypes into un-optimized, web-ready assets
         compile: =>
           logger.verbose "Compiling #{chalk.magenta @ext} files"
-
           if @passThrough
             files(path:"#{dir.client}/#{@path}", (".#{e}" for e in @ext))
+              .pipe gulp.dest "#{dir.compile}"
               .pipe logging()
-              .pipe gulp.dest "#{dir.compile}/#{@path}"
+
           else if @type is 'vendor'
             files 'vendor', '*'
-              .pipe logging()
               .pipe gulp.dest "#{dir.compile}/components/vendor"
+              .pipe logging()
           else
             @compileFn files(".#{e}" for e in @ext)
               .pipe dest.compile()
@@ -100,6 +102,8 @@ module.exports =
     {logger} = @util
 
     @project.then (project) ->
+      {assets, dir} = project
+
       RecipeManager.use require "./util"
 
       # Compute relavent recipes based on project and load them
@@ -107,10 +111,12 @@ module.exports =
       baseAssets = ['vendor', 'images', 'fonts']
       defaultAssets = ['js', 'coffee', 'css', 'styl', 'scss', 'html', 'jade', 'json']
       toLoad = _.intersection(project.assets, defaultAssets).concat(baseAssets)
+
       RecipeManager.use require "../recipes/#{r}" for r in toLoad
 
 
       RecipeManager.init ()->
         logger.verbose 'Recipes loaded!'
         self.Recipe = RecipeManager.Recipe
+        self.recipes = RecipeManager.recipes
         done()

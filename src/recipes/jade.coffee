@@ -12,6 +12,10 @@ coffeelintrc  = require '../config/lint/coffeelintrc'
 module.exports =
   name: 'recipe-jade'
   attach: ->
+    self = @
+    {args} = self.util
+    {files, $, logging, caching, banner} = self.helpers
+
     cfg =
       ngHtml2js:
         moduleName: "templates-main-jade"
@@ -27,7 +31,6 @@ module.exports =
     building = _.contains args?._, 'build'
     html2js = (project?.compile?.html2js is true) and building
 
-    # console.log html2js
     # watching =  args.watch is true
     ### ---------------- RECIPE --------------------------------------------- ###
     @register

@@ -74,4 +74,3 @@ module.exports =
         build:        project?.build or assumptions?.build
         compile:      project?.compile or assumptions?.compile
         hasPackage:   hasPackage
-      # done()

@@ -9,9 +9,11 @@ module.exports =
   name:     'document'
   init: (donee) ->
     self = @
-    {startTask, commander, assumptions, rootPath, pkg, user, platform, util, helpers} = self
-    {args, logger, notify, execute, merge} = util
-    {files, dest, $, logging, watching} = helpers
+    {commander, assumptions, rootPath, pkg, user, platform, util, helpers} = self
+    {args, logger, notify, execute, merge} = self.util
+    {files, dest, $, logging, watching} = self.helpers
+
+    self.on 'clean', -> self.startTask 'docs:clean'
 
     @project.then (project) ->
       # console.log project
@@ -22,11 +24,7 @@ module.exports =
         cmd: 'docs'
         description: 'Generate documentation based on source code'
         action: ->
-          logger.warn 'doccing!'
-          self.orchestrator.start 'docs'
-          # self.startTask 'docs'
-
-
+          self.startTask 'docs'
 
       ### ---------------- TASKS ---------------------------------------------- ###
       self.task 'docs', (done) ->
@@ -38,7 +36,6 @@ module.exports =
         for asset in assets
           docsGlob.push "#{dir.client}/**/*.#{asset}"
           docsGlob.push "#{dir.server}/**/*.#{asset}"
-
 
         grocjson = JSON.stringify {
           'glob': docsGlob
@@ -63,6 +60,7 @@ module.exports =
             done()
 
       self.task 'docs:clean', (done) ->
+        {dir} = self.project
         if fs.existsSync dir.docs
           logger.info "Deleting #{chalk.magenta './'+dir.docs}"
           del [dir.docs], done

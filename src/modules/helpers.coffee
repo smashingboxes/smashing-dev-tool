@@ -3,6 +3,8 @@ Liftoff = require 'liftoff'
 _       = require 'lodash'
 moment  = require 'moment'
 q       = require 'q'
+gulp    = require 'gulp'
+chalk = require 'chalk'
 
 module.exports =
   name: 'helpers'
@@ -14,12 +16,9 @@ module.exports =
     deferred  = q.defer()
     @helpers = deferred.promise
 
-
-
     @project.then (project) ->
       {args, logger} = self.util
       {dir, assets, pkg, overrides, env, build, compile, hasPackage} = project
-
 
       ###
       Auto-load all (most) Gulp plugins and attach to `$` for easy access
@@ -52,10 +51,7 @@ module.exports =
 
 
       deferred.resolve self.helpers =
-
-        ###
-        Gulp Plugins
-        ###
+        ###  Gulp Plugins  ###
         $: $
         # <br><br><br>
 
@@ -128,6 +124,8 @@ module.exports =
             else "#{dir[_target]}/**/*+(#{_filter})"
           ]
 
+
+
           # Build out properly formatted
           getExcludes = ->
             ex = switch
@@ -185,8 +183,8 @@ module.exports =
                 .concat        (if isBuilding  then globs.compileExclude else [])
             else logger.error "!! Unknown file target '#{src}'. Could not build stream."
 
-
           # Debug logging
+
           if args.debug
             logger.debug
               target:       chalk.red     _target
@@ -196,7 +194,6 @@ module.exports =
               exclude:      chalk.yellow  globs.exclude
               buildExclude: chalk.yellow  globs.buildExclude
             console.log source
-
           gulp.src(source, read: _read, base: dir[_target] or '')
             # .pipe $.plumber(errorHandler: onError)
         # <br><br><br>

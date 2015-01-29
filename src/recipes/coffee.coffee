@@ -1,13 +1,14 @@
 
 # {commander, assumptions, rootPath, user, platform, project, helpers, util} = smasher
 # {logger, notify, execute, merge, args} = util
-# {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = helpers
+
 #
 
 
 module.exports =
   name: 'recipe-coffee'
   attach: ->
+    self = @
     @register
       name:      'CoffeeScript'
       ext:       'coffee'
@@ -17,9 +18,9 @@ module.exports =
       lint:      true
       reload:    true
       compileFn: (stream) ->
+        {files, $, logging, caching, banner} = self.helpers
         coffeeStylish = require('coffeelint-stylish').reporter
         coffeelintrc = require '../config/lint/coffeelintrc'
-
         stream
           .pipe caching()
           .pipe logging()
@@ -34,8 +35,8 @@ module.exports =
 
           # Post-process
           .pipe $.header banner
-
 #
+# #
 # ### ---------------- RECIPE --------------------------------------------- ###
 # smasher.recipe
 #   name:      'CoffeeScript'

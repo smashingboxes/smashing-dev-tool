@@ -8,7 +8,7 @@ module.exports =
   name:     'build'
   init: (donee) ->
     self = @
-    {startTask, commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
+    {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
     {logger, notify, execute, merge} = util
     {files, $, dest} = helpers
 
@@ -16,6 +16,7 @@ module.exports =
     buildOpts = null
     buildTasks = ['build:index']
 
+    self.on 'clean', -> self.startTask 'build:clean'
 
     ### ---------------- COMMANDS ------------------------------------------- ###
     @command
@@ -29,7 +30,7 @@ module.exports =
       action: (_target) ->
         buildOpts = project.build?[_target] or {}
         target = buildOpts?.out or dir.build
-        startTask buildTasks
+        self.startTask buildTasks
 
 
     ### ---------------- TASKS ---------------------------------------------- ###

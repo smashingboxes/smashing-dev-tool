@@ -6,7 +6,7 @@ module.exports =
   name:     'serve'
   init: (donee) ->
     self = @
-    {startTask, project, util, helpers} = self
+    {project, util, helpers} = self
     {logger, notify, execute, merge} = util
     {files, $, dest} = helpers
     {assets, env, dir} = project
@@ -39,7 +39,7 @@ module.exports =
         # Start BrowserSync server
         args.watch = true  if serveTarget is 'compile'
         self.task "#{serveTarget}", ["#{serveTarget}:index"], (done) ->
-          startTask "#{serveTarget}:serve", done
-        startTask "#{serveTarget}"
+          self.startTask "#{serveTarget}:serve", done
+        self.startTask "#{serveTarget}"
 
     donee()
