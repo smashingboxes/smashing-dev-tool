@@ -41,34 +41,37 @@ module.exports =
         compile: =>
           logger.verbose "Compiling #{chalk.magenta @ext} files"
           if @passThrough
-            files(path:"#{dir.client}/#{@path}", (".#{e}" for e in @ext))
-              .pipe gulp.dest "#{dir.compile}"
+            files(path:"#{dir.client}", (".#{e}" for e in @ext))
+              .pipe dest.compile()
               .pipe logging()
 
           else if @type is 'vendor'
+            console.log 'VENROR RECIPE COMPILE'
             files 'vendor', '*'
-              .pipe gulp.dest "#{dir.compile}/components/vendor"
               .pipe logging()
+              .pipe gulp.dest "#{dir.compile}/components/vendor"
+
           else
             @compileFn files(".#{e}" for e in @ext)
               .pipe dest.compile()
               .pipe $.if @reload, watching()
 
         # Build this recipe's compiled assets into optimized, packaged distrobutions
-        build: =>
+        build: (write=true) =>
           # Compute specific build target
           buildOpts = project.build?[args._[1]]
           target = buildOpts?.out or dir.build
 
           logger.verbose "Building #{chalk.magenta @ext} files"
           if @passThrough
-            files(path:"#{dir.compile}/#{@path}", (".#{e}" for e in @ext))
+            files(path:"#{dir.client}", (".#{e}" for e in @ext))
+              .pipe $.if write, dest.build()
               .pipe logging()
-              .pipe gulp.dest "#{target}/#{@path}"
+
           else
             @buildFn files 'compile', (".#{e}" for e in @ext)
+              .pipe $.if write, (gulp.dest target)
               .pipe logging()
-              .pipe gulp.dest target
 
         # Watch this recipe's filetypes and recompile them when they change
         watch: =>
@@ -81,13 +84,16 @@ module.exports =
             gulp.task "compile:#{@ext}", @compile
             gulp.watch "client/**/*.#{@ext}", if @reload then ["compile:#{@ext}"] else ["compile:#{@ext}", $.reload]
 
+          @
+
         # Get the name of the built/packaged file to be created for this recipe
         getOutFile: ->
           buildOpts = project.build?[args._[1]]
           if buildOpts
-            buildOpts["#{@type}s"] or assumptions.build["#{@type}s"]
+            buildOpts["#{@type}s"] or self.assumptions.build["#{@type}s"]
           else
-            assumptions.build["#{@type}s"]
+            self.assumptions.build["#{@type}s"]
+
 
       RecipeManager.recipes = []
       # Register a Recipe
@@ -102,18 +108,16 @@ module.exports =
     {logger} = @util
 
     @project.then (project) ->
-      {assets, dir} = project
-
+      {assets, dir} = project = self.project
+      RecipeManager.load = (name) -> RecipeManager.use require "../recipes/#{name}"
       RecipeManager.use require "./util"
 
       # Compute relavent recipes based on project and load them
       logger.verbose 'Loading file recipes based on project config...'
-      baseAssets = ['vendor', 'images', 'fonts']
+      base = ['images', 'fonts', 'vendor']
       defaultAssets = ['js', 'coffee', 'css', 'styl', 'scss', 'html', 'jade', 'json']
-      toLoad = _.intersection(project.assets, defaultAssets).concat(baseAssets)
-
-      RecipeManager.use require "../recipes/#{r}" for r in toLoad
-
+      # requiredAssets = _.intersection(assets, defaultAssets).concat(base)
+      RecipeManager.load r for r in defaultAssets.concat base
 
       RecipeManager.init ()->
         logger.verbose 'Recipes loaded!'

@@ -1,14 +1,9 @@
-# smasher  = require '../config/global'
 htmlhintrc = require '../config/lint/htmlhintrc'
-
-# {commander, assumptions, rootPath, user, platform, project, helpers, util} = smasher
-# {logger, notify, execute, merge, args} = util
-# {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = helpers
-
 
 module.exports =
   name: 'recipe-html'
   attach: ->
+    self = @
     cfg =
       ngHtml2js:
         moduleName: "templates-main-html"
@@ -31,30 +26,32 @@ module.exports =
       lint:   true
       reload: true
       compileFn: (stream) ->
-        html2js = project.compile.html2js is true
+
+        {$, caching, logging} = self.helpers
+        {args} = self.util
+
         stream
-          .pipe $.if args.watch, $.cached 'main'
+          .pipe caching()
+          .pipe logging()
 
           # Lint
           .pipe $.htmlhint htmlhintrc
           .pipe $.htmlhint.reporter()
 
-          # Convert to JS for templateCache
-          .pipe $.if html2js, $.htmlmin collapseWhitespace: true
-          .pipe $.if html2js, $.ngHtml2js cfg.ngHtml2js
-          .pipe $.if html2js, $.ngAnnotate cfg.ngAnnotate
-          # .pipe $.if html2js, $.continuousConcat "#{cfg.ngHtml2js.moduleName}.js"
-          .pipe $.if html2js, $.concat "#{cfg.ngHtml2js.moduleName}.js"
-          # .pipe $.if html2js, $.uglify cfg.uglify
 
 
       buildFn: (stream) ->
-        stream
-          # Optimize
-          .pipe $.htmlmin collapseWhitespace: true
+        {files, $, logging} = self.helpers
+        {args, merge} = self.util
+        outfile = @getOutFile()
 
-          # Concat
+        projectHTML = stream
+
+        vendorHTML = files('vendor', '.html', true)
+          .pipe $.filter "**/*.html"
+
+        merge([projectHTML, vendorHTML])
+          .pipe $.concat outfile
+          .pipe $.htmlmin collapseWhitespace: true
           .pipe $.ngHtml2js cfg.ngHtml2js
-          .pipe $.ngAnnotate cfg.ngAnnotate
-          .pipe $.concat @getOutFile()
-          .pipe $.uglify cfg.uglify
+          # .pipe logging()

@@ -51,6 +51,8 @@ module.exports =
   name: 'assumptions'
   attach: ->
     @assumptions =
+      supportedAssets: ['js', 'coffee', 'css', 'styl', 'scss', 'html', 'jade', 'json']
+
       test:
         prefix: 'test_'
 
@@ -73,6 +75,6 @@ module.exports =
 
       # Build stage defaults
       build:
-        styles:  'app.css'
+        styles:  'app-styles.css'
         views:   'app-views.js'
         scripts: 'app.js'

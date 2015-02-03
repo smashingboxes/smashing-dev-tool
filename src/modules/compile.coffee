@@ -16,7 +16,7 @@ module.exports =
     target = null
     compileTasks = ['compile:assets', 'compile:index']
 
-    self.on 'clean', ->self.startTask 'compile:clean'
+    self.on 'clean', -> self.startTask 'compile:clean'
 
     # ### ---------------- COMMANDS ------------------------------------------- ###
     @command
@@ -39,24 +39,32 @@ module.exports =
     @task 'compile', ['compile:index'], (done) ->
       self.startTask 'compile:serve'
     @task 'compile:index', ['compile:assets'], ->
-      console.log 'compile index!'
       dir = self.project.dir
       {files, $, dest, logging} = self.helpers
+      {merge} = self.util
 
       injectIndex = ->
-
         logger.verbose "Injecting compiled files into #{chalk.magenta 'index.jade'}"
+
+        appFiles = merge [
+          files('compile', '.js', true).pipe($.angularFilesort())
+          files('compile', '.css', false)
+        ]
+
+        vendorFiles = merge [
+          files('vendor', '.js', false)
+          files('vendor', '.css', false)
+        ]
 
         files path:"#{dir.client}/index.jade"
           .pipe logging()
-          # Inject CSS, inject JS
-          .pipe $.inject files('compile', ['.css', '.js'], false),
+
+          .pipe $.inject appFiles,
             name:         'app'
             ignorePath:   'compile'
             addRootSlash: false
 
-          # Inject vendor files
-          .pipe $.inject files('vendor', '*', false),
+          .pipe $.inject vendorFiles,
             name:         'vendor'
             ignorePath:   'client'
             addRootSlash: false
@@ -71,7 +79,7 @@ module.exports =
           # Output HTML
           .pipe dest.compile()
           .pipe $.reload stream:true
-        # console.log 'injecting..........................'
+
       if args.watch
         gulp.task 'inject:index:compile', injectIndex
         gulp.watch "#{dir.client}/index.jade", ['inject:index:compile']
@@ -80,28 +88,38 @@ module.exports =
 
     # Clear previous compile results and compile all assets
     @task 'compile:assets', ['compile:clean'], ->
-      {dir} = self.project
+      {recipes} = self
+      {dir, assets} = self.project
+      {merge, args} = self.util
+      {files, $, dest} = self.helpers
+      supportedAssets = self.assumptions.supportedAssets
+
       logger.info "Compiling assets from #{chalk.green './'+dir.client} to #{chalk.magenta './'+dir.compile}"
-      merge.apply @, (
-        for r in _.values self.recipes
-          r.watch?() if args.watch
-          r.compile?()
+
+      toCompile = _
+        .chain supportedAssets
+        .intersection assets
+        .concat 'images', 'fonts', 'vendor'
+        .value()
+        
+      merge(
+        for k in toCompile
+          recipes[k].watch?() if args.watch
+          recipes[k].compile()
       )
 
     # Compile assets and watch source for changes, recompiling on event
     @task 'compile:serve', ->
-      setTimeout (->
-        $.browserSync
-          server:
-            baseDir:          dir.compile
-          watchOptions:
-            debounceDelay:  100
-          logPrefix:      'BrowserSync'
-          # logConnections: true
-          logFileChanges: true
-          # logLevel:     'debug'
-          port:           8080
-      ), 1000
+      $.browserSync
+        server:
+          baseDir:          dir.compile
+        watchOptions:
+          debounceDelay:  100
+        logPrefix:      'BrowserSync'
+        logConnections: true
+        logFileChanges: true
+        # logLevel:     'debug'
+        port:           8080
 
     # Remove previous compilation
     @task 'compile:clean', (done) ->

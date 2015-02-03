@@ -47,9 +47,14 @@ module.exports =
         cb err
 
     # Returns a new stream composed of all argument streams
-    merge = (streams...) ->
+    merge = (streams) ->
+      # if typeof streams isnt 'array'
+      #   streams = [streams]
+
       queue = new streamqueue objectMode:true
-      queue.done.apply queue, streams
+      for stream in streams
+        queue.queue stream
+      queue.done()
 
     @util =
       args:    args

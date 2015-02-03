@@ -9,6 +9,7 @@
 module.exports =
   name: 'recipe-scss'
   attach: ->
+    self = @
     @register
       name:   'Sass'
       ext:    'scss'
@@ -18,9 +19,10 @@ module.exports =
       lint:   false
       reload: true
       compileFn: (stream) ->
+        {$, caching, logging} = self.helpers
         stream
           .pipe $.sourcemaps.init()
-          .pipe $.if args.watch, $.cached 'scss'
+          .pipe caching 'scss'
           .pipe logging()
 
           # Lint

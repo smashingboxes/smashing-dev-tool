@@ -8,13 +8,17 @@ module.exports =
   name:     'build'
   init: (donee) ->
     self = @
-    {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
-    {logger, notify, execute, merge} = util
-    {files, $, dest} = helpers
 
-    target = dir?.build
+    {commander, assumptions, recipes, rootPath, pkg, user, platform, project, util, helpers} = self
+    {logger, notify, execute, merge, args} = self.util
+    {files, $, dest, onError} = self.helpers
+
+
+    target = self.project.dir?.build
     buildOpts = null
     buildTasks = ['build:index']
+
+    appJSPkg = null
 
     self.on 'clean', -> self.startTask 'build:clean'
 
@@ -28,48 +32,69 @@ module.exports =
         description: 'Output injected index file for inspection'
       ]
       action: (_target) ->
-        buildOpts = project.build?[_target] or {}
-        target = buildOpts?.out or dir.build
+        buildOpts = self.project.build?[_target ] or {}
+        target = buildOpts?.out or self.project.dir.build
         self.startTask buildTasks
 
 
     ### ---------------- TASKS ---------------------------------------------- ###
     @task 'build:assets', ['build:clean', 'compile:assets'], ->
-      logger.info "Building assets from #{chalk.magenta './'+project.dir.compile} to #{chalk.red './'+target}"
-      logger.verbose 'Building assets...'
+      {recipes, project} = self
+      {files, dest, $, watching, logging} = self.helpers
+      {logger, args, merge} = self.util
+      {dir, pkg} = self.project
+      outfile =  self.recipes.js.getOutFile()
 
-      # Ensure needed recipes are loaded and call build(), returning a stream
-      merge.apply @, (for a in ['css', 'js', 'html', 'images', 'fonts', 'vendor']
-        @loadRecipe(a) unless recipes[a]
-        recipes[a].build()
-      )
+      logger.info "Building assets from #{chalk.magenta './'+dir.compile} to #{chalk.red './'+target}"
+
+      transpiled = merge(
+        for k in [ 'html', 'css']
+          recipes[k].build(false)
+            .pipe $.concat "#{k}.js"
+      ).pipe($.order ['html.js', 'css.js'])
+
+      merge [
+        recipes.js.buildFn(transpiled)
+        recipes.images.build(false)
+        recipes.fonts.build(false)
+      ]
+        .pipe gulp.dest target
+
+
+
 
     @task 'build:index', ['build:assets'], ->
-      logger.info "Building index file..."  if args.verbose
+      {recipes} = self
+      {files, dest, $, watching, logging} = self.helpers
+      {logger, args, merge} = self.util
+      {dir} = self.project
+
       injectIndex = ->
-        logger.info "Injecting built files into #{chalk.magenta 'index.jade'}"  if args.verbose
+        logger.verbose "Injecting built files into #{chalk.magenta 'index.jade'}"
+
+        appFiles = merge [
+          files('build', '.js', true)
+          files('build', '.css', false)
+        ]
 
         files path:"#{dir.client}/index.jade"
           .pipe logging()
 
-          # Inject CSS, inject JS
-          .pipe $.inject files('build', ['.js'], true).pipe($.angularFilesort()),
-            name:'app', ignorePath:'build', addRootSlash:false
+          .pipe $.inject appFiles,
+            name:         'app'
+            ignorePath:   'build'
+            addRootSlash: false
 
-          # # Inject vendor files
-          # .pipe $.inject files('vendor', '*', false).pipe(dest.build()),
-          #   name:'vendor', ignorePath:'build', addRootSlash:false
-
-          # Display injected output in console
+          # display injected output in console
           .pipe $.if args.cat, $.cat()
 
-          # Compile Jade to HTML
+          # compile Jade to HTML
           .pipe $.jade compileDebug:true
           .on('error', (err) -> logger.error err.message)
 
           .pipe $.if args.cat, $.cat()
 
-          # Output HTML
+          # output HTML
           .pipe gulp.dest target
           .pipe logging()
           .pipe watching()
@@ -81,28 +106,34 @@ module.exports =
       injectIndex()
 
     @task 'build:serve', ->
-      setTimeout (->
-        $.browserSync
-          server:
-            baseDir:          dir.build
-          watchOptions:
-            debounceDelay:  100
-          logPrefix:      'BrowserSync'
-          logConnections: args.verbose
-          logFileChanges: args.verbose
-          # logLevel:     'debug'
-          port:           8080
-      ), 5000
+      $.browserSync
+        server:
+          baseDir:       dir.build
+        watchOptions:
+          debounceDelay:  100
+        logPrefix:      'BrowserSync'
+        logConnections: args.verbose
+        logFileChanges: args.verbose
+        # logLevel:     'debug'
+        port:           8080
 
     @task 'build:clean', (done) ->
-      toDelete = _.chain(project.build)
-        .pluck 'out'
-        .concat [dir.build]
-        .filter ((path) -> fs.existsSync path)
-        .value()
-
-      if toDelete.length
-        logger.info "Deleting #{chalk.magenta ('./'+d for d in toDelete).join(', ')}"
-        del toDelete, done
-      else done()
+      {dir} = project = self.project
+      toDelete = []
+      if fs.existsSync dir.build
+        logger.info "Deleting #{chalk.magenta './'+dir.build}"
+        del [dir.build], done
+      else
+        done()
+      #
+      # toDelete = toDelete.concat [dir.build]
+      # console.log toDelete
+      # #   .filter ((path) -> fs.existsSync path)
+      # #   .value()
+      # # console.log toDelete
+      #
+      # if toDelete.length
+      #   logger.info "Deleting #{chalk.magenta ('./'+d for d in toDelete).join(', ')}"
+      #   del toDelete, done
+      # else done()
     donee()

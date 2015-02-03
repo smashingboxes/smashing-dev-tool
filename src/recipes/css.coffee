@@ -1,17 +1,10 @@
-smasher  = require '../config/global'
 csslintrc = require '../config/lint/csslintrc'
-_ = require 'lodash'
-
-#
-# {commander, assumptions, rootPath, user, platform, project, helpers, util} = smasher
-# {logger, notify, execute, merge, args} = util
-# {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = helpers
+_         = require 'lodash'
 
 module.exports =
-
   name: 'recipe-css'
-
   attach: ->
+    self = @
     cfg =
       csso:                      false # set to true to prevent structural modifications
       css2js:
@@ -32,6 +25,8 @@ module.exports =
       lint:   true
       reload: false
       compileFn: (stream) ->
+        {$, files, dest, logging} = self.helpers
+        {args} = self.util
         stream
           # Lint
           .pipe $.csslint csslintrc
@@ -41,31 +36,24 @@ module.exports =
           .pipe $.myth cfg.myth
 
       buildFn: (stream) ->
-        stream
-          # Optimize
+        {recipes} = self
+        {$, files, dest, logging} = self.helpers
+        {args, merge} = self.util
+        outfile = recipes.css.getOutFile()
+
+        projectCSS = stream
           .pipe $.csso cfg.csso
+          .pipe $.concat 'project.css'
 
-          # Concat
-          .pipe $.if (args.watch and _.contains args, 'build'), $.continuousConcat @getOutFile()
-          .pipe $.if !args.watch, $.concat @getOutFile()
-          # .pipe $.css2js()
+        vendorCSS = files('vendor', '.css', true)
+          .pipe $.filter "**/*.css"
+          .pipe $.concat 'vendor.css'
+
+        merge([vendorCSS, projectCSS])
+          .pipe $.order ['vendor.css', 'project.css']
+
+          .pipe $.concat outfile
+          .pipe $.css2js()
+
           # .pipe $.wrapAmd()
-
-        # Minify
-
-### ---------------- TASKS ---------------------------------------------- ###
-# css =
-#   compile: ->
-#     compile files '.css'
-#     .pipe $.if args.watch, $.cached 'css'
-#     .pipe logging()
-#     .pipe dest.compile()
-#     .pipe $.if args.watch, $.remember 'css'
-#     .pipe watching()
-#
-#
-#   build: ->
-#     build files 'compile', '.css'
-#     .pipe logging()
-#     .pipe dest.compile()
-#     .pipe watching()
+          # .pipe logging()

@@ -6,6 +6,8 @@ broadway     = require 'broadway'
 commander    = require 'commander'
 Orchestrator = require 'orchestrator'
 
+
+
 # Create Broadway instance
 DevTool = new broadway.App()
 DevTool.load = (name) -> DevTool.use require "../src/modules/#{name}"
@@ -61,21 +63,20 @@ DevTool.load mod for mod in [
 
 # Start application
 DevTool.init (err)->
-  log.info 'Init complete.'
+  {$} = DevTool.helpers
   pkg = DevTool.pkg
   DevTool.on 'task:start', (task) ->
     console.log task
     console.log orchestrator.start task
 
-
   DevTool.startTask = (toRun, cb) ->
-    log.debug 'Starting task:',toRun
+    # log.warn 'Starting task:', toRun
     orchestrator.start toRun, ->
       cb?()
   orchestrator.add(task.name, task.deps, task.fn) for task in DevTool._tasks
 
+
   # Configure Commander.js instance
-  log.info 'Starting Commander.js'
   commander = require 'commander'
 
   # Read CLI config from `package.json`
@@ -94,7 +95,6 @@ DevTool.init (err)->
       x.option(o.opt, o.description) for o in cmd.options
     x.action(cmd.action)
 
-  log.data 'Commander.js complete'
   # Parse args for Commander.js
   if process.argv.slice(2).length is 0 then commander.help()
   else commander.parse process.argv

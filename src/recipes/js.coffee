@@ -1,16 +1,11 @@
 _         = require 'lodash'
-# smasher   = require '../config/global'
 jsStylish = require 'jshint-stylish'
 jshintrc  = require '../config/lint/jshintrc'
-
-#
-# {commander, assumptions, rootPath, user, platform, project, helpers, util} = smasher
-# {logger, notify, execute, merge, args} = util
-# {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = helpers
 
 module.exports =
   name: 'recipe-js'
   attach: ->
+    self = @
     cfg =
       ngAnnotate:
         remove: true
@@ -31,8 +26,8 @@ module.exports =
       lint:   true
       reload: true
       compileFn: (stream) ->
+        {files, dest, $, logging, caching, banner} = self.helpers
         stream
-          .pipe $.angularFilesort()
           .pipe logging()
           .pipe caching()
 
@@ -44,14 +39,22 @@ module.exports =
           .pipe $.header banner
 
       buildFn: (stream) ->
-        stream
-          .pipe $.angularFilesort()
-          .pipe logging()
+        {files, dest, $, logging, caching, banner} = self.helpers
+        {args, merge} = self.util
+        outfile = @getOutFile()
 
-          # Optimize
+        projectJS = stream
           .pipe $.stripDebug()
           .pipe $.ngAnnotate cfg.ngAnnotate
-          .pipe $.uglify cfg.uglify
+          .pipe $.concat 'project.js'
 
-          # Concat
-          .pipe $.concat @getOutFile()
+
+        vendorJS = files('vendor', '.js', true)
+          .pipe $.filter "**/*.js"
+          .pipe $.concat 'vendor.js'
+
+        merge([vendorJS, projectJS])
+          .pipe $.order ['vendor.js', 'project.js']
+          .pipe $.concat outfile
+          .pipe $.uglify cfg.uglify
+          .pipe logging()

@@ -148,7 +148,6 @@ module.exports =
             for alt in alts
               if isBuilding then "!#{alt[0]}" else "!#{alt[1]}"
 
-
           cfg =
             bower:
               includeDev: (if isBuilding then false else 'inclusive')
@@ -165,26 +164,41 @@ module.exports =
             buildExclude:   getBuildExcludes()
             compileExclude: getCompileExcludes()
 
+
+
           # Build source glob for Gulp
           source = switch _target
-            when 'client', 'compile', 'build'
+            when 'client'
               _path
                 .concat        globs.alternates
                 .concat invert globs.vendor
                 .concat invert globs.test
                 .concat        globs.exclude
+                .concat        (if isBuilding   then globs.buildExclude   else [])
+                .concat        (if isCompiling  then globs.compileExclude else [])
+            when 'compile'
+              _path
+                .concat        globs.alternates
+                .concat        globs.exclude
+                .concat invert globs.vendor
+                .concat        (if isBuilding  then globs.buildExclude   else [])
+                .concat        (if isBuilding  then globs.compileExclude else [])
+            when 'build'
+              _path
+                .concat        globs.alternates
+                .concat        globs.exclude
+                .concat invert globs.vendor
                 .concat        (if isBuilding  then globs.buildExclude   else [])
                 .concat        (if isBuilding  then globs.compileExclude else [])
             when 'test'   then globs.test
             when 'vendor' then globs.vendorMain
             when 'path'
-              _path
-                .concat        (if isBuilding  then globs.buildExclude   else [])
-                .concat        (if isBuilding  then globs.compileExclude else [])
+              _path    #TODO: for now, no restriction on {path:".."} requests...
+                # .concat        (if isBuilding   then globs.buildExclude     else [])
+                # .concat        (if isCompiling  then globs.compileExclude   else [])
             else logger.error "!! Unknown file target '#{src}'. Could not build stream."
 
           # Debug logging
-
           if args.debug
             logger.debug
               target:       chalk.red     _target

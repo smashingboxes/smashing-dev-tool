@@ -1,15 +1,10 @@
-#
-# smasher  = require '../config/global'
-#
-# {commander, assumptions, rootPath, user, platform, project, helpers, util} = smasher
-# {logger, notify, execute, merge, args} = util
-# {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = helpers
 
 ### ---------------- RECIPE ----------------------------------------------- ###
 
 module.exports =
   name: 'recipe-json'
   attach: ->
+    self = @
     @register
       name:   'JSON'
       ext:    'json'
@@ -19,8 +14,10 @@ module.exports =
       lint:   true
       reload: true
       compileFn: (stream) ->
+        {$, caching} = self.helpers
+        {args} = self.util
         stream
-          .pipe $.if args.watch, $.cached 'main'
+          .pipe caching()
 
           # Lint
           .pipe $.jsonlint()
