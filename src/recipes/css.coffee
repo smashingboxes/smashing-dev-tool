@@ -41,17 +41,8 @@ module.exports =
         {args, merge} = self.util
         outfile = recipes.css.getOutFile()
 
-        projectCSS = stream
+        stream
           .pipe $.csso cfg.csso
-          .pipe $.concat 'project.css'
-
-        vendorCSS = files('vendor', '.css', true)
-          .pipe $.filter "**/*.css"
-          .pipe $.concat 'vendor.css'
-
-        merge([vendorCSS, projectCSS])
-          .pipe $.order ['vendor.css', 'project.css']
-
           .pipe $.concat outfile
           .pipe $.css2js()
 

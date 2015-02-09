@@ -9,16 +9,21 @@ module.exports =
   init: (donee) ->
     self = @
 
-    {commander, assumptions, recipes, rootPath, pkg, user, platform, project, util, helpers} = self
+    {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
     {logger, notify, execute, merge, args} = self.util
     {files, $, dest, onError} = self.helpers
-
 
     target = self.project.dir?.build
     buildOpts = null
     buildTasks = ['build:index']
-
-    appJSPkg = null
+    cfg =
+      ngAnnotate:
+        remove: true
+        add: true
+        single_quote: true
+      uglify:
+        mangle: true
+        preserveComments: 'some'
 
     self.on 'clean', -> self.startTask 'build:clean'
 
@@ -38,77 +43,73 @@ module.exports =
 
 
     ### ---------------- TASKS ---------------------------------------------- ###
+
+    # Build assets and start server
+    @task 'build', ['build:index'], (done) ->
+      self.startTask 'build:serve'
+
+    # Build assets from compiled source
     @task 'build:assets', ['build:clean', 'compile:assets'], ->
-      {recipes, project} = self
-      {files, dest, $, watching, logging} = self.helpers
-      {logger, args, merge} = self.util
-      {dir, pkg} = self.project
-      outfile =  self.recipes.js.getOutFile()
+      {recipes, project}                           = self
+      {files, dest, $, watching, logging, onError} = self.helpers
+      {logger, args, merge}                        = self.util
+      {dir, pkg}                                   = self.project
+
+      outfile = self.recipes.js.getOutFile()
+      target ?= 'build'
 
       logger.info "Building assets from #{chalk.magenta './'+dir.compile} to #{chalk.red './'+target}"
 
-      transpiled = merge(
-        for k in [ 'html', 'css']
-          recipes[k].build(false)
-            .pipe $.concat "#{k}.js"
-      ).pipe($.order ['html.js', 'css.js'])
-
       merge [
-        recipes.js.buildFn(transpiled)
+        merge [
+          recipes['js'].build(false)
+          recipes['html'].build(false)
+          recipes['css'].build(false)
+        ]
+          .pipe $.concat outfile
+          .pipe $.uglify cfg.uglify
+          .pipe $.if args.cat, $.cat()
         recipes.images.build(false)
         recipes.fonts.build(false)
       ]
+        .pipe $.plumber()
         .pipe gulp.dest target
-
-
 
 
     @task 'build:index', ['build:assets'], ->
       {recipes} = self
-      {files, dest, $, watching, logging} = self.helpers
+      {files, dest, $, watching, logging, onError} = self.helpers
       {logger, args, merge} = self.util
       {dir} = self.project
 
-      injectIndex = ->
-        logger.verbose "Injecting built files into #{chalk.magenta 'index.jade'}"
+      logger.verbose "Injecting built files into #{chalk.magenta 'index.jade'}"
+      appFiles = merge [
+        files('build', '.js', true)
+        files('build', '.css', false)
+      ]
 
-        appFiles = merge [
-          files('build', '.js', true)
-          files('build', '.css', false)
-        ]
+      files path:"#{dir.client}/index.jade"
+        .pipe logging()
 
-        files path:"#{dir.client}/index.jade"
-          .pipe logging()
+        .pipe $.inject appFiles,
+          name:         'app'
+          ignorePath:   'build'
+          addRootSlash: false
 
-          .pipe $.inject appFiles,
-            name:         'app'
-            ignorePath:   'build'
-            addRootSlash: false
+        .pipe $.if args.cat, $.cat()
 
-          # display injected output in console
-          .pipe $.if args.cat, $.cat()
+        .pipe $.jade compileDebug:true
+        .on('error', (err) -> logger.error err.message)
 
-          # compile Jade to HTML
-          .pipe $.jade compileDebug:true
-          .on('error', (err) -> logger.error err.message)
+        .pipe gulp.dest target
+        .pipe logging()
 
-          .pipe $.if args.cat, $.cat()
 
-          # output HTML
-          .pipe gulp.dest target
-          .pipe logging()
-          .pipe watching()
-
-      if args.watch
-        gulp.task 'inject:index:build', injectIndex
-        gulp.watch "#{dir.client}/index.jade", ['inject:index:build']
-
-      injectIndex()
 
     @task 'build:serve', ->
       $.browserSync
         server:
-          baseDir:       dir.build
+          baseDir:       target
         watchOptions:
           debounceDelay:  100
         logPrefix:      'BrowserSync'

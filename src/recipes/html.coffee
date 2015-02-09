@@ -39,19 +39,12 @@ module.exports =
           .pipe $.htmlhint.reporter()
 
 
-
       buildFn: (stream) ->
         {files, $, logging} = self.helpers
         {args, merge} = self.util
         outfile = @getOutFile()
 
-        projectHTML = stream
-
-        vendorHTML = files('vendor', '.html', true)
-          .pipe $.filter "**/*.html"
-
-        merge([projectHTML, vendorHTML])
-          .pipe $.concat outfile
+        stream
           .pipe $.htmlmin collapseWhitespace: true
+          .pipe $.concat outfile
           .pipe $.ngHtml2js cfg.ngHtml2js
-          # .pipe logging()

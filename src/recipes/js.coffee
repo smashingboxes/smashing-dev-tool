@@ -6,6 +6,7 @@ module.exports =
   name: 'recipe-js'
   attach: ->
     self = @
+
     cfg =
       ngAnnotate:
         remove: true
@@ -14,7 +15,6 @@ module.exports =
       uglify:
         mangle: true
         preserveComments: 'some'
-
 
     ### ---------------- RECIPE --------------------------------------------- ###
     @register
@@ -43,18 +43,11 @@ module.exports =
         {args, merge} = self.util
         outfile = @getOutFile()
 
-        projectJS = stream
+        stream
           .pipe $.stripDebug()
           .pipe $.ngAnnotate cfg.ngAnnotate
-          .pipe $.concat 'project.js'
+          .pipe $.angularFilesort()
 
-
-        vendorJS = files('vendor', '.js', true)
-          .pipe $.filter "**/*.js"
-          .pipe $.concat 'vendor.js'
-
-        merge([vendorJS, projectJS])
-          .pipe $.order ['vendor.js', 'project.js']
-          .pipe $.concat outfile
-          .pipe $.uglify cfg.uglify
-          .pipe logging()
+          # .pipe $.concat outfile
+          # .pipe $.uglify cfg.uglify
+          # .pipe logging()

@@ -65,16 +65,11 @@ DevTool.load mod for mod in [
 DevTool.init (err)->
   {$} = DevTool.helpers
   pkg = DevTool.pkg
-  DevTool.on 'task:start', (task) ->
-    console.log task
-    console.log orchestrator.start task
 
-  DevTool.startTask = (toRun, cb) ->
-    # log.warn 'Starting task:', toRun
-    orchestrator.start toRun, ->
-      cb?()
+  DevTool.startTask = (toRun, cb=(->)) ->
+    log.verbose 'Starting task:', toRun
+    orchestrator.start toRun, cb
   orchestrator.add(task.name, task.deps, task.fn) for task in DevTool._tasks
-
 
   # Configure Commander.js instance
   commander = require 'commander'
@@ -89,8 +84,8 @@ DevTool.init (err)->
   # Register commands with commander.js
   for cmd in DevTool.commands
     x = commander.command(cmd.cmd)
-    x.alias(cmd.alias)  if cmd.alias?
-    x.description(cmd.description)
+    x.alias cmd.alias  if cmd.alias?
+    x.description cmd.description
     if cmd.options
       x.option(o.opt, o.description) for o in cmd.options
     x.action(cmd.action)

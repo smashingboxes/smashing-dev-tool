@@ -1,0 +1,12 @@
+---
+- name: install bower
+  sudo: yes
+  npm: name=bower global=yes state=latest
+
+- name: install coffeescript
+  sudo: yes
+  npm: name=coffee-script global=yes state=latest
+
+- name: install smashing-dev-tool
+  sudo: yes
+  shell: "npm install -g /vagrant"

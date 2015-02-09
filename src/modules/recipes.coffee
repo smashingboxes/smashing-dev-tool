@@ -46,7 +46,6 @@ module.exports =
               .pipe logging()
 
           else if @type is 'vendor'
-            console.log 'VENROR RECIPE COMPILE'
             files 'vendor', '*'
               .pipe logging()
               .pipe gulp.dest "#{dir.compile}/components/vendor"

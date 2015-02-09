@@ -8,8 +8,8 @@ module.exports =
   init: (donee) ->
     self = @
     {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
-    {logger, notify, execute, merge, args} = util
-    {files, dest, $, logging, watching, isBuilding, isCompiling} = helpers
+    {logger, notify, execute, merge, args} = self.util
+    {files, dest, $, logging, watching, isBuilding, isCompiling} = self.helpers
 
 
     ### ---------------- COMMANDS ------------------------------------------- ###
@@ -17,8 +17,9 @@ module.exports =
     @command
       cmd: 'bump [importance]'
       description: 'Increment version and tag repo. major|minor|patch|prerelease'
-      action: (importance='minor') ->
-        logger.warn "Bumping version: #{importance}"
+      action: (importance='patch') ->
+        {files, dest, $, logging, watching, isBuilding, isCompiling} = self.helpers
+        logger.warn "Bumping version: #{importance}", logging
         gulp.src ['./bower.json']
           .pipe logging()
           .pipe $.bump type:importance

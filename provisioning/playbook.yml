@@ -1,0 +1,10 @@
+---
+- hosts: all
+  user: vagrant
+
+  roles:
+    - common
+    - { role: "azavea.virtualbox" }
+    - ruby
+    - nodejs
+    - app

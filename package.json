@@ -10,10 +10,6 @@
   "usage": "[command] <cmd args>",
   "options": [
     {
-      "option": "-V, --version",
-      "description": "output the version number"
-    },
-    {
       "option": "-a, --auto",
       "description": "auto-accept defaults where possible"
     },

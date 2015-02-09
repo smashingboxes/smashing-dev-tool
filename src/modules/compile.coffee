@@ -35,9 +35,11 @@ module.exports =
 
     # ### ---------------- TASKS ---------------------------------------------- ###
 
-    # Injects assets into index.jade and compiles
+    # Compile assets and start server
     @task 'compile', ['compile:index'], (done) ->
       self.startTask 'compile:serve'
+
+    # Injects assets into index.jade and compiles
     @task 'compile:index', ['compile:assets'], ->
       dir = self.project.dir
       {files, $, dest, logging} = self.helpers
@@ -57,6 +59,7 @@ module.exports =
         ]
 
         files path:"#{dir.client}/index.jade"
+          .pipe $.using()
           .pipe logging()
 
           .pipe $.inject appFiles,
@@ -69,14 +72,11 @@ module.exports =
             ignorePath:   'client'
             addRootSlash: false
 
-          # Display injected output in console
           .pipe $.if args.cat, $.cat()
 
-          # Compile Jade to HTML
           .pipe $.jade pretty:true, compileDebug:true
           .on('error', (err) -> logger.error err.message)
 
-          # Output HTML
           .pipe dest.compile()
           .pipe $.reload stream:true
 
@@ -101,7 +101,7 @@ module.exports =
         .intersection assets
         .concat 'images', 'fonts', 'vendor'
         .value()
-        
+
       merge(
         for k in toCompile
           recipes[k].watch?() if args.watch

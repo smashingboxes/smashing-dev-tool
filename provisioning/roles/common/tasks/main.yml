@@ -1,0 +1,23 @@
+---
+- name: update apt cache
+  sudo: yes
+  apt: update-cache=yes
+  tags: common
+
+- name: update language
+  sudo: yes
+  apt: pkg=language-pack-en
+  tags: common
+
+- name: install developer tools
+  sudo: yes
+  apt: pkg={{ item }} state=present
+  with_items:
+    - linux-headers-generic
+    - build-essential
+    - dkms
+
+- name: install git
+  apt: pkg=git
+  sudo: yes
+  tags: common

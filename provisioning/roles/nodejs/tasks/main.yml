@@ -1,0 +1,29 @@
+---
+- name: package prerequisites for node.js
+  apt: pkg=python-software-properties state=present
+  sudo: yes
+  tags: nodejs
+
+- name: add the node.js PPA
+  apt_repository: repo='ppa:chris-lea/node.js' state=present
+  sudo: yes
+  tags: nodejs
+
+- name: install node.js and npm
+  apt: pkg=nodejs update-cache=yes
+  sudo: yes
+  tags: nodejs
+
+- name: update npm to latest version
+  sudo: yes
+  npm: name=npm global=yes state=latest
+  tags: nodejs
+
+# - name: get npm global temporary directory
+#   command: npm -g config get tmp
+#   register: nodejs_npm_tempdir
+#   changed_when: False
+
+# - name: set npm global temporary directory to /tmp
+#   command: npm -g config set tmp /tmp
+#   when: nodejs_npm_tempdir.stdout != '/tmp'
