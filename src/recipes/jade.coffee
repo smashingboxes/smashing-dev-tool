@@ -42,9 +42,10 @@ module.exports =
       lint:   false
       reload: true
       compileFn: (stream) ->
+        {files, dest, $, logging, caching, banner} = self.helpers
         stream
-          .pipe $.if args.watch, $.cached 'main'
           .pipe logging()
+          .pipe caching()
 
           # Compile
           # .pipe $.jadeInheritance basedir:'client'
@@ -55,7 +56,7 @@ module.exports =
 
           # Convert to JS for templateCache
           # .pipe $.if html2js, $.htmlmin collapseWhitespace: true
-          .pipe $.if html2js, $.ngHtml2js cfg.ngHtml2js
-          .pipe $.if html2js, $.ngAnnotate cfg.ngAnnotate
-          .pipe $.if html2js, $.concat "#{cfg.ngHtml2js.moduleName}.js"
+          # .pipe $.if html2js, $.ngHtml2js cfg.ngHtml2js
+          # .pipe $.if html2js, $.ngAnnotate cfg.ngAnnotate
+          # .pipe $.if html2js, $.concat "#{cfg.ngHtml2js.moduleName}.js"
           # .pipe $.if html2js, $.uglify cfg.uglify

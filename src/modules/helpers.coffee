@@ -81,7 +81,7 @@ module.exports =
           fileArgs = arguments
           # Incorporate local build config from smashfile
 
-          buildConfig   = _.values(project.build)[0]
+          buildConfig   = project.build
           compileConfig = project.compile
 
           alts = if buildConfig?.alternates?

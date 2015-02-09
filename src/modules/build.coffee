@@ -37,8 +37,8 @@ module.exports =
         description: 'Output injected index file for inspection'
       ]
       action: (_target) ->
-        buildOpts = self.project.build?[_target ] or {}
-        target = buildOpts?.out or self.project.dir.build
+        buildOpts = self.project.build or {}
+        target = buildOpts.out or self.project.dir.build
         self.startTask buildTasks
 
 

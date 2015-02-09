@@ -40,7 +40,6 @@ module.exports =
 
         # Start BrowserSync server
         args.watch = true  if serveTarget is 'compile'
-        console.log serveTarget
         self.startTask  "#{serveTarget}"
         # self.emit 'task:start', "#{serveTarget}"
 

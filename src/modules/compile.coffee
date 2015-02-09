@@ -3,6 +3,7 @@ _       = require 'lodash'
 del     = require 'del'
 chalk   = require 'chalk'
 fs      = require 'fs'
+q = require 'q'
 
 module.exports =
   name: 'compile'
@@ -43,33 +44,31 @@ module.exports =
     @task 'compile:index', ['compile:assets'], ->
       dir = self.project.dir
       {files, $, dest, logging} = self.helpers
-      {merge} = self.util
+      {merge, args, logger} = self.util
 
       injectIndex = ->
-        logger.verbose "Injecting compiled files into #{chalk.magenta 'index.jade'}"
+        logger.info "Injecting compiled files into #{chalk.magenta 'index.jade'}"
 
         appFiles = merge [
           files('compile', '.js', true).pipe($.angularFilesort())
           files('compile', '.css', false)
         ]
-
-        vendorFiles = merge [
-          files('vendor', '.js', false)
-          files('vendor', '.css', false)
-        ]
+          .pipe $.order [
+            '**/jquery.js'
+            '**/*jquery*.*'
+            '**/angular.js'
+            '**/*angular*.*'
+            'components/vendor/**/*'
+            'app.js'
+          ]
+        .pipe $.plumber()
 
         files path:"#{dir.client}/index.jade"
-          .pipe $.using()
           .pipe logging()
 
           .pipe $.inject appFiles,
             name:         'app'
             ignorePath:   'compile'
-            addRootSlash: false
-
-          .pipe $.inject vendorFiles,
-            name:         'vendor'
-            ignorePath:   'client'
             addRootSlash: false
 
           .pipe $.if args.cat, $.cat()
@@ -99,14 +98,14 @@ module.exports =
       toCompile = _
         .chain supportedAssets
         .intersection assets
-        .concat 'images', 'fonts', 'vendor'
+        .concat 'images', 'vendor' #, 'fonts'
         .value()
 
-      merge(
-        for k in toCompile
-          recipes[k].watch?() if args.watch
-          recipes[k].compile()
-      )
+      ax = for asset in toCompile
+        recipes[asset].watch() if args.watch
+        recipes[asset].compile()
+
+      merge ax
 
     # Compile assets and watch source for changes, recompiling on event
     @task 'compile:serve', ->

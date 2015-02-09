@@ -13,6 +13,7 @@ module.exports =
     assumptions = @assumptions
     self = @
     logger = @util.logger
+    args = @util.args
 
     assets = []
     config = {}
@@ -23,12 +24,12 @@ module.exports =
     # Gather information from package.json/bower.json
     pkg = try require "#{process.cwd()}/bower"
     catch errorBower
-      logger.warn "Couldn't load bower.json."
+      logger.warn "Couldn't load bower.json."  if args.verbose
       try require "#{process.cwd()}/package"
       catch errorNPM
-        logger.warn "Couldn't load package.json. Attempting bower.json"
+        logger.warn "Couldn't load package.json. Attempting bower.json"  if args.verbose
 
-        logger.warn "No package file available. Are you in the right folder?"
+        logger.warn "No package file available. Are you in the right folder?" if args.verbose
         hasPackage = false
 
         # Return empty package information

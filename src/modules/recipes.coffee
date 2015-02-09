@@ -58,8 +58,8 @@ module.exports =
         # Build this recipe's compiled assets into optimized, packaged distrobutions
         build: (write=true) =>
           # Compute specific build target
-          buildOpts = project.build?[args._[1]]
-          target = buildOpts?.out or dir.build
+          buildOpts = project.build or {}
+          target = buildOpts.out or dir.build
 
           logger.verbose "Building #{chalk.magenta @ext} files"
           if @passThrough
@@ -83,11 +83,10 @@ module.exports =
             gulp.task "compile:#{@ext}", @compile
             gulp.watch "client/**/*.#{@ext}", if @reload then ["compile:#{@ext}"] else ["compile:#{@ext}", $.reload]
 
-          @
 
         # Get the name of the built/packaged file to be created for this recipe
         getOutFile: ->
-          buildOpts = project.build?[args._[1]]
+          buildOpts = project.build or {}
           if buildOpts
             buildOpts["#{@type}s"] or self.assumptions.build["#{@type}s"]
           else

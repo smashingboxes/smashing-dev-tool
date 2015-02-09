@@ -1,3 +1,5 @@
+coffeeStylish = require('coffeelint-stylish').reporter
+coffeelintrc = require '../config/lint/coffeelintrc'
 
 module.exports =
   name: 'recipe-coffee'
@@ -14,8 +16,7 @@ module.exports =
       reload:    true
       compileFn: (stream) ->
         {files, $, logging, caching, banner} = self.helpers
-        coffeeStylish = require('coffeelint-stylish').reporter
-        coffeelintrc = require '../config/lint/coffeelintrc'
+
         stream
           .pipe caching()
           .pipe logging()
@@ -26,7 +27,7 @@ module.exports =
 
           # Compile
           .pipe $.coffee bare:true
-          .pipe $.angularFilesort()
+          # .pipe $.angularFilesort()
 
           # Post-process
           .pipe $.header banner
