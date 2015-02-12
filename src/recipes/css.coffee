@@ -37,14 +37,16 @@ module.exports =
 
       buildFn: (stream) ->
         {recipes} = self
-        {$, files, dest, logging} = self.helpers
+        {$, files, dest, logging, onError} = self.helpers
         {args, merge} = self.util
         outfile = recipes.css.getOutFile()
 
         stream
-          .pipe $.csso cfg.csso
+          # .pipe $.csso cfg.csso
+          .pipe $.cssmin()
           .pipe $.concat outfile
           .pipe $.css2js()
+          .on('error', onError)
 
           # .pipe $.wrapAmd()
           # .pipe logging()

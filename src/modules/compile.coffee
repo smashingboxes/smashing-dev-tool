@@ -107,11 +107,11 @@ module.exports =
 
       # source code recipes
       ax = for asset in toCompile
-        recipes[asset].watch?() if args.watch
+        recipes[asset].watch() if args.watch
         recipes[asset].compile()
 
       # vendor/data/non-transform recipes
-      bx = for asset in ['images', 'vendor', 'fonts']
+      bx = for asset in ['vendor', 'images', 'fonts']
         recipes[asset].compile()
 
       # merge for joint 'end' event
