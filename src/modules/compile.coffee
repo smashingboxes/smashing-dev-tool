@@ -1,9 +1,9 @@
-gulp    = require 'gulp'
-_       = require 'lodash'
-del     = require 'del'
-chalk   = require 'chalk'
-fs      = require 'fs'
-q = require 'q'
+gulp  = require 'gulp'
+_     = require 'lodash'
+del   = require 'del'
+chalk = require 'chalk'
+fs    = require 'fs'
+q     = require 'q'
 
 module.exports =
   name: 'compile'
@@ -16,6 +16,7 @@ module.exports =
 
     target = null
     compileTasks = ['compile:assets', 'compile:index']
+    compileStream = null
 
     self.on 'clean', -> self.startTask 'compile:clean'
 
@@ -49,19 +50,18 @@ module.exports =
       injectIndex = ->
         logger.info "Injecting compiled files into #{chalk.magenta 'index.jade'}"
 
-        appFiles = merge [
-          files('compile', '.js', true).pipe($.angularFilesort())
-          files('compile', '.css', false)
-        ]
-          .pipe $.order [
+        vendorFiles = files('vendor', '*', false)
+          .pipe $.order([
             '**/jquery.js'
             '**/*jquery*.*'
             '**/angular.js'
             '**/*angular*.*'
             'components/vendor/**/*'
-            'app.js'
-          ]
-        .pipe $.plumber()
+          ])
+        appFiles = merge [
+          files('compile', '.js', true).pipe $.angularFilesort()
+          files('compile', '.css', false)
+        ]
 
         files path:"#{dir.client}/index.jade"
           .pipe logging()
@@ -69,6 +69,11 @@ module.exports =
           .pipe $.inject appFiles,
             name:         'app'
             ignorePath:   'compile'
+            addRootSlash: false
+
+          .pipe $.inject vendorFiles,
+            name:         'vendor'
+            ignorePath:   'client'
             addRootSlash: false
 
           .pipe $.if args.cat, $.cat()
@@ -90,7 +95,7 @@ module.exports =
       {recipes} = self
       {dir, assets} = self.project
       {merge, args} = self.util
-      {files, $, dest} = self.helpers
+      {files, $, dest, onError} = self.helpers
       supportedAssets = self.assumptions.supportedAssets
 
       logger.info "Compiling assets from #{chalk.green './'+dir.client} to #{chalk.magenta './'+dir.compile}"
@@ -98,14 +103,23 @@ module.exports =
       toCompile = _
         .chain supportedAssets
         .intersection assets
-        .concat 'images', 'vendor' #, 'fonts'
         .value()
 
+      # source code recipes
       ax = for asset in toCompile
-        recipes[asset].watch() if args.watch
+        recipes[asset].watch?() if args.watch
         recipes[asset].compile()
 
-      merge ax
+      # vendor/data/non-transform recipes
+      bx = for asset in ['images', 'vendor', 'fonts']
+        recipes[asset].compile()
+
+      # merge for joint 'end' event
+      merge [
+        merge ax
+        merge bx
+      ]
+
 
     # Compile assets and watch source for changes, recompiling on event
     @task 'compile:serve', ->

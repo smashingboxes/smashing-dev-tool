@@ -64,7 +64,12 @@ module.exports =
           logger.verbose "Building #{chalk.magenta @ext} files"
           if @passThrough
             files(path:"#{dir.client}", (".#{e}" for e in @ext))
-              .pipe $.if write, dest.build()
+              .pipe $.if write, (gulp.dest target)
+              .pipe logging()
+
+          else if @type is 'vendor'
+            files 'vendor', '*'
+              .pipe $.if write, (gulp.dest "#{target}/components/vendor")
               .pipe logging()
 
           else

@@ -15,7 +15,7 @@ module.exports =
       lint:      true
       reload:    true
       compileFn: (stream) ->
-        {files, $, logging, caching, banner} = self.helpers
+        {files, $, logging, caching, banner, onError} = self.helpers
 
         stream
           .pipe caching()
@@ -28,6 +28,7 @@ module.exports =
           # Compile
           .pipe $.coffee bare:true
           # .pipe $.angularFilesort()
+          .on('error', onError)
 
           # Post-process
           .pipe $.header banner

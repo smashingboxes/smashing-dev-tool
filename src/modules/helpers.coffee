@@ -178,7 +178,7 @@ module.exports =
               _path
                 .concat        globs.alternates
                 .concat        globs.exclude
-                # .concat invert globs.vendor
+                .concat invert globs.vendor
                 .concat        (if isBuilding  then globs.buildExclude   else [])
                 .concat        (if isBuilding  then globs.compileExclude else [])
             when 'build'

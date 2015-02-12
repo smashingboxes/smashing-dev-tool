@@ -41,7 +41,6 @@ module.exports =
         # Start BrowserSync server
         args.watch = true  if serveTarget is 'compile'
         self.startTask  "#{serveTarget}"
-        # self.emit 'task:start', "#{serveTarget}"
 
 
     donee()

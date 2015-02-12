@@ -13,9 +13,12 @@ module.exports =
     {logger, notify, execute, merge, args} = self.util
     {files, $, dest, onError} = self.helpers
 
-    target = self.project.dir?.build
-    buildOpts = null
-    buildTasks = ['build:index']
+    target        = self.project.dir?.build
+    buildOpts     = null
+    buildTasks    = null
+    includeVendor = null
+    includeIndex  = null
+
     cfg =
       ngAnnotate:
         remove: true
@@ -37,9 +40,18 @@ module.exports =
         description: 'Output injected index file for inspection'
       ]
       action: (_target) ->
-        buildOpts = self.project.build or {}
-        target = buildOpts.out or self.project.dir.build
+        project = self.project
+        buildOpts = project.build or {}
+
+        target        = buildOpts.out or project.dir.build
+        includeVendor = if buildOpts.vendor? then buildOpts.vendor else true
+        includeIndex  = if buildOpts.index? then buildOpts.index else true
+
+        buildTasks = if includeIndex then ['build:index']
+        else ['build:assets']
+
         self.startTask buildTasks
+
 
 
     ### ---------------- TASKS ---------------------------------------------- ###
@@ -60,18 +72,36 @@ module.exports =
 
       logger.info "Building assets from #{chalk.magenta './'+dir.compile} to #{chalk.red './'+target}"
 
-      merge [
-        merge [
-          recipes['js'].build(false)
-          recipes['html'].build(false)
-          recipes['css'].build(false)
-        ]
-          .pipe $.concat outfile
-          .pipe $.uglify cfg.uglify
-          .pipe $.if args.cat, $.cat()
-        recipes.images.build(false)
-        recipes.fonts.build(false)
+
+      # app assets
+      _m1 = [
+        recipes['html'].build(false)
+        recipes['css'].build(false)
+        recipes['js'].build(false)
       ]
+      _m1.push files('vendor', '.js')  if includeVendor
+
+      m1 = merge _m1
+        .pipe $.order [
+          '**/jquery.js'
+          '**/*jquery*.*'
+          '**/angular.js'
+          '**/*angular*.*'
+          'components/vendor/**/*'
+          'app.js'
+        ]
+        .pipe $.concat outfile
+        .pipe $.uglify cfg.uglify
+        .pipe $.if args.cat, $.cat()
+
+
+      # app data
+      m2 = merge [
+        recipes.images.build()
+        recipes.fonts.build()
+      ]
+
+      merge [m1, m2]
         .pipe $.plumber()
         .pipe gulp.dest target
 
@@ -105,7 +135,6 @@ module.exports =
         .pipe logging()
 
 
-
     @task 'build:serve', ->
       $.browserSync
         server:
@@ -118,12 +147,16 @@ module.exports =
         # logLevel:     'debug'
         port:           8080
 
+
     @task 'build:clean', (done) ->
-      {dir} = project = self.project
+      {dir, build} = project = self.project
       toDelete = []
       if fs.existsSync dir.build
         logger.info "Deleting #{chalk.magenta './'+dir.build}"
         del [dir.build], done
+      else if fs.existsSync build.out
+        logger.info "Deleting #{chalk.magenta './'+build.out}"
+        del [build.out], done
       else
         done()
       #

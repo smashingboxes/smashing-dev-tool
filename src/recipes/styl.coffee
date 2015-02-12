@@ -11,8 +11,7 @@ module.exports =
   name: 'recipe-styl'
   attach: ->
     self = @
-    {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = self.helpers
-    {logger, notify, execute, merge, args} = self.util
+
     @register
       name:   'Stylus'
       ext:    'styl'
@@ -22,7 +21,8 @@ module.exports =
       lint:   false
       reload: true
       compileFn: (stream) ->
-
+        {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = self.helpers
+        {logger, notify, execute, merge, args} = self.util
         stream
           .pipe $.sourcemaps.init()
           .pipe $.if args.watch, $.cached 'styl'

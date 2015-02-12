@@ -1,20 +1,13 @@
-# smasher = require '../config/global'
 _ = require 'lodash'
 
 coffeeStylish = require('coffeelint-stylish').reporter
 coffeelintrc  = require '../config/lint/coffeelintrc'
-#
-# {commander, assumptions, rootPath, user, platform, project, helpers, util} = smasher
-# {logger, notify, execute, merge, args} = util
-# {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = helpers
 
 
 module.exports =
   name: 'recipe-jade'
   attach: ->
     self = @
-    {args} = self.util
-    {files, $, logging, caching, banner} = self.helpers
 
     cfg =
       ngHtml2js:
@@ -28,10 +21,9 @@ module.exports =
         mangle: true
         preserveComments: 'some'
 
-    building = _.contains args?._, 'build'
-    html2js = (project?.compile?.html2js is true) and building
+    # building = _.contains args?._, 'build'
+    # html2js = (project?.compile?.html2js is true) and building
 
-    # watching =  args.watch is true
     ### ---------------- RECIPE --------------------------------------------- ###
     @register
       name:   'Jade'
@@ -42,7 +34,8 @@ module.exports =
       lint:   false
       reload: true
       compileFn: (stream) ->
-        {files, dest, $, logging, caching, banner} = self.helpers
+        {files, dest, $, logging, caching, banner, onError} = self.helpers
+        {logger, args} = self.util
         stream
           .pipe logging()
           .pipe caching()
@@ -52,7 +45,7 @@ module.exports =
           # .pipe $.filter (file) -> !(/\/_/).test(file.path) || (!/^_/).test(file.relative)  # filter out partials (folders and files starting with "_" )
 
           .pipe $.jade pretty:true, compileDebug:true
-          .on('error', (err) -> logger.error err.message)
+          .on('error', onError)
 
           # Convert to JS for templateCache
           # .pipe $.if html2js, $.htmlmin collapseWhitespace: true
