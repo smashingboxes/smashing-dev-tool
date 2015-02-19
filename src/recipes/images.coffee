@@ -9,6 +9,7 @@ gulp = require 'gulp'
 module.exports =
   name: 'recipe-images'
   attach: ->
+    self = @
     cfg =
       imacss: 'images.css'
       imagemin:
@@ -22,29 +23,13 @@ module.exports =
       test:   true
       lint:   false
       reload: false
-      path:  "data/images"
-      passThrough: true
-  #
-  # ### ---------------- RECIPE --------------------------------------------- ###
-  # compile = (stream) ->
-  #   stream
-  #     .pipe logging()
-  #     .pipe $.imagemin()
-  #
-  # build = (stream) ->
-  #   stream
-  #     .pipe logging()
-  #     .pipe $.imagemin()
-  #
-  #
-  #
-  # ### ---------------- TASKS ---------------------------------------------- ###
-  # images =
-  #   compile: ->
-  #     compile files path:'client/data/images', imageTypes
-  #       .pipe gulp.dest "#{dir.compile}/data/images"
-  #
-  #
-  #   build: ->
-  #     build files path:'client/data/images', imageTypes
-  #       .pipe gulp.dest "#{dir.build}/data/images"
+      compileFn: (stream) ->
+        {$, logging} = self.helpers
+        stream
+          .pipe logging()
+          .pipe $.imagemin()
+
+      buildFn: (stream) ->
+        {$, logging} = self.helpers
+        stream
+          .pipe logging()
