@@ -17,6 +17,8 @@ module.exports =
 
 
   # --------------------- Config
+  # banner: ""
+
   # Client-side code
   client:
     path: 'client'
@@ -79,7 +81,14 @@ module.exports =
       order: [ ]
     scripts:
       out: 'app.min.js'
-      order: [ ]
+      order: [
+        '**/jquery.js'
+        '**/*jquery*.*'
+        '**/angular.js'
+        '**/*angular*.*.js'
+        'components/vendor/**/*.js'
+        'app.js'
+      ]
 
     alternates: [ ]
 
@@ -92,6 +101,3 @@ module.exports =
   # Documentation
   docs:
     path: 'docs'
-
-
-  # banner: ""

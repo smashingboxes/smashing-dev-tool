@@ -31,7 +31,6 @@ module.exports = (Smasher) ->
     action: (_target) ->
       target = _target
       compileTasks.push 'compile:serve'  if args.watch
-      console.log 'TASK COMPILE'
       Smasher.startTask compileTasks
 
   ### ---------------- TASKS ---------------------------------------------- ###

@@ -23,7 +23,7 @@ replaceDot = (path) ->
 
 module.exports = (Smasher) ->
   {commander, assumptions, user, platform, project, util, helpers} = Smasher
-  {logger, notify, execute, merge} = util
+  {logger, notify, execute, merge, args} = util
   {files, $, dest, rootPath, pkg} = helpers
 
 
@@ -94,7 +94,7 @@ module.exports = (Smasher) ->
   Smasher.task 'generate:prompt-new-app', ['generate:load-template'], (done) ->
     logger.info 'Gathering information'
     inquirer.prompt prompts, (ans) ->
-      console.log ans
+      logger.data ans  if args.verbose
       ans.appNameSlug = _.str.slugify ans?.appName
       answers = ans
       done()
