@@ -27,6 +27,7 @@ module.exports =
       reload: true
       compileFn: (stream) ->
         {files, dest, $, logging, caching, banner} = self.helpers
+
         stream
           .pipe logging()
           .pipe caching()
@@ -42,11 +43,10 @@ module.exports =
         {files, dest, $, logging, caching, banner} = self.helpers
         {args, merge} = self.util
         outfile = @getOutFile()
-
         stream
           .pipe $.stripDebug()
           .pipe $.ngAnnotate cfg.ngAnnotate
-          .pipe $.angularFilesort()
+          # .pipe $.angularFilesort()
 
           # .pipe $.concat outfile
           # .pipe $.uglify cfg.uglify
