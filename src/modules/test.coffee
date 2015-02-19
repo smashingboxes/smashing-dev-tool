@@ -3,9 +3,9 @@ open =            require 'open'
 gulp =            require 'gulp'                  # streaming build system
 
 module.exports = (Smasher) ->
-  {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = Smasher
+  {commander, assumptions, user, platform, project, util, helpers} = Smasher
   {logger, notify, execute, merge} = util
-  {files, $, dest} = helpers
+  {files, $, dest, rootPath, pkg} = helpers
 
   ### ---------------- COMMANDS ------------------------------------------- ###
   Smasher.command

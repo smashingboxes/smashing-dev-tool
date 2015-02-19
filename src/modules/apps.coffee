@@ -4,9 +4,9 @@ inquire = require 'inquirer'
 gulp    = require 'gulp'
 
 module.exports = (Smasher) ->
-  {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = Smasher
+  {commander, assumptions, user, platform, project, util, helpers} = Smasher
   {logger, notify, execute, merge, args} = util
-  {files, dest, $, logging, watching, isBuilding, isCompiling} = helpers
+  {files, dest, $, logging, watching, isBuilding, isCompiling, rootPath, pkg} = helpers
 
 
   ### ---------------- COMMANDS ------------------------------------------- ###

@@ -1,9 +1,3 @@
-#
-# smasher  = require '../config/global'
-#
-# {commander, assumptions, rootPath, user, platform, project, helpers, util} = smasher
-
-#  = helpers
 
 ### ---------------- RECIPE ----------------------------------------------- ###
 

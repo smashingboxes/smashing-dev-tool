@@ -2,9 +2,9 @@ gulp =      require 'gulp'
 _ =         require 'underscore'
 
 module.exports = (Smasher) ->
-  {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = Smasher
+  {commander, assumptions, user, platform, project, util, helpers} = Smasher
   {logger, notify, execute, merge} = util
-  {files, $, dest} = helpers
+  {files, $, dest, rootPath, pkg} = helpers
 
   # Load modules containing task dependencies
   ### ---------------- COMMANDS ------------------------------------------- ###

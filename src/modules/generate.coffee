@@ -22,9 +22,9 @@ replaceDot = (path) ->
 
 
 module.exports = (Smasher) ->
-  {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = Smasher
+  {commander, assumptions, user, platform, project, util, helpers} = Smasher
   {logger, notify, execute, merge} = util
-  {files, $, dest} = helpers
+  {files, $, dest, rootPath, pkg} = helpers
 
 
   ### ---------------- COMMANDS ------------------------------------------- ###
@@ -33,9 +33,8 @@ module.exports = (Smasher) ->
     alias: 'n'
     description: 'generate app from template'
     action: (name, options) ->
-      console.log 'NEW TIME!'
       target = name
-      self.startTask 'generate:app'
+      Smasher.startTask 'generate:app'
 
   Smasher.command
     cmd: 'generate <name>'
@@ -43,7 +42,7 @@ module.exports = (Smasher) ->
     description: 'generate component from template'
     action: (name, options) ->
       target = name
-      self.startTask 'generate:component'
+      Smasher.startTask 'generate:component'
 
   ### ---------------- TASKS ---------------------------------------------- ###
   # Handle existing folder

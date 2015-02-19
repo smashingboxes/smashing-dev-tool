@@ -1,10 +1,4 @@
 gulp = require 'gulp'
-# smasher  = require '../config/global'
-#
-# {commander, assumptions, rootPath, user, platform, project, helpers, util} = smasher
-# {logger, notify, execute, merge, args} = util
-# {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = helpers
-
 
 module.exports =
   name: 'recipe-images'
