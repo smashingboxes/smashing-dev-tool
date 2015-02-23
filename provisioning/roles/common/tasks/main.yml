@@ -16,8 +16,5 @@
     - linux-headers-generic
     - build-essential
     - dkms
-
-- name: install git
-  apt: pkg=git
-  sudo: yes
+    - git
   tags: common

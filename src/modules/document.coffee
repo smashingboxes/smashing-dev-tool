@@ -17,30 +17,37 @@ module.exports = (Smasher) ->
   ### ---------------- COMMANDS ------------------------------------------- ###
   Smasher.command
     cmd: 'docs'
+    options: [
+      opt: '--open'
+      description: 'Opens a browser to the relavent location once the task has finished'
+    ]
     description: 'Generate documentation based on source code'
     action: ->
       Smasher.startTask 'docs'
 
   ### ---------------- TASKS ---------------------------------------------- ###
-  Smasher.task 'docs', (done) ->
+  Smasher.task 'docs', ['docs:clean'], (done) ->
     # notify "Groc", "Generating documentation..."
     logger.info "Generating documentation in #{chalk.magenta './'+dir.docs}"
+    bower = project.pkg.bower
 
-    docsGlob = ["README.md"]
-
+    docsGlob = ["**/*.md"]
     for asset in assets
       docsGlob.push "#{dir.client}/**/*.#{asset}"
-      docsGlob.push "#{dir.server}/**/*.#{asset}"
 
     grocjson = JSON.stringify {
       'glob': docsGlob
       'except': [
         "#{dir.client}/components/vendor/**/*"
+        "#{dir.client}/index.jade"
       ]
+      'index':            'README.md'
+      'index-page-title': "#{bower.name} - docs"
       'github':           false
       'out':              dir?.docs
-      'repository-url':   pkg?.bower?.repository?.url or ''
-      'silent':           !args.verbose
+      'repository-url':   bower.repository or ''
+      'silent':           args.mute
+      'verbose':          args.verbose
     }, null, 2
 
 
@@ -52,7 +59,7 @@ module.exports = (Smasher) ->
       require("#{rootPath}/node_modules/groc").CLI [], (error)->
         process.exit(1) if error
         # notify "Groc", "Success!"
-        open "#{dir.docs}/index.html"
+        open("#{dir.docs}/index.html")  if args.open
         done()
 
   Smasher.task 'docs:clean', (done) ->

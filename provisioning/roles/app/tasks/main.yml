@@ -9,4 +9,4 @@
 
 - name: install smashing-dev-tool
   sudo: yes
-  shell: "npm link /vagrant"
+  shell: "cd /vagrant; npm link"

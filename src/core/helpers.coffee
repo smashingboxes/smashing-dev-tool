@@ -80,8 +80,6 @@ module.exports = (Registry) ->
         buildConfig   = project.build
         compileConfig = project.compile
 
-        alts = alt for alt in (project.build.alternates or [])
-
         # Helpers
         isExt = (s) -> _.isString(s) and s[0] is '.'
         isntExt = (s)-> _.isString(s) and s[0] isnt '.'
@@ -139,8 +137,10 @@ module.exports = (Registry) ->
           else []
 
         getAlternates = ->
-          for alt in alts or []
-            if isBuilding then "!#{alt[0]}" else "!#{alt[1]}"
+          for alt in project.build.alternates
+            pattern = if isBuilding then alt[0] else alt[1]
+            "!#{pattern}"
+
 
         cfg =
           bower:

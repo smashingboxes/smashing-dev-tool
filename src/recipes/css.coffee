@@ -41,11 +41,13 @@ module.exports =
         {args, merge} = self.util
         outfile = recipes.css.getOutFile()
 
+        css2js = self.project.build.css2js
+
         stream
           # .pipe $.csso cfg.csso
           .pipe $.cssmin()
-          .pipe $.concat outfile
-          .pipe $.css2js()
+          # .pipe $.concat outfile
+          # .pipe $.if css2js, $.css2js(cfg.css2js)
           .on('error', onError)
 
           # .pipe $.wrapAmd()

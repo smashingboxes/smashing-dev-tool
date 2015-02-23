@@ -1,0 +1,21 @@
+
+md-content
+  md-toolbar
+    h2.md-toolbar-tools(layout-align="center center")
+      span <%= appNameSlug %>
+
+  section.main(flex)
+    .brand(flex)
+      img.logo(src="data/images/sb-logo.svg")
+
+    md-subheader.md-primary Brimming with awesomeness thanks to:
+
+    md-list(layout="column")
+      md-item(ng-repeat="item in features")
+        md-item-content
+          .md-tile-content
+            a(ng-href="{{item.url}}", target="_blank")
+              | {{item.name}}
+              i.icon.ion-link
+            p.small {{item.description}}
+        md-divider(ng-if="!$last")

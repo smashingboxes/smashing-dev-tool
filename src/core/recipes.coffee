@@ -82,6 +82,7 @@ module.exports = (Registry) ->
     RecipeManager = new broadway.App()
     RecipeManager.helpers = helpers
     RecipeManager.util = util
+    RecipeManager.project = project
     RecipeManager.recipes = []
     RecipeManager.load = (name) ->
       RecipeManager.use require "../recipes/#{name}"

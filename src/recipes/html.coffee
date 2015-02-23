@@ -46,6 +46,6 @@ module.exports =
 
         stream
           .pipe $.htmlmin collapseWhitespace: true
-          .pipe $.ngHtml2js cfg.ngHtml2js
-          .pipe $.concat outfile
-          .pipe $.ngAnnotate cfg.ngAnnotate
+          # .pipe $.ngHtml2js cfg.ngHtml2js
+          # .pipe $.concat outfile
+          # .pipe $.ngAnnotate cfg.ngAnnotate

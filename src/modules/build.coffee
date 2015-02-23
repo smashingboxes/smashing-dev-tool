@@ -21,6 +21,13 @@ module.exports = (Smasher) ->
       remove: true
       add: true
       single_quote: true
+    ngHtml2js:
+      moduleName: "templates-main"
+      prefix: ''
+    css2js:
+      splitOnNewline:          true
+      trimSpacesBeforeNewline: true
+      trimTrailingNewline:     true
     uglify:
       mangle: true
       preserveComments: 'some'
@@ -54,45 +61,60 @@ module.exports = (Smasher) ->
 
   # Build assets from compiled source
   Smasher.task 'build:assets', ['build:clean', 'compile:assets'], ->
-    JSoutfile  = recipes.js.getOutFile()
-    CSSoutfile = recipes.css.getOutFile()
+    JSoutfile   = recipes.js.getOutFile()
+    CSSoutfile  = recipes.css.getOutFile()
+    HTMLoutfile = recipes.html.getOutFile()
+    css2js      = project.build.css2js
+    html2js     = project.build.html2js
 
     target ?= 'build'
     logger.info "Building assets from #{chalk.magenta './'+dir.compile} to #{chalk.red './'+target}"
 
 
-    # app css + vendor css => js
-    css = merge [
-      files('vendor', '.css', true)
-        .pipe $.order(project.build.styles.order)
-        .pipe $.concat('app-vendor.css')
-      recipes['css'].build(false)
-    ]
-      .pipe $.order(['app-vendor.css', 'app-styles.css'])
+    # ------------------CSS-----------------------
+    cssVendor = files('vendor', '.css', true)
+    cssApp    = recipes['css'].build(false)
+    _css = [ cssApp ]
+    _css.push cssVendor if includeVendor
+    css = merge _css
+      .pipe $.order project.build.styles.order
       .pipe $.concat CSSoutfile
-      .pipe $.cssmin()
-      .pipe $.css2js()
+      .pipe $.if css2js, $.css2js(cfg.css2js)
 
-    # css.js + html.js + app.js  (? vendor.js)
-    _js = [
-      recipes['html'].build(false)
-      recipes['js'].build(false)
-      css
-    ]
-    _js.push files('vendor', '.js')  if includeVendor
+    # ------------------HTML-----------------------
+    htmlVendor = files('vendor', '.html', true)
+    htmlApp    = recipes['html'].build(false)
+    _html = [ htmlApp ]
+    _html.push htmlVendor if includeVendor
+    html = merge _html
+      .pipe $.if html2js, $.order      project.build.views.order
+      .pipe $.if html2js, $.ngHtml2js  cfg.ngHtml2js
+      .pipe $.if html2js, $.ngAnnotate cfg.ngAnnotate
+      .pipe $.if html2js, $.concat     HTMLoutfile
 
-    # app js + vendor js
+    # ------------------JS-------------------------
+    jsVendor = files('vendor', '.js', true)
+    jsApp    = recipes['js'].build(false)
+    _js = [ jsApp ]
+    _js.push jsVendor if includeVendor
+    _js.push css      if css2js
+    _js.push html     if html2js
     js = merge _js
       .pipe $.order project.build.scripts.order
       .pipe $.concat JSoutfile
       .pipe $.uglify cfg.uglify
       .pipe $.if args.cat, $.cat()
 
-    merge [
-      recipes.images.build()
-      recipes.fonts.build()
+
+    ### ------------------APP------------------ ###
+    app = [
       js
+      recipes.images.build(false)
+      recipes.fonts.build(false)
     ]
+    app.push css   unless css2js
+    app.push html  unless html2js
+    merge app
       .pipe $.plumber()
       .pipe gulp.dest target
 
@@ -120,7 +142,6 @@ module.exports = (Smasher) ->
       .pipe gulp.dest target
       .pipe logging()
 
-
   Smasher.task 'build:serve', ->
     $.browserSync
       server:
@@ -132,7 +153,6 @@ module.exports = (Smasher) ->
       logFileChanges: args.verbose
       # logLevel:     'debug'
       port:           8080
-
 
   Smasher.task 'build:clean', (done) ->
     toDelete = []

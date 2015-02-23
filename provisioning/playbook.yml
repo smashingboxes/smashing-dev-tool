@@ -5,6 +5,7 @@
   roles:
     - common
     - { role: "azavea.virtualbox" }
-    - ruby
+    # - ruby
     - nodejs
     - app
+    - { role: "ChengLong.zsh" }

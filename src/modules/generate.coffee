@@ -13,7 +13,12 @@ templateFiles = null
 overwriteDir = false
 
 # templates = ['ember', 'polymer', 'simple', 'angular', 'angular-amd']
-templates = ['angular', 'angular-amd', 'simple']
+templates = [
+  # 'angular',
+  # 'angular-amd',
+  'angular-bootstrap-simple',
+  'angular-material-simple'
+]
 
 replaceDot = (path) ->
   if path.basename[0] is "_"
@@ -67,7 +72,7 @@ module.exports = (Smasher) ->
       message:  'What type of app do you want to generate?'
       type:     'list'
       choices:  templates
-      default:  'simple'
+      default:  templates[0]
     }], ({template}) ->
       unless template and fs.existsSync "#{rootPath}/src/templates/#{template}"
         logger.error "Could not find template '#{chalk.red template}'"
