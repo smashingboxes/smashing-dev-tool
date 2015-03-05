@@ -59,7 +59,7 @@ module.exports = (Smasher) ->
       require("#{rootPath}/node_modules/groc").CLI [], (error)->
         process.exit(1) if error
         # notify "Groc", "Success!"
-        open("#{dir.docs}/index.html")  if args.open
+        open("#{dir.docs}/index.html")  #if args.open
         done()
 
   Smasher.task 'docs:clean', (done) ->

@@ -12,12 +12,13 @@ template = null
 templateFiles = null
 overwriteDir = false
 
-# templates = ['ember', 'polymer', 'simple', 'angular', 'angular-amd']
 templates = [
-  # 'angular',
-  # 'angular-amd',
-  'angular-bootstrap-simple',
+  # 'ember-simple'
+  # 'polymer-simple'
+  # 'react-simple'
+  'angular-bootstrap-simple'
   'angular-material-simple'
+  # 'angular-material-amd'
 ]
 
 replaceDot = (path) ->

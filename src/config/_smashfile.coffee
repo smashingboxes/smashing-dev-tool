@@ -47,6 +47,10 @@ module.exports =
   test:
     prefix: 'test_'
 
+  # Documentation
+  docs:
+    path: 'docs'
+
 
   # Compile phase
   compile:
@@ -61,7 +65,6 @@ module.exports =
     scripts:     {}
     images:      {}
     fonts:       {}
-
 
   # Build Phase
   build:
@@ -92,12 +95,6 @@ module.exports =
 
     alternates: [ ]
 
-
   # Deploy Phase
   deploy:
     path: 'deploy'
-
-
-  # Documentation
-  docs:
-    path: 'docs'

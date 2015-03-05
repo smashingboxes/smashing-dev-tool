@@ -13,16 +13,17 @@ module.exports =
       doc:    false
       test:   false
       lint:   false
-      reload: true
+      reload: false
       compileFn: (stream) ->
         {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = self.helpers
         {logger, notify, execute, merge, args} = self.util
         stream
           .pipe $.sourcemaps.init()
-          .pipe $.if args.watch, $.cached 'styl'
+          .pipe caching 'styl'
           .pipe logging()
 
           # Compile
           .pipe $.stylus()
           .on('error', (err) -> logger.error err.message)
           .pipe $.sourcemaps.write './maps'
+          .pipe watching()

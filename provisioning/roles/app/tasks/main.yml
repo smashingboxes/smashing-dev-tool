@@ -7,6 +7,6 @@
   sudo: yes
   npm: name=coffee-script global=yes state=latest
 
-- name: install smashing-dev-tool
-  sudo: yes
-  shell: "cd /vagrant; npm link"
+# - name: install smashing-dev-tool
+#   sudo: yes
+#   shell: "cd /vagrant; npm link"

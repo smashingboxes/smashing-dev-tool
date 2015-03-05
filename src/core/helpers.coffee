@@ -37,10 +37,10 @@ module.exports = (Registry) ->
 
     onError = (err) ->
       $.util.beep()
-      console.error err
+      console.error err  if args.verbose
       @emit 'end'
-    plumbing    = ->  $.plumber(errorHandler: onError)
-    stopPlumbing = -> $.plumber.stop()
+    plumbing    = ->  $.if args.watch, $.plumber(errorHandler: onError)
+    stopPlumbing = -> $.if args.watch, $.plumber.stop()
 
 
     self.helpers =
@@ -74,6 +74,7 @@ module.exports = (Registry) ->
       @return {Stream}
       ###
       files: (src, types, read=true, excludes) ->
+
         fileArgs = arguments
         # Incorporate local build config from smashfile
 
@@ -116,7 +117,12 @@ module.exports = (Registry) ->
           else "#{dir[_target]}/**/*+(#{_filter})"
         ]
 
-
+        # console.log
+        #   filter: _filter
+        #   target: _target
+        #   read:   _read
+        #   config: _config
+        #   path:   _path
 
         # Build out properly formatted
         getExcludes = ->
@@ -144,16 +150,18 @@ module.exports = (Registry) ->
 
         cfg =
           bower:
-            includeDev: (if isBuilding then false else 'inclusive')
-            filter:     new RegExp _filter
+            includeDev:     (if isBuilding then false else 'inclusive')
+            filter:         new RegExp _filter
+            checkExistence: args.verbose?
 
-        dir = project.dir
+
+
         globs =
           vendor:         ["**/components/vendor{,/**}"]
           vendorMain:     $.bowerFiles cfg.bower
           test:           ["#{dir.client}/**/*_test*"]
           index:          ["#{dir.client}/index.*"]
-          alternates:     getAlternates()     or []
+          alternates:     getAlternates() or []
           exclude:        getExcludes()
           buildExclude:   getBuildExcludes()
           compileExclude: getCompileExcludes()
@@ -190,6 +198,7 @@ module.exports = (Registry) ->
               # .concat        (if isCompiling  then globs.compileExclude   else [])
           else logger.error "!! Unknown file target '#{src}'. Could not build stream."
 
+
         # Debug logging
         if args.debug
           logger.debug
@@ -201,6 +210,7 @@ module.exports = (Registry) ->
             buildExclude: chalk.yellow  globs.buildExclude
           console.log source
         gulp.src(source, read: _read, base: dir[_target] or '')
+
           # .pipe $.plumber(errorHandler: onError)
       # <br><br><br>
 

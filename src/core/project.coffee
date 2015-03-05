@@ -1,83 +1,108 @@
+###
+Project Factory
+
+Mushes together various configurations and
+returns a project settings object
+###
+
 Liftoff = require 'liftoff'
 chalk   = require 'chalk'
 tildify = require 'tildify'
 _       = require 'lodash'
-q       = require 'q'
 fs      = require 'fs'
-
-
-smashfile = require '../config/_smashfile'
+q       = require 'q'
 
 module.exports = (Registry) ->
 
-  getProject = (platform, user, util) ->
+  # Project Factory constructor
+  ProjectFactory = (registry) ->
     self = @
-    {logger, args} = util
+    deferred = q.defer()
+    registry.get('util').then (util) ->
+      log        = util.logger
+      args       = util.args
+      currentDir = process.cwd()
 
-    # Gather information from package.json/bower.json
-    @pkg =
-      bower:
-        if fs.existsSync("#{process.cwd()}/bower.json")
-          try require "#{process.cwd()}/bower"
-          catch errorBower
-            logger.error "Couldn't load bower.json."
-        else
-          null
+      # Configure Liftoff
+      liftoff = new Liftoff
+        name:         'smash'
+        processTitle: 'smasher'
+        moduleName:   'smasher'
+        configName:   'smashfile'
+        extensions:   require('interpret').jsVariants
+      liftoff.on 'require', (name, _module) ->
+        log.verbose 'Requiring external module', chalk.magenta(name)
+        _module.register()  if name is 'coffee-script'  # Auto-register CS modules
+      # liftoff.on 'requireFail', (name, err) ->
+      #   if args.verbose
+      #     log.warn 'Failed to load external module', chalk.magenta(name)
 
-      npm:
-        if fs.existsSync("#{process.cwd()}/package.json")
-          try require "#{process.cwd()}/package"
-          catch errorNPM
-            logger.error "Couldn't load package.json."
-        else
-          null
+      # Use Liftoff to find and parse local project config
+      liftoff.launch {}, (env) ->
+        project = _({})
+          # Load default smashfile config
+          .merge(
+            require '../config/_smashfile'
+          )
 
-    ### Configure Liftoff ###
-    liftoff = new Liftoff
-      name: 'smash'
-      processTitle: 'smasher'
-      moduleName: 'smasher'
-      configName: 'smashfile'
-      extensions: require('interpret').jsVariants
+          # Attempt to load a local `smashfile.*`
+          .merge(
+            if !env.configPath
+              log.warn chalk.red 'No SMASHFILE found'  if args.verbose
+              {}
+            else
+              style = chalk.magenta.underline
+              log.verbose 'Working in directory', style tildify env.cwd
+              log.verbose 'Using Smashfile',      style tildify env.configPath
+              process.chdir(env.configBase)
+              try require(env.configPath)
+              catch error
+                log.error 'Could not load project config', error
+                {}
+          )
 
-    liftoff.on 'require', (name) ->
-      logger.verbose 'Requiring external module', chalk.magenta(name)
+          # Mix in environment info
+          .merge(
+            env: env
+          )
 
-    liftoff.on 'requireFail', (name) ->
-      logger.verbose 'Failed to load external module', chalk.magenta(name)
+          # Gather information from project package.json/bower.json
+          .merge(
+            pkg:
+              bower:
+                if fs.existsSync("#{currentDir}/bower.json")
+                  try require "#{currentDir}/bower"
+                  catch errorBower
+                    log.error "Couldn't load bower.json."
+                else
+                  null
+              npm:
+                if fs.existsSync("#{currentDir}/package.json")
+                  try require "#{currentDir}/package"
+                  catch errorNPM
+                    log.error "Couldn't load package.json."
+                else
+                  null
+          )
 
-    # Use Liftoff to find and parse local project config
-    liftoff.launch {}, (environment) ->
-      self.environment = env = environment
-      project =
-        if !env.configPath
-          logger.verbose chalk.red 'No SMASHFILE found'
-          {}
-        else
-          logger.verbose 'Working in directory', chalk.magenta chalk.underline tildify env.cwd
-          logger.verbose 'Using Smashfile', chalk.magenta chalk.underline tildify env.configPath
-          process.chdir(env.configBase)
+          # Collect paths for easy reference
+          .thru(
+            (p) -> _.merge p, dir:
+              client:  p.client.path
+              server:  p.server.path
+              vendor:  p.vendor.path
+              compile: p.compile.path
+              build:   p.build.path
+              deploy:  p.deploy.path
+              docs:    p.docs.path
+          )
+          .value()
 
-          try require(env.configPath)
-          catch error
-            logger.error 'Could not load project config', error
-            null
+        deferred.resolve project
+    deferred.promise
 
-      _smashfile = _.merge smashfile, project
-
-      _smashfile.dir =
-        client:  _smashfile.client.path
-        server:  _smashfile.server.path
-        vendor:  _smashfile.vendor.path
-        compile: _smashfile.compile.path
-        build:   _smashfile.build.path
-        deploy:  _smashfile.deploy.path
-        docs:    _smashfile.docs.path
-      _smashfile.env = environment
-
-      _.assign self, _smashfile
-
-
-  Registry.register 'project', getProject,
+  # Register with Cation DI registry
+  Registry.register 'project', ProjectFactory,
+    type:      'factory'
     singleton: true
-    args: ['@platform', '@user', '@util']
+    args:      ['@util']
