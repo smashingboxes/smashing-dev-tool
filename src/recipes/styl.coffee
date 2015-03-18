@@ -25,5 +25,6 @@ module.exports =
           # Compile
           .pipe $.stylus()
           .on('error', (err) -> logger.error err.message)
+          .pipe $.myth()
           .pipe $.sourcemaps.write './maps'
           .pipe watching()

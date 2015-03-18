@@ -1,6 +1,6 @@
 {
   "name": "smashing-dev-tool",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Biko Tushinde",
   "repository": {
     "type": "git",
@@ -61,6 +61,7 @@
     "gulp-cssmin": "^0.1.6",
     "gulp-csso": "~1.0.0",
     "gulp-filter": "~2.0.2",
+    "gulp-flatten": "0.0.4",
     "gulp-git": "^1.0.0",
     "gulp-header": "~1.2.2",
     "gulp-htmlhint": "0.0.9",

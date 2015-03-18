@@ -90,11 +90,20 @@ module.exports = (Smasher) ->
     bx = for asset in ['vendor', 'images', 'fonts']
       recipes[asset].compile()
 
+    # Copy additional files
+    toMerge = []
+    toCopy = project.compile?.copy
+    if toCopy?
+      c = for cp in toCopy
+        k = (_.keys cp)[0]
+        v = (_.values cp)[0]
+        toMerge.push (gulp.src(k).pipe($.flatten()).pipe gulp.dest "#{dir.compile}/#{v}")
+
     # merge for joint 'end' event
-    merge [
-      merge ax
-      merge bx
-    ]
+    toMerge.push merge ax
+    toMerge.push merge bx
+    merge toMerge
+      .pipe $.using()
 
   # Compile assets and watch source for changes, recompiling on event
   Smasher.task 'compile:serve', ->
