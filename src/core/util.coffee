@@ -36,7 +36,7 @@ module.exports = (Registry) ->
       message: message
       group: type
     notifier.notify msg
-    @logger.info msg.message
+    logger.info msg.message
 
   # execute cli commands
   execute = (command, cb)->

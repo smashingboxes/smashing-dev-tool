@@ -115,8 +115,9 @@ module.exports = (Smasher) ->
       logPrefix:      'BrowserSync'
       logConnections: true
       logFileChanges: true
-      # logLevel:     'debug'
+      logLevel:     'debug'
       port:           8080
+      open: if args.mute then false else true
 
   # Remove previous compilation
   Smasher.task 'compile:clean', (done) ->
