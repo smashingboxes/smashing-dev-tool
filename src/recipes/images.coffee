@@ -5,7 +5,7 @@ module.exports =
   attach: ->
     self = @
     cfg =
-      imacss: 'images.css'
+      # imacss: 'images.css'
       imagemin:
         progressive: true
 

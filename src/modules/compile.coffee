@@ -113,9 +113,9 @@ module.exports = (Smasher) ->
       watchOptions:
         debounceDelay:  100
       logPrefix:      'BrowserSync'
-      logConnections: true
-      logFileChanges: true
-      logLevel:     'debug'
+      # logConnections: true
+      # logFileChanges: true
+      # logLevel:     'debug'
       port:           8080
       open: if args.mute then false else true
 
