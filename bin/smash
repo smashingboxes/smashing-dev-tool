@@ -10,7 +10,6 @@ Cation       = require 'cation'
 EventEmitter = require 'eventemitter3'
 pkg          = require '../package'
 Module       = require '../src/core/Module'
-# require('better-require')()
 
 log = null
 
