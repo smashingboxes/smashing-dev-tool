@@ -4,170 +4,163 @@ del     = require 'del'
 chalk   = require 'chalk'
 fs      = require 'fs'
 
-module.exports =
-  name:     'build'
-  init: (donee) ->
-    self = @
+module.exports = (Smasher) ->
+  {commander, assumptions, user, platform, project, recipes, util, helpers} = Smasher
+  {logger, notify, execute, merge, args} = util
+  {files, $, dest, onError, rootPath, pkg, logging} = helpers
+  {dir} = project
 
-    {commander, assumptions, rootPath, pkg, user, platform, project, util, helpers} = self
-    {logger, notify, execute, merge, args} = self.util
-    {files, $, dest, onError} = self.helpers
+  target        = project.dir?.build
+  buildOpts     = null
+  buildTasks    = null
+  includeVendor = null
+  includeIndex  = null
 
-    target        = self.project.dir?.build
-    buildOpts     = null
-    buildTasks    = null
-    includeVendor = null
-    includeIndex  = null
+  cfg =
+    ngAnnotate:
+      remove: true
+      add: true
+      single_quote: true
+    ngHtml2js:
+      moduleName: "templates-main"
+      prefix: ''
+    css2js:
+      splitOnNewline:          true
+      trimSpacesBeforeNewline: true
+      trimTrailingNewline:     true
+    uglify:
+      mangle: true
+      preserveComments: 'some'
 
-    cfg =
-      ngAnnotate:
-        remove: true
-        add: true
-        single_quote: true
-      uglify:
-        mangle: true
-        preserveComments: 'some'
+  Smasher.on 'clean', -> Smasher.startTask 'build:clean'
 
-    self.on 'clean', -> self.startTask 'build:clean'
+  ### ---------------- COMMANDS ------------------------------------------- ###
+  Smasher.command
+    cmd: 'build [target]'
+    alias: 'b'
+    description: 'build local assets for production based on Smashfile'
+    options: [
+      opt: '-c --cat'
+      description: 'Output injected index file for inspection'
+    ]
+    action: (_target) ->
+      buildOpts     = project.build or {}
+      target        = buildOpts.out or project.dir.build
+      includeVendor = if buildOpts.includeVendor? then buildOpts.includeVendor else true
+      includeIndex  = if buildOpts.includeIndex? then buildOpts.includeIndex else true
 
-    ### ---------------- COMMANDS ------------------------------------------- ###
-    @command
-      cmd: 'build [target]'
-      alias: 'b'
-      description: 'build local assets for production based on Smashfile'
-      options: [
-        opt: '-c --cat'
-        description: 'Output injected index file for inspection'
-      ]
-      action: (_target) ->
-        project = self.project
-        buildOpts = project.build or {}
-
-        target        = buildOpts.out or project.dir.build
-        includeVendor = if buildOpts.vendor? then buildOpts.vendor else true
-        includeIndex  = if buildOpts.index? then buildOpts.index else true
-
-        buildTasks = if includeIndex then ['build:index']
-        else ['build:assets']
-
-        self.startTask buildTasks
-
-
-
-    ### ---------------- TASKS ---------------------------------------------- ###
-
-    # Build assets and start server
-    @task 'build', ['build:index'], (done) ->
-      self.startTask 'build:serve'
-
-    # Build assets from compiled source
-    @task 'build:assets', ['build:clean', 'compile:assets'], ->
-      {recipes, project}                           = self
-      {files, dest, $, watching, logging, onError} = self.helpers
-      {logger, args, merge}                        = self.util
-      {dir, pkg}                                   = self.project
-
-      outfile = self.recipes.js.getOutFile()
-      target ?= 'build'
-
-      logger.info "Building assets from #{chalk.magenta './'+dir.compile} to #{chalk.red './'+target}"
+      buildTasks = if includeIndex then ['build:index']
+      else ['build:assets']
+      Smasher.startTask buildTasks
 
 
-      # app assets
-      _m1 = [
-        recipes['html'].build(false)
-        recipes['css'].build(false)
-        recipes['js'].build(false)
-      ]
-      _m1.push files('vendor', '.js')  if includeVendor
+  ### ---------------- TASKS ---------------------------------------------- ###
+  # Build assets and start server
+  Smasher.task 'build', ['build:index'], (done) ->
+    Smasher.startTask 'build:serve'
 
-      m1 = merge _m1
-        .pipe $.order [
-          '**/jquery.js'
-          '**/*jquery*.*'
-          '**/angular.js'
-          '**/*angular*.*'
-          'components/vendor/**/*'
-          'app.js'
-        ]
-        .pipe $.concat outfile
-        .pipe $.uglify cfg.uglify
-        .pipe $.if args.cat, $.cat()
+  # Build assets from compiled source
+  Smasher.task 'build:assets', ['build:clean', 'compile:assets'], ->
+    JSoutfile   = recipes.js.getOutFile()
+    CSSoutfile  = recipes.css.getOutFile()
+    HTMLoutfile = recipes.html.getOutFile()
+    css2js      = project.build.css2js
+    html2js     = project.build.html2js
+
+    target ?= 'build'
+    logger.info "Building assets from #{chalk.magenta './'+dir.compile} to #{chalk.red './'+target}"
 
 
-      # app data
-      m2 = merge [
-        recipes.images.build()
-        recipes.fonts.build()
-      ]
+    # ------------------CSS-----------------------
+    cssVendor = files('vendor', '.css', true)
+    cssApp    = recipes['css'].build(false)
+    _css = [ cssApp ]
+    _css.push cssVendor if includeVendor
+    css = merge _css
+      .pipe $.order project.build.styles.order
+      .pipe $.concat CSSoutfile
+      .pipe $.if css2js, $.css2js(cfg.css2js)
 
-      merge [m1, m2]
-        .pipe $.plumber()
-        .pipe gulp.dest target
+    # ------------------HTML-----------------------
+    htmlVendor = files('vendor', '.html', true)
+    htmlApp    = recipes['html'].build(false)
+    _html = [ htmlApp ]
+    _html.push htmlVendor if includeVendor
+    html = merge _html
+      .pipe $.if html2js, $.order      project.build.views.order
+      .pipe $.if html2js, $.ngHtml2js  cfg.ngHtml2js
+      .pipe $.if html2js, $.ngAnnotate cfg.ngAnnotate
+      .pipe $.if html2js, $.concat     HTMLoutfile
 
-
-    @task 'build:index', ['build:assets'], ->
-      {recipes} = self
-      {files, dest, $, watching, logging, onError} = self.helpers
-      {logger, args, merge} = self.util
-      {dir} = self.project
-
-      logger.verbose "Injecting built files into #{chalk.magenta 'index.jade'}"
-      appFiles = merge [
-        files('build', '.js', true)
-        files('build', '.css', false)
-      ]
-
-      files path:"#{dir.client}/index.jade"
-        .pipe logging()
-
-        .pipe $.inject appFiles,
-          name:         'app'
-          ignorePath:   'build'
-          addRootSlash: false
-
-        .pipe $.if args.cat, $.cat()
-
-        .pipe $.jade compileDebug:true
-        .on('error', (err) -> logger.error err.message)
-
-        .pipe gulp.dest target
-        .pipe logging()
+    # ------------------JS-------------------------
+    jsVendor = files('vendor', '.js', true)
+    jsApp    = recipes['js'].build(false)
+    _js = [ jsApp ]
+    _js.push jsVendor if includeVendor
+    _js.push css      if css2js
+    _js.push html     if html2js
+    js = merge _js
+      .pipe $.order project.build.scripts.order
+      .pipe $.concat JSoutfile
+      .pipe $.uglify cfg.uglify
+      .pipe $.if args.cat, $.cat()
 
 
-    @task 'build:serve', ->
-      $.browserSync
-        server:
-          baseDir:       target
-        watchOptions:
-          debounceDelay:  100
-        logPrefix:      'BrowserSync'
-        logConnections: args.verbose
-        logFileChanges: args.verbose
-        # logLevel:     'debug'
-        port:           8080
+    ### ------------------APP------------------ ###
+    app = [
+      js
+      recipes.images.build(false)
+      recipes.fonts.build(false)
+    ]
+    app.push css   unless css2js
+    app.push html  unless html2js
+    merge app
+      .pipe $.plumber()
+      .pipe gulp.dest target
 
 
-    @task 'build:clean', (done) ->
-      {dir, build} = project = self.project
-      toDelete = []
-      if fs.existsSync dir.build
-        logger.info "Deleting #{chalk.magenta './'+dir.build}"
-        del [dir.build], done
-      else if fs.existsSync build.out
-        logger.info "Deleting #{chalk.magenta './'+build.out}"
-        del [build.out], done
-      else
-        done()
-      #
-      # toDelete = toDelete.concat [dir.build]
-      # console.log toDelete
-      # #   .filter ((path) -> fs.existsSync path)
-      # #   .value()
-      # # console.log toDelete
-      #
-      # if toDelete.length
-      #   logger.info "Deleting #{chalk.magenta ('./'+d for d in toDelete).join(', ')}"
-      #   del toDelete, done
-      # else done()
-    donee()
+  Smasher.task 'build:index', ['build:assets'],  ->
+    logger.verbose "Injecting built files into #{chalk.magenta 'index.jade'}"
+    appFiles = merge [
+      files('build', '.js', true)
+      files('build', '.css', false)
+    ]
+
+    files path:"#{dir.client}/index.jade"
+      .pipe logging()
+
+      .pipe $.inject appFiles,
+        name:         'app'
+        ignorePath:   'build'
+        addRootSlash: false
+
+      .pipe $.if args.cat, $.cat()
+
+      .pipe $.jade compileDebug:true
+      .on('error', (err) -> logger.error err.message)
+
+      .pipe gulp.dest target
+      .pipe logging()
+
+  Smasher.task 'build:serve', ->
+    $.browserSync
+      server:
+        baseDir:       target
+      watchOptions:
+        debounceDelay:  100
+      logPrefix:      'BrowserSync'
+      logConnections: args.verbose
+      logFileChanges: args.verbose
+      # logLevel:     'debug'
+      port:           8080
+
+  Smasher.task 'build:clean', (done) ->
+    toDelete = []
+    if fs.existsSync dir.build
+      logger.info "Deleting #{chalk.magenta './'+dir.build}"
+      del [dir.build], done
+    else if fs.existsSync project.build.out
+      logger.info "Deleting #{chalk.magenta './'+project.build.out}"
+      del [project.build.out], done
+    else
+      done()

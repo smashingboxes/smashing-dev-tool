@@ -1,0 +1,38 @@
+body
+  background: #ddd
+  padding: 1em
+  text-align: center
+
+a, a:visited, a:active
+  color: black
+  text-decoration: none
+a:hover
+  text-decoration: underline
+
+
+
+.title
+  padding: 15px 0
+
+.main
+  .icon
+    position: absolute
+    padding-left: 5px
+    visibility: hidden
+
+md-item:hover
+  .icon
+    visibility: visible
+  a
+    color: rgb(233,30,99)
+    text-decoration: underline
+
+.logo
+  opacity: 0.6
+  transition: all 0.3s
+  width: 60px
+  margin: 25px 0 10px
+  padding: 0
+  &:hover
+    opacity: 1
+    width: 100px
