@@ -33,7 +33,7 @@
   "scripts": {},
   "preferGlobal": true,
   "dependencies": {
-    "broadway": "^0.3.6",
+    "broadway": "smashingboxes/broadway",
     "browser-sync": "^2.1.6",
     "cation": "^2.2.1",
     "chalk": "^0.5.1",
