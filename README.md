@@ -35,7 +35,67 @@ The `smash` command should now be available globally. Some commands are only ava
 
 
 
-# `Smash`-able Projects
+# `smash`-able Projects
+
+## Project Generation
+
+**Command**: `smash new <project-name>`
+
+Smashing Dev Tool borrows from the [Slush](http://slushjs.github.io/) project to allow for straight-forward, stream-based scaffolding from templates. A template consists of a list of questions contained in `prompts.json`, a `bower.json` manifest containing dependencies needed by the template, and a `smashfile.coffee` that has initial configuration used by the tool. The remaining files in a template have no restrictions, but should conform to the default Smashing Dev Tool folder assumptions, unless they are overridden in the included `smashfile.coffee`.
+
+During project generation, user input is gathered from the commandline and inserted into the template files using [gulp-template](https://github.com/sindresorhus/gulp-template). Variables can be used in template files as follows:
+
+`prompts.json`:
+```json
+[
+  {
+    "name": "appName",
+    "message": "What is the name of your project?",
+    "default": "Sample Application"
+  },
+  {
+    "name": "appDescription",
+    "message": "What is the description?",
+    "default": "A sample application."
+  }
+]
+```
+
+`client/index.jade`:
+```html
+doctype html
+head
+  title <%= appNameSlug %>
+
+body
+  div.container
+    h1 <%= appName %>
+    p <%= appDescription %>
+```
+
+Files prefixed with an `_` will be copied to the destination as dotfiles (`_bowerrc` -> `.bowerrc`) in the generated project. All other files will be copied directly, preserving directory structure and replacing template tags with the appropriate values. After generation, [gulp-install](https://github.com/slushjs/gulp-install) will run `bower install` and/or `npm install` inside the project directory. [gulp-conflict](https://github.com/slushjs/gulp-conflict) will prompt the user for action if the project directory contains file conflicts.
+
+_**Note**: at minimum, `appName` is required in `prompts.json` to create a project_
+
+_**Note**: the variable `appNameSlug` is a hyphen-delimited version of `appName` automatically generated and available for use within your templates._
+
+
+## Compling Code
+
+**Command**: `smash compile`
+
+The compile phase transforms code located in `/client` into browser-ready code located in `/compile`. Preprocessors are run against files with the appropriate extensions (`.coffee`, `.jade`, `.styl`, `.scss`, etc.)
+
+
+
+
+
+
+## Documentation Generation
+**Command**: `smash docs`
+
+Smashing Dev Tool currently uses [Groc](https://github.com/nevir/groc) to generate a static documentation site in `<project-folder>/docs`. A `.groc.json` file will be dynamically generated each time the command is run and contains settings required for Groc. These settings are based on the local `bower.json` and settings in `smashfile.coffee`.
+
 
 ## Example Smashfile
 
@@ -58,53 +118,6 @@ module.exports =
     client: 'WebContent'
     server: 'src'
 ```
-
-## Project Generation
-
-**Command**: `smash new <project-name>`
-
-Smashing Dev Tool borrows from the [Slush](http://slushjs.github.io/) project to allow for straight-forward, stream-based scaffolding from templates. A template consists of a list of questions contained in `prompts.json`, a `bower.json` manifest containing dependencies needed by the template, and a `smashfile.coffee` that has initial configuration used by the tool. The remaining files in a template have no restrictions, but should conform to the default Smashing Dev Tool folder assumptions, unless they are overridden in the included `smashfile.coffee`.
-
-During project generation, user input is gathered from the commandline and inserted into the template files using [gulp-template](https://github.com/sindresorhus/gulp-template). Variables can be used in template files as follows:
-
-`prompts.json`:
-```
-[
-  {
-    "name": "appName",
-    "message": "What is the name of your project?",
-    "default": "default.commander.appName"
-  },
-  {
-    "name": "appDescription",
-    "message": "What is the description?",
-    "default": "A sample application."
-  }
-]
-```
-
-`client/index.jade`:
-```
-doctype html
-head
-  title <%= appNameSlug %>
-
-body
-  div.container
-    h1 <%= appName %>
-    p <%= appDescription %>
-```
-
-Files prefixed with an `_` will be copied to the destination as dotfiles (`_bowerrc` -> `.bowerrc`) in the generated project. All other files will be copied directly, preserving directory structure and replacing template tags with the appropriate values. After generation, [gulp-install](https://github.com/slushjs/gulp-install) will run `bower install` and/or `npm install` inside the project directory. [gulp-conflict](https://github.com/slushjs/gulp-conflict) will prompt the user for action if the project directory contains file conflicts.
-
-_**Note**: at minimum, `appName` is required in `prompts.json` to create a project_
-
-_**Note**: the variable `appNameSlug` is a hyphen-delimited version of `appName` automatically generated and available for use within your templates._
-
-## Documentation Generation
-**Command**: `smash docs`
-
-Smashing Dev Tool currently uses [Groc](https://github.com/nevir/groc) to generate a static documentation site in `<project-folder>/docs`. A `.groc.json` file will be dynamically generated each time the command is run and contains settings required for Groc. These settings are based on the local `bower.json` and settings in `smashfile.coffee`.
 
 
 ## TODO/Future
