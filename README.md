@@ -1,6 +1,6 @@
 # Smashing Dev Tool
 
-This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automation. By following the conventions this tool is built on, you can instantly add front end tooling and dev ops goodness to any Smashing project. Define which asset types you want to include in your Smashfile and it will build a data model of your source code that can be manipulated and queried by other modules.
+This is a WIP CLI for Smashing Boxes, focusing on frontend tooling and automation. By following the conventions this tool is built on, you can instantly add front end tooling and dev ops goodness to any Smashing Boxes project. Define which asset filetypes you want to include in your Smashfile and it will build a data model of your source code that can be manipulated and queried by other modules.
 
 The goal of this project is to provide a general toolset for building optimized, well-tested client-side applications with or without backend integration. For this reason, no assumptions are made about 3rd-party libraries that might be used in a given project. Still, some assumptions must be made to maintain a relatively small set of all-purpose commands. Most of these assumptions are captured in `/src/config/_smashfile.coffee` and can be overridden in the Smashfile for a given project.
 
@@ -153,7 +153,7 @@ module.exports =
       'client/data/sample/**/*'
     ]
     styles:
-      out: 'sample-app.min.css'      # override default concat'd styles filename
+      out: 'sample-app.min.css'      # override default concat'd styles filename (css2js)
       order: [                       # re-order styles for injection and concatenation
         'app.css'
         '**/*.css'
@@ -169,8 +169,7 @@ module.exports =
         'app.js'
       ]
     views:
-      out: 'pixi-renderer-views.js'  # override default concat'd scripts filename
-      order: []
+      out: 'sample-app-views.js'     # override default concat'd views filename (html2js)
 
     alternates: [
       [
