@@ -1,6 +1,6 @@
 {
   "name": "smashing-dev-tool",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": "Biko Tushinde",
   "repository": {
     "type": "git",
@@ -114,8 +114,8 @@
     "winston": "^1.0.0"
   },
   "engines": {
-    "node": "~0.10.x",
-    "npm": "~2.5.x"
+    "node": "~0.10.32",
+    "npm": "~2.7.4"
   },
   "licenses": [],
   "contributors": []
