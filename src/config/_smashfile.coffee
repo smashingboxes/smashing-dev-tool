@@ -6,10 +6,6 @@ represent the default config for a given version of this tool, and are merged
 with the contents of the smashfile for a given project at runtime.
 ###
 
-# TODO: create per-template smashfiles that can be used as a base config starting point
-# for projects generated from those templates as well as other projects on the system
-#   EX:  `base: 'angular-simple'`
-
 
 module.exports =
   # --- Per-project Smashfiles can't override: ---
