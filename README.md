@@ -111,7 +111,7 @@ Smashing Dev Tool currently uses [Groc](https://github.com/nevir/groc) to genera
 
 ## Example Smashfile
 
-In each project the `smashfile.coffee` file contains local config used by smashing-dev-tool to compile/build/document client-side assets. Default assumptions made by the tool can be overridden here on a per-project basis.
+In each project the `smashfile.coffee` file contains local config used by `smashing-dev-tool` to compile/build/document client-side assets. Default assumptions made by the tool can be overridden here on a per-project basis. The following configuration overrides many of the default assumptions, but for basic projects only the `assets` array is really needed.
 
 ```coffee
 module.exports =
@@ -132,36 +132,35 @@ module.exports =
 
   # Global image asset settings
   images:
-    path: 'images'                    # override default image asst location (`/client/data/images`)
-
+    path: 'images'                   # override default image asset location (`/client/data/images`)
 
   # Compile phase settings
   compile:
-    copy: [                           # specify file glob patterns to copy directly
-      'client/**/*.data':''           # ex: '<file-pattern>':'<path/within/compile/directory>'
+    copy: [                          # specify file glob patterns to copy directly
+      'client/**/*.data':''          # ex: '<file-pattern>':'<path/within/compile/directory>'
     ]
 
   # Build phase settings
   build:
-    path:          'pkg'               # override default build path
-    html2js:       true                # compile HTML templates into a JS module
-    css2js:        true                # compile CSS styles into a JS module
-    includeIndex:  false               # include `index.{html,jade}` in built code
-    includeVendor: false               # include vendor libraries in built code
-    exclude: [                         # exclude glob patterns from built code
+    path:          'pkg'             # override default build path
+    html2js:       true              # compile HTML templates into a JS module
+    css2js:        true              # compile CSS styles into a JS module
+    includeIndex:  false             # include `index.{html,jade}` in built code
+    includeVendor: false             # include vendor libraries in built code
+    exclude: [                       # exclude glob patterns from built code
       'client/index.jade'
       'client/main/**/*'
       'client/data/sample/**/*'
     ]
     styles:
-      out: 'sample-app.min.css'       # override default concat'd styles filename
-      order: [                        # re-order styles for injection and concatenation
+      out: 'sample-app.min.css'      # override default concat'd styles filename
+      order: [                       # re-order styles for injection and concatenation
         'app.css'
         '**/*.css'
       ]
     scripts:
-      out: 'sample-app.min.js'        # override default concat'd scripts filename
-      order: [                        # re-order scripts for injection and concatenation
+      out: 'sample-app.min.js'       # override default concat'd scripts filename
+      order: [                       # re-order scripts for injection and concatenation
         '**/jquery.js'
         '**/*jquery*.*'
         '**/angular.js'
@@ -170,19 +169,18 @@ module.exports =
         'app.js'
       ]
     views:
-      out: 'pixi-renderer-views.js'   # override default concat'd scripts filename
+      out: 'pixi-renderer-views.js'  # override default concat'd scripts filename
       order: []
 
     alternates: [
       [
-        'client/app.coffee',          # use `client/app.coffee` during compile and serve
-        'client/app-build.coffee'     # use `client/app-build.coffee` when building for production
+        'client/app.coffee',         # use `client/app.coffee` during compile and serve
+        'client/app-build.coffee'    # use `client/app-build.coffee` when building for production
       ]
     ]
 ```
 
 _**Note**: the Smashfile format changes frequently as we attempt to strike a balance between convention and configuration._
-
 
 
 ## TODO/Future
