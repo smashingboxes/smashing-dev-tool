@@ -62,7 +62,7 @@ During project generation, user input is gathered from the commandline and inser
 ```
 
 `client/index.jade`:
-```html
+```jade
 doctype html
 head
   title <%= appNameSlug %>
