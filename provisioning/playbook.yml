@@ -2,10 +2,42 @@
 - hosts: all
   user: vagrant
 
+  vars:
+    nvm_dir:          /opt/nvm
+    # nvm_dir:          ~/.nvm
+    nvm_version:      0.25.4
+    nvm_exec:         {{nvm_exec}}/nvm-exec
+
+    node_version:      0.10.32
+    node_dir:          "{{ nvm_dir }}/v{{ node_version }}/bin"
+
+    npm_version:      2.7.4
+    npm_dir:          "{{ node_dir }}/npm"
+
+    src_dir:          /usr/local/src/smash
+    src_repo:         git://github.com/smashingboxes/smashing-dev-tool.git
+    src_branch:       master
+    src_global_deps:
+        - coffee-script
+        - bower
+
+  # tasks:
+  #   - name: install global node dependencies
+  #     npm: name={{ item }} global=yes executable={{ npm_dir }} state=present
+  #     with_items: src.global_deps
+  #     tags: app
+  #
+  #   - name: clone smashing-dev-tool repo
+  #     git: repo={{ src_repo }} version={{ src_branch }} dest={{ src_dir }}
+  #     tags: app
+  #
+  #   - name: install smashing-dev-tool dependencies
+  #     npm: path={{ src_dir }} executable={{ npm_dir }} state=present
+  #     tags: app
+
   roles:
-    - common
-    - { role: "azavea.virtualbox" }
-    # - ruby
-    - nodejs
-    - app
-    - { role: "ChengLong.zsh" }
+    # - common
+    # - nodejs
+    - nvm
+    # - { role: "azavea.virtualbox" }
+    # - { role: "ChengLong.zsh" }

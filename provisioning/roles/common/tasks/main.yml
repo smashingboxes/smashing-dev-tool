@@ -4,17 +4,13 @@
   apt: update-cache=yes
   tags: common
 
-- name: update language
-  sudo: yes
-  apt: pkg=language-pack-en
-  tags: common
-
-- name: install developer tools
+- name: install system tools
   sudo: yes
   apt: pkg={{ item }} state=present
   with_items:
-    - linux-headers-generic
+    # - linux-headers-generic
     - build-essential
-    - dkms
+    - libssl-dev
+    # - dkms
     - git
   tags: common

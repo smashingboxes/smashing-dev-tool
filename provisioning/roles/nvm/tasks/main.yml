@@ -1,0 +1,64 @@
+---
+- name: Install dependencies
+  apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
+  with_items:
+    - git
+    - curl
+    - build-essential
+    - libssl-dev
+  tags: nvm
+
+- stat: path={{ nvm_dir }}
+  register: nvm_path
+
+- name: Install nvm
+  sudo: yes
+  git: repo=https://github.com/creationix/nvm.git dest={{ nvm_dir }} version=v{{ nvm_version }}
+  when: nvm_path.stat.exists == false
+  tags: nvm
+
+- name: Source nvm in ~/.profile
+  sudo: yes
+  lineinfile: >
+    dest=~/.profile
+    line="source {{ nvm_dir }}/nvm.sh"
+  tags: nvm
+
+- name: Source the damn thing
+  sudo: yes
+  shell: "{{nvm_dir}}/nvm.sh"
+
+# - name: Source for this session
+#   sudo: no
+#   action: shell source {{ nvm_dir }}/nvm.sh
+
+# - name: add NVM to path
+#   lineinfile: >
+#     dest=/etc/environment
+#     state=present
+#     backrefs=yes
+#     regexp='PATH=(["]*)((?!.*?{{ nvm_dir }}/nvm.sh).*?)(["]*)$'
+#     line="PATH=\1\2:{{ nvm_dir }}/nvm.sh\3"
+
+
+- name: Install Node {{ node_version }}
+  command: "{{nvm_exec}} install {{ node_version }}"
+  register: nvm_install_result
+  # changed_when: "'is already installed.' not in nvm_install_result.stdout"
+
+  tags: nvm
+# #
+
+
+
+# - name: Check if {{ node_version }} is the default node version
+#   shell: nvm ls | grep -e 'default -> {{ node_version }}'
+#   register: nvm_check_default
+#   changed_when: false
+#   ignore_errors: true
+#   tags: nvm
+#
+# - name: Set default node version to {{ node_version }}
+#   command: nvm alias default {{ node_version }}
+#   when: nvm_check_default | failed
+#   tags: nvm

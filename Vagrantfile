@@ -18,5 +18,4 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ansible.sudo = true
   end
 
-
 end
