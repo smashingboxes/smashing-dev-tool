@@ -1,9 +1,0 @@
----
-- name: install nvm
-  git: repo=https://github.com/creationix/nvm.git dest={{nvm.dir}}
-
-- name: install node using nvm
-  shell: . {{nvm.dir}}/nvm.sh && nvm install {{node.version}} creates={{node.dir}} executable=/bin/bash
-
-- name: update npm to requested version
-  npm: name=npm global=yes executable={{npm.exec}} version={{npm.version}}
