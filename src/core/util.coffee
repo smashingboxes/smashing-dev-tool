@@ -3,6 +3,7 @@ notifier    = require 'node-notifier'
 exec        = require('child_process').exec
 streamqueue = require 'streamqueue'
 args        = require('minimist')(process.argv.slice 2)
+spawn         = require('child_process').spawn
 
 
 module.exports = (Registry) ->
@@ -39,11 +40,14 @@ module.exports = (Registry) ->
     logger.info msg.message
 
   # execute cli commands
-  execute = (command, cb)->
-    exec command, (err, stdout, stderr) ->
-      logger.indo stdout
-      logger.error stderr if stderr
-      cb err
+  execute = (command, cb) ->
+    command = command.split(' ')
+    cmd     = spawn command.shift(), command
+    cmd.stdout.on 'data', (data) -> console.log data?.toString()
+    cmd.stderr.on 'data', (data) -> console.error data?.toString()
+    cmd.on 'exit', (code) ->
+      logger.verbose 'execute(): child process exited with code ' + code
+      cb?()
 
   # Returns a new stream composed of all argument streams
   merge = (streams) ->

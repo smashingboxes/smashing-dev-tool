@@ -1,16 +1,21 @@
-_ =             require 'underscore'
-_.str =         require 'underscore.string'
-gulp =          require 'gulp'
-chalk =         require 'chalk'
-inquirer =      require 'inquirer'
-fs =            require 'fs'
+_             = require 'underscore'
+_.str         = require 'underscore.string'
+gulp          = require 'gulp'
+chalk         = require 'chalk'
+inquirer      = require 'inquirer'
+fs            = require 'fs'
+del           = require 'del'
+path          = require 'path'
+open          = require 'open'
+spawn         = require('child_process').spawn
+streamToPromise = require 'stream-to-promise'
 
-prompts = []
-answers = {}
-target = null
-template = null
+prompts       = []
+answers       = {}
+target        = null
+template      = null
 templateFiles = null
-overwriteDir = false
+overwriteDir  = false
 
 templates = [
   # 'ember-simple'
@@ -21,16 +26,16 @@ templates = [
   # 'angular-material-amd'
 ]
 
-replaceDot = (path) ->
-  if path.basename[0] is "_"
-    path.basename = ".#{path.basename.slice 1}"
-  path
+replaceDot = (p) ->
+  if p.basename[0] is "_"
+    p.basename = ".#{p.basename.slice 1}"
+  p
 
 
 module.exports = (Smasher) ->
   {commander, assumptions, user, platform, project, util, helpers} = Smasher
   {logger, notify, execute, merge, args} = util
-  {files, $, dest, rootPath, pkg} = helpers
+  {files, $, dest, rootPath, pkg, logging} = helpers
 
 
   ### ---------------- COMMANDS ------------------------------------------- ###
@@ -46,9 +51,18 @@ module.exports = (Smasher) ->
     cmd: 'generate <name>'
     alias: 'g'
     description: 'generate component from template'
+    options: [
+      opt: '--name,-n'
+      description: 'Name of the component element'
+    ]
     action: (name, options) ->
-      target = name
-      Smasher.startTask 'generate:component'
+
+      # target = args._.pop()
+      if project.generator?
+        Smasher.startTask 'generate:component'
+      else
+        logger.error "No generator defined in Smashfile"
+
 
   ### ---------------- TASKS ---------------------------------------------- ###
   # Handle existing folder
@@ -92,6 +106,7 @@ module.exports = (Smasher) ->
       templateFiles = ->
         gulp.src [
           "!#{rootPath}/src/templates/#{template}/prompts.json"
+          "!#{rootPath}/src/templates/#{template}/generate"
           "#{rootPath}/src/templates/#{template}/**/*"
         ]
       done()
@@ -122,5 +137,110 @@ module.exports = (Smasher) ->
 
   # Scaffold Tasks
   Smasher.task 'generate:component', (done) ->
-    logger.info "Generating #{chalk.magenta('components/' + target)}"
-    done()
+    target   = args._.pop()
+    nameSlug = target.split('/').pop()
+    type     = args._.pop()
+
+    prefix = switch type
+      when 'directive' then "components"
+      when 'controller', 'factory', 'service' then ""
+
+    logger.info "Generating new #{chalk.green(type)} in #{chalk.magenta(target)}"
+    data =
+      name:         args.name
+      nameSlug:     nameSlug
+      appName:      project.pkg.bower.name
+      templatePath: target
+
+    logger.data data
+
+    gulp.src "#{rootPath}/src/templates/#{project.generator}/generate/#{type}/**/*"
+      .pipe $.template data
+
+      .pipe $.rename (p) ->
+        p.basename = p.basename.replace 'template', nameSlug
+        p
+      .pipe $.conflict "#{project.dir.client}/#{target}"
+      .pipe gulp.dest "#{project.dir.client}/#{target}"
+      .pipe $.using()
+
+
+  ## Electron Wrapper
+  devMode = false
+  Smasher.command
+    cmd: 'electron'
+    alias: 'e'
+    description: 'build with Electron wrapper'
+    options: [
+      opt:'--dev'
+      description:'Load dev server URL rather than index.html'
+    ]
+    action: (sub, options) ->
+      if @dev
+        devMode = true
+      if _.isString sub
+        Smasher.startTask "electron:#{sub}"
+      else
+        Smasher.startTask 'electron:run'
+
+  Smasher.task 'electron:clean', (done) ->
+    for d in ['release', 'cache']
+      if fs.existsSync dx = "./#{d}"
+        logger.info "Deleting #{chalk.magenta dx}"
+        del [dx]
+
+  Smasher.task 'electron:run', ['electron:build'], (done) ->
+    logger.info "Launching app in Electron"
+    gulp.src("**/#{project.pkg.npm.name}.app")
+      .pipe logging()
+      .pipe $.tap (file) ->
+        electron = "./#{file.relative}/Contents/MacOS/Electron"
+        source   = project.dir.compile
+        util.execute "#{electron} #{source}"
+
+  Smasher.task 'electron:ensure-index', (done) ->
+    logger.info "Ensuring app is electron-compatible..."
+
+    g = files('compile')
+      .pipe $.using()
+      .pipe $.expectFile {reportUnexpected:false, errorOnFailure:true}, project.electron.entryPoint
+
+    (streamToPromise g)
+      .then -> done()
+      .catch (error) ->
+        logger.error 'Could not find JS entrypoint for Electron, injecting bootstrap script'
+        file   = "file://#{project.env.cwd}/#{project.dir.compile}/index.html"
+        server = "http://localhost:8080"
+        url    = if devMode then server else file
+
+        s = gulp.src "#{helpers.rootPath}/src/modules/generate/index.coffee"
+          .pipe $.using()
+          .pipe $.template appUrl: url
+          .pipe $.coffee()
+          .pipe dest.compile()
+        (streamToPromise s)
+          .then -> done()
+
+
+    return
+
+  Smasher.task 'electron:build', ['electron:ensure-index'], (done) ->
+    logger.info "Building app in Electron wrapper"
+    pkgJson = project.pkg.npm
+    pkgJson.main = project.electron.entryPoint
+    gulp.src('')
+      .pipe $.electron
+        src:               project.electron.src
+        packageJson:       pkgJson
+        release:           project.electron.release
+        cache:             project.electron.cache
+        version:           project.electron.version
+        packaging:         project.electron.packaging
+        platforms:         project.electron.platforms
+        platformResources:
+          darwin:
+            CFBundleDisplayName: project.pkg.npm.name
+            CFBundleIdentifier:  project.pkg.npm.name
+            CFBundleName:        project.pkg.npm.name
+            CFBundleVersion:     project.pkg.npm.version
+            # icon:                'gulp-electron.icns'
