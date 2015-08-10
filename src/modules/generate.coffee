@@ -18,6 +18,8 @@ templates = [
   # 'react-simple'
   'angular-bootstrap-simple'
   'angular-material-simple'
+  'angular-webpack'
+  'webpack-simple'
   # 'angular-material-amd'
 ]
 
