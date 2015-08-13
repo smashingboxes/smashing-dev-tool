@@ -1,0 +1,56 @@
+---
+- name: Install nvm
+  sudo: yes
+  sudo_user: vagrant
+  git: repo={{  nvm_repo }} dest={{ nvm_dir }} version=v{{ nvm_version }}
+  tags: nvm
+
+- name: Source nvm in ~/.profile
+  sudo: yes
+  sudo_user: vagrant
+  lineinfile: >
+    dest=~/.profile
+    line="source ~/.nvm/nvm.sh"
+  tags: nvm
+
+- name: Install Node
+  sudo: yes
+  sudo_user: vagrant
+  command: sudo -iu vagrant nvm install {{ node_version }}
+  register: nvm_install_result
+  changed_when: "'is already installed.' not in nvm_install_result.stdout"
+  tags: nvm
+
+- name: Ensure correct Node version
+  sudo: yes
+  sudo_user: vagrant
+  shell: sudo -iu vagrant nvm ls | grep -e 'default -> {{ node_version }}'
+  register: nvm_check_default
+  changed_when: false
+  ignore_errors: true
+  tags: nvm
+
+- name: Set default Node version
+  sudo: yes
+  sudo_user: vagrant
+  command: sudo -iu vagrant nvm alias default {{ node_version }}
+  when: nvm_check_default | failed
+  tags: nvm
+
+
+
+- name: Ensure correct NPM version
+  sudo: yes
+  sudo_user: vagrant
+  shell: sudo -iu vagrant npm -v | grep -e '{{ npm_version }}'
+  register: npm_check_default
+  changed_when: false
+  ignore_errors: true
+  tags: npm
+
+- name: Update NPM
+  sudo: yes
+  sudo_user: vagrant
+  command: sudo -iu vagrant npm install -g npm@{{ npm_version }}
+  when: npm_check_default | failed
+  tags: npm

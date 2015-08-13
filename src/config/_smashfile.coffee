@@ -39,6 +39,10 @@ module.exports =
 
 
   # --------------------- Phases
+  # Modules
+  # modules:
+  #   suffix: '_module'
+
   # Testing
   test:
     prefix: 'test_'
@@ -53,14 +57,21 @@ module.exports =
     path:        'compile'
     html2js:     true
     css2js:      true
-    skipPlugins: []
-    exclude:     []
+    skipPlugins: [ ]
+    exclude:     [ ]
 
-    styles:      {}
-    views:       {}
-    scripts:     {}
-    images:      {}
-    fonts:       {}
+    styles:      { }
+    views:       { }
+    scripts:     { }
+    images:      { }
+    fonts:       { }
+
+    styles:
+      order: [ ]
+    views:
+      order: [ ]
+    scripts:
+      order: [ ]
 
   # Build Phase
   build:
@@ -80,14 +91,7 @@ module.exports =
       order: [ ]
     scripts:
       out: 'app.min.js'
-      order: [
-        '**/jquery.js'
-        '**/*jquery*.*'
-        '**/angular.js'
-        '**/*angular*.*.js'
-        'components/vendor/**/*.js'
-        'app.js'
-      ]
+      order: [ ]
 
     alternates: [ ]
 

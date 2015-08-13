@@ -43,13 +43,12 @@ module.exports =
         css2js = self.project.build.css2js
 
         stream
-          .pipe $.myth cfg.myth
+          # .pipe $.myth cfg.myth
           # .pipe $.csso cfg.csso
           .pipe $.cssmin()
 
           # .pipe $.concat outfile
           # .pipe $.if css2js, $.css2js(cfg.css2js)
-          .on('error', onError)
+          # .on('error', onError)
 
           # .pipe $.wrapAmd()
-          # .pipe logging()

@@ -12,6 +12,7 @@ module.exports = (Smasher) ->
   {files, $, dest, logging,rootPath, pkg} = helpers
   {dir, assets, supportedAssets} = project
 
+
   target = null
   compileTasks = ['compile:assets', 'compile:index']
   compileStream = null
@@ -46,8 +47,8 @@ module.exports = (Smasher) ->
       vendorFiles = files('vendor', '*', false)
         .pipe $.order(project.build.scripts.order)
       appFiles = merge [
-        files('compile', '.js', true) #.pipe $.angularFilesort()
-        files('compile', '.css', false)
+        files('compile', '.js', true).pipe $.order(project.compile.scripts.order)
+        files('compile', '.css', false).pipe $.order(project.compile.styles.order)
       ]
 
       files path:"#{dir.client}/index.jade"
@@ -62,6 +63,7 @@ module.exports = (Smasher) ->
           addRootSlash: false
         .pipe $.if args.cat, $.cat()
         .pipe $.jade pretty:true, compileDebug:true
+        .pipe $.order(project.compile.views.order)
         .on('error', (err) -> logger.error err.message)
         .pipe dest.compile()
         .pipe $.reload stream:true
@@ -103,7 +105,7 @@ module.exports = (Smasher) ->
     toMerge.push merge ax
     toMerge.push merge bx
     merge toMerge
-      .pipe $.using()
+      # .pipe $.using()
 
   # Compile assets and watch source for changes, recompiling on event
   Smasher.task 'compile:serve', ->

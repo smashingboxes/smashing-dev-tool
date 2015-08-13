@@ -25,8 +25,8 @@ module.exports = (Smasher) ->
       moduleName: "templates-main"
       prefix: ''
     css2js:
-      splitOnNewline:          true
-      trimSpacesBeforeNewline: true
+      splitOnNewline:          false
+      trimSpacesBeforeNewline: false
       trimTrailingNewline:     true
     uglify:
       mangle: true
@@ -131,7 +131,7 @@ module.exports = (Smasher) ->
 
       .pipe $.inject appFiles,
         name:         'app'
-        ignorePath:   'build'
+        ignorePath:   dir.build
         addRootSlash: false
 
       .pipe $.if args.cat, $.cat()
