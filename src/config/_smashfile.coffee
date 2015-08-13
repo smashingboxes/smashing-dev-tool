@@ -98,3 +98,15 @@ module.exports =
   # Deploy Phase
   deploy:
     path: 'deploy'
+
+
+
+  # Electron Wrapper
+  electron:
+    entryPoint: 'compile/index.js'
+    src:        'compile'
+    release:    'release'
+    cache:      'cache'
+    version:    'v0.30.0'
+    packaging:  false
+    platforms:  ['darwin-x64']

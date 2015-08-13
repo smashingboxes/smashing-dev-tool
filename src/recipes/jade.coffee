@@ -44,7 +44,7 @@ module.exports =
           # .pipe $.jadeInheritance basedir:'client'
           # .pipe $.filter (file) -> !(/\/_/).test(file.path) || (!/^_/).test(file.relative)  # filter out partials (folders and files starting with "_" )
 
-          .pipe $.jade pretty:true, compileDebug:true
+          .pipe $.jade pretty:true, compileDebug:true, doctype:'html'
           .on('error', onError)
 
           # Convert to JS for templateCache
