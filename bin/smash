@@ -24,6 +24,7 @@ class Smasher extends Module
     require("../src/modules/#{a}")(@) for a in [
       'generate'
       'compile'
+      'compile-webpack'
       'build'
       'test'
       'serve'
