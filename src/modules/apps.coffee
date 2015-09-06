@@ -2,6 +2,10 @@
 argv    = require('minimist')(process.argv.slice 2)
 inquire = require 'inquirer'
 gulp    = require 'gulp'
+_ = require('underscore')
+chalk = require 'chalk'
+
+spawn = require('child_process').spawn
 
 module.exports = (Smasher) ->
   {commander, assumptions, user, platform, project, util, helpers} = Smasher
@@ -23,6 +27,18 @@ module.exports = (Smasher) ->
         .pipe $.git.commit "bumps package version -- #{importance}"
         .pipe $.filter ['bower.json']
         .pipe $.tagVersion(prefix:'')
+
+  # A simple wrapper around an Ansible deploy script
+  Smasher.command
+    cmd: 'deploy [environment]'
+    description: 'Deploy an application to a given enviornment. staging|development|production'
+    action: (environment='staging') ->
+      logger.info "Deploying to environment: #{chalk.green environment}"
+
+      deploySh = spawn 'sh', [ 'deploy.sh' ],
+        cwd: "#{process.cwd()}/devops/staging"
+        stdio: 'inherit'
+
 
 
   ### ---------------- TASKS ---------------------------------------------- ###
