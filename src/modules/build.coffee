@@ -102,6 +102,7 @@ module.exports = (Smasher) ->
     js = merge _js
       .pipe $.order project.build.scripts.order
       .pipe $.concat JSoutfile
+      .pipe $.ngAnnotate cfg.ngAnnotate
       .pipe $.uglify cfg.uglify
       .pipe $.if args.cat, $.cat()
 

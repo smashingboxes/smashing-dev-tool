@@ -95,6 +95,7 @@ module.exports = (Registry) ->
               build:   p.build.path
               deploy:  p.deploy.path
               docs:    p.docs.path
+              fonts:   p.fonts.path
           )
           .value()
 

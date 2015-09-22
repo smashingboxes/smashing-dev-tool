@@ -1,21 +1,22 @@
-_             = require 'underscore'
-_.str         = require 'underscore.string'
-gulp          = require 'gulp'
-chalk         = require 'chalk'
-inquirer      = require 'inquirer'
-fs            = require 'fs'
-del           = require 'del'
-path          = require 'path'
-open          = require 'open'
-spawn         = require('child_process').spawn
+_               = require 'underscore'
+_.str           = require 'underscore.string'
+gulp            = require 'gulp'
+chalk           = require 'chalk'
+inquirer        = require 'inquirer'
+fs              = require 'fs'
+del             = require 'del'
+path            = require 'path'
+open            = require 'open'
+spawn           = require('child_process').spawn
 streamToPromise = require 'stream-to-promise'
+source          = require 'vinyl-source-stream'
 
-prompts       = []
-answers       = {}
-target        = null
-template      = null
-templateFiles = null
-overwriteDir  = false
+prompts         = []
+answers         = {}
+target          = null
+template        = null
+templateFiles   = null
+overwriteDir    = false
 
 templates = [
   # 'ember-simple'
@@ -40,6 +41,19 @@ module.exports = (Smasher) ->
   {files, $, dest, rootPath, pkg, logging} = helpers
 
 
+  stringStream = (filename, string) ->
+    src = require('stream').Readable objectMode:true
+    src._read = ->
+      @push new $.util.File
+        cwd:      ''
+        base:     ''
+        path:     filename
+        contents: new Buffer string
+      @push null
+    src
+
+
+
   ### ---------------- COMMANDS ------------------------------------------- ###
   Smasher.command
     cmd: 'new <name>'
@@ -58,8 +72,6 @@ module.exports = (Smasher) ->
       description: 'Name of the component element'
     ]
     action: (name, options) ->
-
-      # target = args._.pop()
       if project.generator?
         Smasher.startTask 'generate:component'
       else
@@ -108,7 +120,7 @@ module.exports = (Smasher) ->
       templateFiles = ->
         gulp.src [
           "!#{rootPath}/src/templates/#{template}/prompts.json"
-          "!#{rootPath}/src/templates/#{template}/generate"
+          "!#{rootPath}/src/templates/#{template}/generate{,/**}"
           "#{rootPath}/src/templates/#{template}/**/*"
         ]
       done()
@@ -246,3 +258,49 @@ module.exports = (Smasher) ->
             CFBundleName:        project.pkg.npm.name
             CFBundleVersion:     project.pkg.npm.version
             # icon:                'gulp-electron.icns'
+
+
+
+
+
+  Smasher.command
+    cmd: 'clean:vendor'
+    action: ->
+      if fs.existsSync dx = "./client/components/vendor"
+        logger.info "Deleting #{chalk.magenta dx}"
+        del [dx]
+      else
+        logger.warn 'Could not find "./client/components/vendor"'
+
+
+  # Download Google Webfonts and generate CSS
+  Smasher.command
+    cmd: 'fonts [sub]'
+    action: (sub) ->
+      switch sub
+        when 'clean' then Smasher.startTask 'generate:fonts:clean'
+        else Smasher.startTask 'generate:fonts'
+
+  Smasher.task 'generate:fonts', ->
+    stream = null
+    if fonts = project.googleWebfonts
+      logger.info "Caching Google Webfonts in #{chalk.magenta project.dir.fonts}"
+      fontList = ("#{font}:#{weights}" for font, weights of fonts).join('\n') + '\n'
+      stream = stringStream 'fonts.list', fontList
+      stream
+        # .pipe $.cat()
+        .pipe $.googleWebfonts()
+        .pipe logging()
+        .pipe dest.fonts()
+
+    else
+      logger.warn 'No Google Web Fonts config specified'
+
+    stream
+
+  Smasher.task 'generate:fonts:clean', ->
+    if fs.existsSync dx = project.dir.fonts
+      logger.info "Deleting #{chalk.magenta dx}"
+      del [dx]
+    else
+      logger.warn "Could not find #{chalk.magenta project.dir.fonts}"

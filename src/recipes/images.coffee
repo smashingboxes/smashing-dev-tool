@@ -21,9 +21,9 @@ module.exports =
         {$, logging} = self.helpers
         stream
           .pipe logging()
-          .pipe $.imagemin()
+          # .pipe $.imagemin()
 
       buildFn: (stream) ->
         {$, logging} = self.helpers
         stream
-          .pipe logging()
+          # .pipe logging()

@@ -1,16 +1,17 @@
-gulp  = require 'gulp'
-_     = require 'lodash'
-del   = require 'del'
-chalk = require 'chalk'
-fs    = require 'fs'
-q     = require 'q'
+gulp    = require 'gulp'
+_       = require 'lodash'
+del     = require 'del'
+chalk   = require 'chalk'
+fs      = require 'fs'
+q       = require 'q'
+nodemon = require 'nodemon'
 
 
 module.exports = (Smasher) ->
-  {recipes, commander, recipes,  project, util, helpers} = Smasher
-  {logger, notify, execute, merge, args} = util
-  {files, $, dest, logging,rootPath, pkg} = helpers
-  {dir, assets, supportedAssets} = project
+  {recipes, commander, recipes, project, util, helpers} = Smasher
+  {logger, notify, execute, merge, args}                = util
+  {files, $, dest, logging, rootPath, pkg}              = helpers
+  {dir, assets, supportedAssets}                        = project
 
 
   target = null
@@ -33,6 +34,71 @@ module.exports = (Smasher) ->
       target = _target
       compileTasks.push 'compile:serve'  if args.watch
       Smasher.startTask compileTasks
+
+  # Run a local Node server if present
+  Smasher.command
+    cmd: 'server'
+    description: 'run local coffee server'
+    options: [
+      opt: '--nodemon'
+      description: 'Run the server under nodemon'
+    ]
+    action: ->
+      # Just run the server
+      unless args.nodemon
+        logger.info 'Starting local server...'
+        require("#{process.cwd()}/server")
+
+      # Run the server with Nodemon for development reload
+      else
+        logger.info "Starting local server with #{chalk.cyan 'nodemon'}"
+        name = chalk.magenta.underline "[#{project.pkg.npm.name or 'APP'}]"
+        app  = chalk.cyan "[nodemon]"
+        tag  = "#{app} #{name}"
+
+        config =
+          script:      "#{process.cwd()}/server/index.coffee"
+          ext:         'coffee js json'
+          restartable: 'rs'
+          verbose:     args.verbose
+          delay:       1000
+          stdout:      false
+          ignore: [
+            '.git'
+            'node_modules/**/node_modules'
+          ]
+          watch: [
+            "#{process.cwd()}/server/**/*.{coffee,js,json}"
+          ]
+          env:
+            NODE_ENV:  'development'
+
+        nodemon(config)
+          .on 'start', ->
+            logger.info "#{app} server starting"
+
+          .on 'restart', (files) ->
+            logger.info "#{app} restarting server..."
+            if files
+              logger.data chalk.yellow.bold 'files changed:'
+              for file in files
+                f = chalk.yellow (file.replace "#{process.cwd()}/", '')
+                logger.data "    #{f}"
+
+          .on 'crash', ->
+            logger.warn chalk.red "#{app} server CRASHED"
+
+          .on 'exit', ->
+            logger.info "#{app} server exiting"
+
+          .on 'stdout', (msg) ->
+            logger.info "#{tag} #{chalk.italic msg}"
+
+          .on 'log', ({type, message}) ->
+            if args.verbose
+              logger.verbose "#{app} #{message.replace process.cwd()+'/', ''}"
+
+
 
   ### ---------------- TASKS ---------------------------------------------- ###
   # Compile assets and start server

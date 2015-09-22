@@ -31,7 +31,7 @@ module.exports =
     path: 'data/images'
 
   fonts:
-    path: 'data/fonts'
+    path: 'client/data/fonts'
 
 
   # File types to handle for a project

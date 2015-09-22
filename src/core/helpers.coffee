@@ -224,6 +224,7 @@ module.exports = (Registry) ->
         deploy:        ->  gulp.dest dir.deploy
         client:        ->  gulp.dest dir.client
         compileVendor: ->  gulp.dest dir.vendor
+        fonts:         ->  gulp.dest dir.fonts
       # <br><br><br>
 
       ###
