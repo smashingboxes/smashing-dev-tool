@@ -61,7 +61,7 @@ module.exports = (Smasher) ->
           ext:         'coffee js json'
           restartable: 'rs'
           verbose:     args.verbose
-          delay:       1000
+          delay:       500
           stdout:      false
           ignore: [
             '.git'
