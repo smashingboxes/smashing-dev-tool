@@ -22,14 +22,16 @@ module.exports =
       lint:   false
       reload: true
       compileFn: (stream) ->
-        {$, caching, logging} = self.helpers
+        {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = self.helpers
+        {logger, notify, execute, merge, args} = self.util
         stream
           .pipe $.sourcemaps.init()
-          .pipe caching 'scss'
+          # .pipe caching 'scss'
           .pipe logging()
 
           # Lint
           # .pipe $.scssLint()
+          .pipe watching()
 
           # Compile
           .pipe $.sass()
