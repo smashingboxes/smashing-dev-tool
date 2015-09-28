@@ -22,14 +22,12 @@ module.exports =
       lint:   false
       reload: false
       compileFn: (stream) ->
-        {$, caching, logging, onError} = self.helpers
-        {args, merge} = self.util
-
+        {files, dest, $, logging, watching, caching, banner, plumbing, stopPlumbing, onError} = self.helpers
+        {logger, notify, execute, merge, args} = self.util
         stream
           .pipe $.sourcemaps.init()
-          .pipe caching 'scss'
-          # .pipe logging()
-          .pipe $.using()
+          # .pipe caching 'scss'
+          .pipe logging()
 
           # Lint
           # .pipe $.scssLint()
@@ -37,7 +35,6 @@ module.exports =
           # Compile
           .pipe $.sass()
           .pipe $.postcss(processors)
-          .on('error', onError)
-          # .on('error', (err) -> logger.error err.message)
+          .on('error', (err) -> logger.error err.message)
 
           .pipe $.sourcemaps.write './maps'
