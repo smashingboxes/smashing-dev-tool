@@ -20,13 +20,16 @@ module.exports =
       doc:    false
       test:   false
       lint:   false
-      reload: true
+      reload: false
       compileFn: (stream) ->
-        {$, caching, logging} = self.helpers
+        {$, caching, logging, onError} = self.helpers
+        {args, merge} = self.util
+
         stream
           .pipe $.sourcemaps.init()
           .pipe caching 'scss'
-          .pipe logging()
+          # .pipe logging()
+          .pipe $.using()
 
           # Lint
           # .pipe $.scssLint()
@@ -34,6 +37,7 @@ module.exports =
           # Compile
           .pipe $.sass()
           .pipe $.postcss(processors)
-          .on('error', (err) -> logger.error err.message)
+          .on('error', onError)
+          # .on('error', (err) -> logger.error err.message)
 
           .pipe $.sourcemaps.write './maps'
