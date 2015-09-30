@@ -108,7 +108,20 @@ module.exports = (Smasher) ->
 
   gulp.task 'swagger:mock', mockServer
   commands.mock = ->
-    validateSchema mockServer
+    validateSchema ->
+      mockServer()
+      commands.watch()
+
+
+
+
+  commands.watch = ->
+    logger.info "Watching #{chalk.magenta '.yml'} files for changes"
+    gulp.watch [
+      "#{paths.partials}/**/*.{yml,yaml}",
+      "!#{paths.partials}/**/swagger.{yml,yaml}"
+    ], ['swagger:validate']
+
 
   gulp.task 'swagger:validate', validateSchema
   commands.validate = ->
