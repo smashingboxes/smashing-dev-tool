@@ -25,6 +25,7 @@ class Smasher extends Module
       'generate'
       'compile'
       'compile-webpack'
+      'swagger'
       'build'
       'test'
       'serve'

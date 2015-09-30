@@ -99,6 +99,23 @@ module.exports =
   deploy:
     path: 'deploy'
 
+  # Swagger API Framework
+  swagger:
+    path:                     'schema'
+    port:                     3100
+    # uiSrc:                  'schema/ui'
+    uiUrl:                    '/docs'
+    schemaUrl:                '/api-docs'
+    schemaFile:               'swagger.json' # can be "swagger.json" or "swagger.yaml"
+    # schemaPath:               'schema/definitions'
+    partialsIndex:            'index.yml'
+    partialsDir:              'definitions'
+    controllersDir:           'controllers'
+    mockResponses:            true
+    parser:
+      dereferenceInternal$Refs: true
+      dereference$Refs:         true
+
 
 
   # Electron Wrapper
