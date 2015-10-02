@@ -33,8 +33,8 @@ module.exports =
           .pipe caching()
 
           # Lint
-          .pipe $.jshint jshintrc
-          .pipe $.jshint.reporter jsStylish
+          # .pipe $.jshint jshintrc
+          # .pipe $.jshint.reporter jsStylish
 
           # Post-process
           .pipe $.header banner
