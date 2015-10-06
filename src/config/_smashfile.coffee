@@ -13,7 +13,7 @@ module.exports =
 
 
   # --------------------- Config
-  # banner: ""
+  banner: ""
 
   # Client-side code
   client:
@@ -36,7 +36,6 @@ module.exports =
 
   # File types to handle for a project
   assets: [ ]
-
 
   # --------------------- Phases
   # Modules

@@ -29,7 +29,7 @@ module.exports = (Smasher) ->
     schemaSrc:     path.resolve sw.path, (sw.schemaPath or ''), sw.schemaFile  # or "schema/swagger.json"
     schemaUrl:                  sw.schemaUrl               # or "/api-docs"
     partialsIndex: path.resolve sw.path, sw.partialsDir, sw.partialsIndex
-    uiSrc:         path.resolve sw.uiSrc                   or "#{helpers.rootPath}/src/modules/swagger/ui"
+    uiSrc:         path.resolve sw.uiSrc                   or "#{helpers.rootPath}/src/modules/swagger/ui-dist"
     controllers:   path.resolve sw.path, sw.controllersDir #or "schema/controllers"
     partials:      path.resolve sw.path, sw.partialsDir    # or "schema/definitions"
     uiUrl:                      sw.uiUrl                   #or "/docs"
@@ -42,7 +42,7 @@ module.exports = (Smasher) ->
   commands = {}
   # Project schema commands via Swagger
   Smasher.command
-    cmd: 'swagger [command]'
+    cmd: 'schema [command]'
     description: 'Run a Swagger command on the local schema'
     action: (command='validate') ->
       if c = commands[command] then c()
@@ -110,9 +110,6 @@ module.exports = (Smasher) ->
   commands.mock = ->
     validateSchema ->
       mockServer()
-      commands.watch()
-
-
 
 
   commands.watch = ->
@@ -126,11 +123,7 @@ module.exports = (Smasher) ->
   gulp.task 'swagger:validate', validateSchema
   commands.validate = ->
     validateSchema ->
-      gulp.watch [
-        "#{paths.partials}/**/*.{yml,yaml}",
-        "!#{paths.partials}/**/swagger.{yml,yaml}"
-      ], ['swagger:validate']
-
+      commands.watch()
 
 
   ### ---------------- TASKS ---------------------------------------------- ###
