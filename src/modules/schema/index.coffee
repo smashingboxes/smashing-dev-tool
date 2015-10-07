@@ -21,7 +21,7 @@ swApp        = require('connect')()
 module.exports = (Smasher) ->
   {commander, assumptions, user, platform, project, util, helpers} = Smasher
   {logger, notify, execute, merge, args} = util
-  {files, dest, $, logging, watching, isBuilding, isCompiling, rootPath, pkg} = helpers
+  {files, dest, $, logging, watching, isBuilding, isCompiling, rootPath, pkg, pathExists} = helpers
 
   sw = project.swagger
 
@@ -52,27 +52,30 @@ module.exports = (Smasher) ->
 
   validateSchema = (done) ->
     console.log ''
-    logger.warn 'Validating Swagger schema...'
+    if pathExists paths.partialsIndex
+      logger.warn 'Validating Swagger schema...'
 
-    swagger.parse paths.partialsIndex, sw.parser, (err, api, metadata) ->
-      # Schema is valid
-      unless err
-        logger.info chalk.green "Validation SUCCESS"
-        logger.info "API name: #{chalk.blue api.info.title}, Version: #{chalk.blue api.info.version}"
-        logger.verbose u.inspect api, showHidden:false, depth:null
+      swagger.parse paths.partialsIndex, sw.parser, (err, api, metadata) ->
+        # Schema is valid
+        unless err
+          logger.info chalk.green "Validation SUCCESS"
+          logger.info "API name: #{chalk.blue api.info.title}, Version: #{chalk.blue api.info.version}"
+          logger.verbose u.inspect api, showHidden:false, depth:null
 
-        # Dynamically generate swagger.yaml
-        apiyaml = YAML.stringify api
-        logger.verbose apiyaml
-        fs.writeFile paths.schemaSrc, (JSON.stringify api), 'utf8', ->
-          logger.verbose "Generated dynamic #{chalk.green project.swagger.schemaFile} from project schema"
+          # Dynamically generate swagger.yaml
+          apiyaml = YAML.stringify api
+          logger.verbose apiyaml
+          fs.writeFile paths.schemaSrc, (JSON.stringify api), 'utf8', ->
+            logger.verbose "Generated dynamic #{chalk.green project.swagger.schemaFile} from project schema"
+            done()
+
+        # Schema is invalid
+        else
+          logger.error chalk.red "Validation FAILED"
+          logger.error pe.render err
           done()
-
-      # Schema is invalid
-      else
-        logger.error chalk.red "Validation FAILED"
-        logger.error pe.render err
-        done()
+    else
+      logger.error 'You need a local schema definition to use this command'
 
   mockServer = ->
     swaggerDoc = require paths.schemaSrc
@@ -111,14 +114,12 @@ module.exports = (Smasher) ->
     validateSchema ->
       mockServer()
 
-
   commands.watch = ->
     logger.info "Watching #{chalk.magenta '.yml'} files for changes"
     gulp.watch [
       "#{paths.partials}/**/*.{yml,yaml}",
       "!#{paths.partials}/**/swagger.{yml,yaml}"
     ], ['swagger:validate']
-
 
   gulp.task 'swagger:validate', validateSchema
   commands.validate = ->

@@ -4,7 +4,8 @@ _       = require 'lodash'
 moment  = require 'moment'
 q       = require 'q'
 gulp    = require 'gulp'
-chalk = require 'chalk'
+chalk   = require 'chalk'
+fs      = require 'fs'
 
 module.exports = (Registry) ->
   getHelpers = (project, util) ->
@@ -42,6 +43,14 @@ module.exports = (Registry) ->
     plumbing    = ->  $.if args.watch, $.plumber(errorHandler: onError)
     stopPlumbing = -> $.if args.watch, $.plumber.stop()
 
+    pathExists = (p) ->
+      try
+        fs.statSync(p)
+        return true
+      catch err
+        if args.verbose
+          logger.error err
+        return false
 
     self.helpers =
       rootPath: smashRoot
@@ -62,6 +71,7 @@ module.exports = (Registry) ->
       isBuilding:   isBuilding
       isCompiling:  isCompiling
       onError:      onError
+      pathExists:   pathExists
       # <br><br><br>
 
 
