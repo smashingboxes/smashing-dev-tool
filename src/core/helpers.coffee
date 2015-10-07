@@ -43,6 +43,7 @@ module.exports = (Registry) ->
     plumbing    = ->  $.if args.watch, $.plumber(errorHandler: onError)
     stopPlumbing = -> $.if args.watch, $.plumber.stop()
 
+    # See if a given path exists safely
     pathExists = (p) ->
       try
         fs.statSync(p)

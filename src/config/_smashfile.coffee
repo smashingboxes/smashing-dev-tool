@@ -39,8 +39,12 @@ module.exports =
 
   # --------------------- Phases
   # Modules
-  # modules:
-  #   suffix: '_module'
+  modules:
+    suffix: '-module'
+
+  # Partials
+  partials:
+    prefix: '_'
 
   # Testing
   test:
