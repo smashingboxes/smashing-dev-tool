@@ -153,6 +153,7 @@ module.exports = (Smasher) ->
       logConnections: args.verbose
       logFileChanges: args.verbose
       # logLevel:     'debug'
+      notify:         false
       port:           8080
 
   Smasher.task 'build:clean', (done) ->
