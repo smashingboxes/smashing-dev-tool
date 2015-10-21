@@ -7,6 +7,9 @@ gulp    = require 'gulp'
 chalk   = require 'chalk'
 fs      = require 'fs'
 
+require('dotenv').config(silent:true)
+
+
 module.exports = (Registry) ->
   getHelpers = (project, util) ->
     self      = @
@@ -40,6 +43,14 @@ module.exports = (Registry) ->
       $.util.beep()
       console.error err  if args.verbose
       @emit 'end'
+
+    # replace template strings with ENV data
+    templateReplace = (stream) ->
+      stream
+        .pipe $.data -> env:process.env
+        .pipe $.template()
+
+
     plumbing    = ->  $.if args.watch, $.plumber(errorHandler: onError)
     stopPlumbing = -> $.if args.watch, $.plumber.stop()
 
@@ -64,15 +75,16 @@ module.exports = (Registry) ->
       ###
       Shortcut for conditional logging, watching in a stream
       ###
-      logging:      logging
-      watching:     watching
-      plumbing:     plumbing
-      stopPlumbing: stopPlumbing
-      caching:      caching
-      isBuilding:   isBuilding
-      isCompiling:  isCompiling
-      onError:      onError
-      pathExists:   pathExists
+      logging:         logging
+      watching:        watching
+      plumbing:        plumbing
+      stopPlumbing:    stopPlumbing
+      caching:         caching
+      isBuilding:      isBuilding
+      isCompiling:     isCompiling
+      onError:         onError
+      templateReplace: templateReplace
+      pathExists:      pathExists
       # <br><br><br>
 
 
@@ -220,7 +232,11 @@ module.exports = (Registry) ->
             exclude:      chalk.yellow  globs.exclude
             buildExclude: chalk.yellow  globs.buildExclude
           console.log source
-        gulp.src(source, read: _read, base: dir[_target] or '')
+
+        gulp
+          .src(source, read: _read, base: dir[_target] or '')
+
+          # .pipe $.cat()
 
           # .pipe $.plumber(errorHandler: onError)
       # <br><br><br>

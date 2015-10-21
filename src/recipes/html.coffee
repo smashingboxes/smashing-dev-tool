@@ -27,10 +27,9 @@ module.exports =
       reload: true
       compileFn: (stream) ->
 
-        {$, caching, logging} = self.helpers
+        {$, caching, logging, templateReplace} = self.helpers
         {args} = self.util
-
-        stream
+        templateReplace stream
           .pipe caching()
           .pipe logging()
 

@@ -15,9 +15,9 @@ module.exports =
       lint:      true
       reload:    true
       compileFn: (stream) ->
-        {files, $, logging, caching, banner, onError} = self.helpers
+        {files, $, logging, caching, banner, onError, templateReplace} = self.helpers
 
-        stream
+        templateReplace stream
           .pipe caching()
           .pipe logging()
 
