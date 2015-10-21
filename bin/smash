@@ -23,14 +23,15 @@ class Smasher extends Module
     # register commands and tasks
     require("../src/modules/#{a}")(@) for a in [
       'generate'
+      'schema'
+      'apps'
+      'document'
       'compile'
       'compile-webpack'
       'build'
       'test'
       'serve'
       'clean'
-      'apps'
-      'document'
     ]
 
     # Configure Orchestrator instance

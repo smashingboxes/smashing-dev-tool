@@ -34,11 +34,13 @@ module.exports =
       lint:   false
       reload: true
       compileFn: (stream) ->
-        {files, dest, $, logging, caching, banner, onError} = self.helpers
+        {files, dest, $, logging, caching, banner, onError, templateReplace} = self.helpers
         {logger, args} = self.util
-        stream
+        templateReplace stream
+        # stream
           .pipe logging()
           .pipe caching()
+
 
           # Compile
           # .pipe $.jadeInheritance basedir:'client'

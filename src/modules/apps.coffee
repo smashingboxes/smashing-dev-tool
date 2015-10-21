@@ -45,56 +45,6 @@ module.exports = (Smasher) ->
         cwd: "#{process.cwd()}/devops/staging"
         stdio: 'inherit'
 
-  # Project schema commands via Swagger
-  Smasher.command
-    cmd: 'swagger [command]'
-    description: 'Run a Swagger command on the local schema'
-    action: (command='validate') ->
-      swOpts =
-        dereferenceInternal$Refs: true
-        dereference$Refs: true
-      schemaPath = 'api/swagger'
-      # gulp.src [
-      #   # "#{schemaPath}/**/*.{yaml,yml}"
-      #   "#{schemaPath}/**/swagger.{yaml,yml}"
-      # ]
-      #   .pipe $.using()
-      #   .pipe $.swagger
-      #     filename: 'api.js'
-      #     type: 'angular'
-      #   .pipe gulp.dest 'swDest'
-
-      validate = (done) ->
-        console.log ''
-        logger.warn 'Validating Swagger schema...'
-        swagger.parse "#{schemaPath}/index.yml", swOpts, (err, api, metadata) ->
-          # Schema is valid
-          unless err
-            logger.info chalk.green "Validation SUCCESS"
-            logger.info "API name: #{chalk.blue api.info.title}, Version: #{chalk.blue api.info.version}"
-            logger.verbose u.inspect api, showHidden:false, depth:null
-
-            # Dynamically generate swagger.yaml
-            apiyaml = YAML.stringify api
-            logger.verbose apiyaml
-            fs.writeFile "#{schemaPath}/swagger.json", (JSON.stringify api), 'utf8', ->
-              logger.verbose "Generated dynamic #{chalk.green 'swagger.yml'} from project schema"
-              done()
-
-          # Schema is invalid
-          else
-            logger.error chalk.red "Validation FAILED"
-            logger.error pe.render err
-            done()
-
-      validate ->
-        gulp.task 'swagger', validate
-        gulp.watch [
-          "#{schemaPath}/**/*.{yml,yaml}",
-          "!#{schemaPath}/**/swagger.{yml,yaml}"
-        ]
-        , ['swagger']
-
 
   ### ---------------- TASKS ---------------------------------------------- ###
   # Generate app manifest for offline mode

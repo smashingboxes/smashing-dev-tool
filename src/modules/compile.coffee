@@ -8,10 +8,10 @@ nodemon = require 'nodemon'
 
 
 module.exports = (Smasher) ->
-  {recipes, commander, recipes, project, util, helpers} = Smasher
-  {logger, notify, execute, merge, args}                = util
-  {files, $, dest, logging, rootPath, pkg}              = helpers
-  {dir, assets, supportedAssets}                        = project
+  {recipes, commander, recipes, project, util, helpers}     = Smasher
+  {logger, notify, execute, merge, args}                    = util
+  {files, $, dest, logging, rootPath, pkg, templateReplace} = helpers
+  {dir, assets, supportedAssets}                            = project
 
 
   target = null
@@ -117,7 +117,7 @@ module.exports = (Smasher) ->
         files('compile', '.css', false).pipe $.order(project.compile.styles.order)
       ]
 
-      files path:"#{dir.client}/index.jade"
+      templateReplace(files path:"#{dir.client}/index.jade")
         .pipe logging()
         .pipe $.inject appFiles,
           name:         'app'

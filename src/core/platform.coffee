@@ -1,8 +1,7 @@
 
-os           = require 'os'
+os     = require 'os'
 
-module.exports = (Registry) ->
-
+module.exports = (Registry) ->  
   platform =
     type:               os.type()
     platform:           os.platform()
