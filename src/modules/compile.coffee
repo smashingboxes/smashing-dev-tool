@@ -184,6 +184,7 @@ module.exports = (Smasher) ->
       # logConnections: true
       # logFileChanges: true
       # logLevel:     'debug'
+      notify:         false
       port:           8080
       open: if args.mute then false else true
 
