@@ -45,7 +45,7 @@ module.exports = (Registry) ->
             .pipe dest.compile()
             .pipe $.if @reload, watching()
 
-      # Build this recipe's compiled assets into optimized, packaged distrobutions
+      # Build this recipe's compiled assets into optimized, packaged distributions
       build: (write=true) =>
         target = dir.build
 
@@ -79,13 +79,23 @@ module.exports = (Registry) ->
       getOutFile: ->
         project.build["#{@type}s"].out or ''
 
-    RecipeManager = new broadway.App()
+    RecipeManager         = new broadway.App()
     RecipeManager.helpers = helpers
-    RecipeManager.util = util
+    RecipeManager.util    = util
     RecipeManager.project = project
     RecipeManager.recipes = []
+
     RecipeManager.load = (name) ->
       RecipeManager.use require "../recipes/#{name}"
+
+    RecipeManager.loadLocal = ->
+      if project.recipes?
+        logger.info 'Found local recipes, loading...'
+        for r in project.recipes
+          RecipeManager.use
+            name: "recipe-local-#{r.name}"
+            attach: -> @register r
+
     RecipeManager.register = (recipe={}) ->
       ext = if _.isArray recipe.ext then recipe.name else recipe.ext
       logger.verbose "Registering #{chalk.yellow 'recipe'} for #{chalk.magenta ext}"
@@ -93,7 +103,9 @@ module.exports = (Registry) ->
 
     # Compute relavent recipes based on project and load them
     logger.verbose 'Loading file recipes based on project config...'
+    RecipeManager.loadLocal()
     RecipeManager.load(r) for r in project.supportedAssets.concat ['vendor', 'images', 'fonts']
+
 
     RecipeManager.init ->
       logger.verbose 'Recipes loaded!'
