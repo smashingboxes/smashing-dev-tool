@@ -158,6 +158,11 @@ module.exports = (Smasher) ->
     bx = for asset in ['vendor', 'images', 'fonts']
       recipes[asset].compile()
 
+    # Load recipe definitions from Smashfile
+    cx = for asset in project.recipes or []
+      recipes[asset.name].compile()
+
+
     # Copy additional files
     toMerge = []
     toCopy = project.compile?.copy
@@ -170,6 +175,7 @@ module.exports = (Smasher) ->
     # merge for joint 'end' event
     toMerge.push merge ax
     toMerge.push merge bx
+    toMerge.push merge cx
     merge toMerge
       # .pipe $.using()
 
