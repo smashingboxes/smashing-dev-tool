@@ -21,7 +21,7 @@ swApp        = require('connect')()
 module.exports = (Smasher) ->
   {commander, assumptions, user, platform, project, util, helpers} = Smasher
   {logger, notify, execute, merge, args} = util
-  {files, dest, $, logging, watching, isBuilding, isCompiling, rootPath, pkg} = helpers
+  {files, dest, $, logging, watching, isBuilding, isCompiling, rootPath, pkg, pathExists} = helpers
 
   sw = project.swagger
 
@@ -40,9 +40,13 @@ module.exports = (Smasher) ->
 
   ### ---------------- COMMANDS ------------------------------------------- ###
   commands = {}
-  # Project schema commands via Swagger
+  # Schema-centric development using the [Swagger](http://swagger.io/) API framework
   Smasher.command
     cmd: 'schema [command]'
+    options: [
+      opt: '-w, --watch'
+      description: 'Watch YAML files and rebuild schema on file save'
+    ]
     description: 'Run a Swagger command on the local schema'
     action: (command='validate') ->
       if c = commands[command] then c()
@@ -50,30 +54,40 @@ module.exports = (Smasher) ->
         logger.error "Could not find command `#{chalk.red.bold 'swagger ' + command}`"
 
 
+  # Assemble a JSON schema document from component YML files
+  # and validate it against the Swagger spec
   validateSchema = (done) ->
-    console.log ''
-    logger.warn 'Validating Swagger schema...'
+    # Check for schema entry point
+    if pathExists paths.partialsIndex
+      console.log ''
+      logger.warn 'Validating Swagger schema...'
 
-    swagger.parse paths.partialsIndex, sw.parser, (err, api, metadata) ->
-      # Schema is valid
-      unless err
-        logger.info chalk.green "Validation SUCCESS"
-        logger.info "API name: #{chalk.blue api.info.title}, Version: #{chalk.blue api.info.version}"
-        logger.verbose u.inspect api, showHidden:false, depth:null
+      swagger.parse paths.partialsIndex, sw.parser, (err, api, metadata) ->
+        # Schema is valid
+        unless err
+          logger.info chalk.green "Validation SUCCESS"
+          logger.info "API name: #{chalk.blue api.info.title}, Version: #{chalk.blue api.info.version}"
+          logger.verbose u.inspect api, showHidden:false, depth:null
 
-        # Dynamically generate swagger.yaml
-        apiyaml = YAML.stringify api
-        logger.verbose apiyaml
-        fs.writeFile paths.schemaSrc, (JSON.stringify api), 'utf8', ->
-          logger.verbose "Generated dynamic #{chalk.green project.swagger.schemaFile} from project schema"
+          # Dynamically generate swagger.yaml
+          apiyaml = YAML.stringify api
+          logger.verbose apiyaml
+          fs.writeFile paths.schemaSrc, (JSON.stringify api), 'utf8', ->
+            logger.verbose "Generated dynamic #{chalk.green project.swagger.schemaFile} from project schema"
+            done()
+
+        # Schema is invalid
+        else
+          logger.error chalk.red "Validation FAILED"
+          logger.error pe.render err
           done()
 
-      # Schema is invalid
-      else
-        logger.error chalk.red "Validation FAILED"
-        logger.error pe.render err
-        done()
+    else
+      logger.error 'You need a local schema definition to use this command'
 
+
+  # Launch an express server that will respond with mock data based on your
+  # schema definition and controller stubs
   mockServer = ->
     swaggerDoc = require paths.schemaSrc
     logger.info 'Mocking API endpoints based on schema definition'
@@ -106,13 +120,8 @@ module.exports = (Smasher) ->
         g = chalk.green "(http://localhost:#{serverPort}#{paths.uiUrl})"
         logger.info "Your Swagger API is listening on port #{serverPort} #{g}"
 
-  gulp.task 'swagger:mock', mockServer
-  commands.mock = ->
-    validateSchema ->
-      mockServer()
-
-
-  commands.watch = ->
+  # Watch all local YAML files and run validation task on change
+  watch = ->
     logger.info "Watching #{chalk.magenta '.yml'} files for changes"
     gulp.watch [
       "#{paths.partials}/**/*.{yml,yaml}",
@@ -120,10 +129,13 @@ module.exports = (Smasher) ->
     ], ['swagger:validate']
 
 
-  gulp.task 'swagger:validate', validateSchema
+  commands.mock = ->
+    validateSchema ->
+      mockServer()
+
   commands.validate = ->
     validateSchema ->
-      commands.watch()
+      watch()  if args.watch
 
-
-  ### ---------------- TASKS ---------------------------------------------- ###
+  gulp.task 'swagger:mock', ['swagger:validate'], mockServer
+  gulp.task 'swagger:validate', validateSchema

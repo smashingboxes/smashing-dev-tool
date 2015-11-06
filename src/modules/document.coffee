@@ -25,11 +25,12 @@ module.exports = (Smasher) ->
     action: ->
       Smasher.startTask 'docs'
 
+
   ### ---------------- TASKS ---------------------------------------------- ###
   Smasher.task 'docs', ['docs:clean'], (done) ->
     # notify "Groc", "Generating documentation..."
     logger.info "Generating documentation in #{chalk.magenta './'+dir.docs}"
-    bower = project.pkg.bower
+    pkg = project.pkg.bower or project.pkg.npm
 
     docsGlob = ["**/*.md"]
     for asset in assets
@@ -42,10 +43,10 @@ module.exports = (Smasher) ->
         "#{dir.client}/index.jade"
       ]
       'index':            'README.md'
-      'index-page-title': "#{bower.name} - docs"
+      'index-page-title': "#{pkg.name} - docs"
       'github':           false
       'out':              dir?.docs
-      'repository-url':   bower.repository or ''
+      'repository-url':   pkg.repository or ''
       'silent':           args.mute
       'verbose':          args.verbose
     }, null, 2
@@ -56,7 +57,9 @@ module.exports = (Smasher) ->
       logger.info "Generated dynamic #{chalk.green '.groc.json'} from project config"  if args.verbose
 
       # Use our copy of Groc to generate documentation for the project
-      require("#{rootPath}/node_modules/groc").CLI [], (error)->
+      # require("#{rootPath}/node_modules/groc").CLI [], (error)->
+      console.log 'getting groc...'
+      require('groc').CLI [], (error)->
         process.exit(1) if error
         # notify "Groc", "Success!"
         open("#{dir.docs}/index.html")  unless args.mute

@@ -13,7 +13,7 @@ module.exports =
 
 
   # --------------------- Config
-  # banner: ""
+  banner: ""
 
   # Client-side code
   client:
@@ -37,11 +37,14 @@ module.exports =
   # File types to handle for a project
   assets: [ ]
 
-
   # --------------------- Phases
   # Modules
-  # modules:
-  #   suffix: '_module'
+  modules:
+    suffix: '-module'
+
+  # Partials
+  partials:
+    prefix: '_'
 
   # Testing
   test:

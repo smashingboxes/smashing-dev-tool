@@ -8,10 +8,10 @@ nodemon = require 'nodemon'
 
 
 module.exports = (Smasher) ->
-  {recipes, commander, recipes, project, util, helpers} = Smasher
-  {logger, notify, execute, merge, args}                = util
-  {files, $, dest, logging, rootPath, pkg}              = helpers
-  {dir, assets, supportedAssets}                        = project
+  {recipes, commander, recipes, project, util, helpers}     = Smasher
+  {logger, notify, execute, merge, args}                    = util
+  {files, $, dest, logging, rootPath, pkg, templateReplace} = helpers
+  {dir, assets, supportedAssets}                            = project
 
 
   target = null
@@ -117,7 +117,7 @@ module.exports = (Smasher) ->
         files('compile', '.css', false).pipe $.order(project.compile.styles.order)
       ]
 
-      files path:"#{dir.client}/index.jade"
+      templateReplace(files path:"#{dir.client}/index.jade")
         .pipe logging()
         .pipe $.inject appFiles,
           name:         'app'
@@ -158,6 +158,11 @@ module.exports = (Smasher) ->
     bx = for asset in ['vendor', 'images', 'fonts']
       recipes[asset].compile()
 
+    # Load recipe definitions from Smashfile
+    cx = for asset in project.recipes or []
+      recipes[asset.name].compile()
+
+
     # Copy additional files
     toMerge = []
     toCopy = project.compile?.copy
@@ -170,6 +175,7 @@ module.exports = (Smasher) ->
     # merge for joint 'end' event
     toMerge.push merge ax
     toMerge.push merge bx
+    toMerge.push merge cx
     merge toMerge
       # .pipe $.using()
 
@@ -184,6 +190,7 @@ module.exports = (Smasher) ->
       # logConnections: true
       # logFileChanges: true
       # logLevel:     'debug'
+      notify:         false
       port:           8080
       open: if args.mute then false else true
 
