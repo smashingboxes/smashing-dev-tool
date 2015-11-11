@@ -74,7 +74,7 @@
     "gulp-htmlhint": "^0.1.1",
     "gulp-htmlmin": "~1.1.0",
     "gulp-iconfont": "^5.0.0",
-    "gulp-iconfont-css": "^1.0.1",
+    "gulp-iconfont-css": "^2.0.0",
     "gulp-if": "1.2.5",
     "gulp-imagemin": "^2.3.0",
     "gulp-inject": "^1.1.1",
