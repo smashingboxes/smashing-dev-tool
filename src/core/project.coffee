@@ -32,7 +32,7 @@ module.exports = (Registry) ->
         extensions:   require('interpret').jsVariants
       liftoff.on 'require', (name, _module) ->
         log.verbose 'Requiring external module', chalk.magenta(name)
-        _module.register()  if name is 'coffee-script'  # Auto-register CS modules
+        # _module.register()  if name is 'coffee-script'  # Auto-register CS modules
       # liftoff.on 'requireFail', (name, err) ->
       #   if args.verbose
       #     log.warn 'Failed to load external module', chalk.magenta(name)

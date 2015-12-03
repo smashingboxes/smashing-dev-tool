@@ -32,13 +32,15 @@
   "scripts": {},
   "preferGlobal": true,
   "dependencies": {
+    "archy": "^1.0.0",
     "autoprefixer": "^6.0.3",
+    "babel": "^6.1.18",
     "broadway": "smashingboxes/broadway",
     "browser-sync": "^2.1.6",
     "cation": "^2.2.1",
-    "chalk": "^1.0.0",
+    "chalk": "^1.1.1",
     "coffeelint-stylish": "^0.1.2",
-    "commander": "^2.8.1",
+    "commander": "2.9.0",
     "connect": "^3.4.0",
     "css-loader": "^0.15.6",
     "del": "^1.1.1",
@@ -122,6 +124,7 @@
     "main-bower-files": "^2.5.0",
     "minimist": "~1.1.0",
     "moment": "^2.10.3",
+    "nash": "^2.0.3",
     "node-notifier": "^4.2.3",
     "nodemon": "^1.4.1",
     "open": "0.0.5",
@@ -152,5 +155,9 @@
     "npm": ">=3.3.3"
   },
   "licenses": [],
-  "contributors": []
+  "contributors": [],
+  "devDependencies": {
+    "babel-plugin-transform-es2015-modules-systemjs": "^6.1.18",
+    "babel-preset-es2015-node5": "^1.1.0"
+  }
 }
