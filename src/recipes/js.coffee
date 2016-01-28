@@ -46,8 +46,7 @@ module.exports =
         stream
           .pipe $.stripDebug()
           .pipe $.ngAnnotate cfg.ngAnnotate
-          # .pipe $.angularFilesort()
-
-          # .pipe $.concat outfile
           # .pipe $.uglify cfg.uglify
+          # .pipe $.angularFilesort()
+          # .pipe $.concat outfile
           # .pipe logging()
