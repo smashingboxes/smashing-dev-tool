@@ -7,7 +7,7 @@ fs      = require 'fs'
 module.exports = (Smasher) ->
   {commander, assumptions, user, platform, project, recipes, util, helpers} = Smasher
   {logger, notify, execute, merge, args} = util
-  {files, $, dest, onError, rootPath, pkg, logging} = helpers
+  {files, $, dest, onError, rootPath, pkg, logging, templateReplace} = helpers
   {dir} = project
 
   target        = project.dir?.build
@@ -18,7 +18,7 @@ module.exports = (Smasher) ->
 
   cfg =
     ngAnnotate:
-      remove: true
+      remove: false
       add: true
       single_quote: true
     ngHtml2js:
@@ -29,7 +29,7 @@ module.exports = (Smasher) ->
       trimSpacesBeforeNewline: false
       trimTrailingNewline:     true
     uglify:
-      mangle: true
+      mangle: false
       preserveComments: 'some'
 
   Smasher.on 'clean', -> Smasher.startTask 'build:clean'
@@ -100,11 +100,10 @@ module.exports = (Smasher) ->
     _js.push css      if css2js
     _js.push html     if html2js
     js = merge _js
-      .pipe $.order project.build.scripts.order
+      .pipe $.order  project.build.scripts.order
       .pipe $.concat JSoutfile
-      .pipe $.ngAnnotate cfg.ngAnnotate
       .pipe $.uglify cfg.uglify
-      .pipe $.if args.cat, $.cat()
+      .pipe $.if     args.cat, $.cat()
 
 
     ### ------------------APP------------------ ###
@@ -123,25 +122,20 @@ module.exports = (Smasher) ->
   Smasher.task 'build:index', ['build:assets'],  ->
     logger.verbose "Injecting built files into #{chalk.magenta 'index.jade'}"
     appFiles = merge [
-      files('build', '.js', true)
-      files('build', '.css', false)
+      files('build', '.js',  true).pipe $.order(project.build.scripts.order)
+      files('build', '.css', false).pipe $.order(project.build.scripts.order)
     ]
 
-    files path:"#{dir.client}/index.jade"
+    templateReplace(files path:"#{dir.client}/index.jade")
       .pipe logging()
-
       .pipe $.inject appFiles,
         name:         'app'
         ignorePath:   dir.build
         addRootSlash: false
-
       .pipe $.if args.cat, $.cat()
-
       .pipe $.jade compileDebug:true
       .on('error', (err) -> logger.error err.message)
-
       .pipe gulp.dest target
-      .pipe logging()
 
   Smasher.task 'build:serve', ->
     $.browserSync
