@@ -111,7 +111,7 @@ module.exports = (Smasher) ->
       logger.info "Injecting compiled files into #{chalk.magenta 'index.jade'}"
 
       vendorFiles = files('vendor', '*', false)
-        .pipe $.order(project.compile.scripts.order)
+        .pipe $.order(project.build.scripts.order)
       appFiles = merge [
         files('compile', '.js', true).pipe $.order(project.compile.scripts.order)
         files('compile', '.css', false).pipe $.order(project.compile.styles.order)
@@ -121,11 +121,11 @@ module.exports = (Smasher) ->
         .pipe logging()
         .pipe $.inject appFiles,
           name:         'app'
-          ignorePath:   dir.compile
+          ignorePath:   'compile'
           addRootSlash: false
         .pipe $.inject vendorFiles,
           name:         'vendor'
-          ignorePath:   dir.client
+          ignorePath:   'client'
           addRootSlash: false
         .pipe $.if args.cat, $.cat()
         .pipe $.jade pretty:true, compileDebug:true
