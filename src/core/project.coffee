@@ -97,6 +97,16 @@ module.exports = (Registry) ->
               docs:    p.docs.path
               fonts:   p.fonts.path
           )
+
+          # Inherit asset ordering from Compile phase if not present in Build phase
+          .thru(
+            (p) ->
+              for prop in ['styles', 'scripts', 'views']
+                if _.isEmpty p.build[prop].order
+                  p.build[prop].order = p.compile[prop].order
+              p
+          )
+
           .value()
 
         deferred.resolve project
