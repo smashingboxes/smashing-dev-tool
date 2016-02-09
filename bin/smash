@@ -93,14 +93,7 @@ require("../src/core/#{a}")(Registry) for a in [
 ]
 
 Registry.register 'Smasher', Smasher,
-  args: [
-    '@platform'
-    '@user'
-    '@util'
-    '@project'
-    '@helpers'
-    '@recipes'
-  ]
+  args: ['@platform', '@user', '@util', '@project', '@helpers', '@recipes']
   singleton: true
 
 Registry.get('Smasher')
