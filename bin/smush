@@ -1,0 +1,30 @@
+#!/usr/bin/env coffee
+# require('pretty-error').start
+_            = require 'lodash'
+args         = require('minimist')(process.argv.slice 2)
+chalk        = require 'chalk'
+broadway     = require 'broadway'
+Commander    = require 'commander'
+Orchestrator = require 'orchestrator'
+pkg          = require '../package'
+
+
+vantage = require('vantage')()
+
+util = require('../lib/util.coffee')
+helpers = require('../lib/helpers.coffee')
+project = require('../lib/project.coffee')(util)
+  .then (project) ->
+    # console.log util
+    console.log helpers({project, util})
+
+require('../lib/deploy')(vantage)
+require('../lib/compile')(vantage)
+require('../lib/dashboard')(vantage)
+
+
+vantage
+  .delimiter('smash~$')
+  .listen(8080)
+  .show()
+  .parse(process.argv)

@@ -5,7 +5,6 @@ streamqueue = require 'streamqueue'
 args        = require('minimist')(process.argv.slice 2)
 spawn         = require('child_process').spawn
 
-
 # winston logger config
 winston.cli()
 logger = new (winston.Logger)(
@@ -57,12 +56,9 @@ merge = (streams) ->
     queue.queue stream
   queue.done()
 
-util =
+module.exports =
   args:    args
   notify:  notify
   execute: execute
   merge:   merge
   logger:  logger
-
-
-module.exports = util
