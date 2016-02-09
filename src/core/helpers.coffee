@@ -18,9 +18,6 @@ module.exports = (Registry) ->
     {args, logger} = util
     {dir, assets, pkg, env, build, compile} = project
 
-
-
-
     # Auto-load all (most) Gulp plugins and attach to `$` for easy access
     $ = require('gulp-load-plugins')(
       camelize: true
@@ -36,12 +33,9 @@ module.exports = (Registry) ->
     logging     = ->  $.if args.verbose, $.using()
     watching    = ->  $.if args.watch, $.reload(stream: true)
     caching     = (cache) ->  $.if args.watch, $.cached cache or 'main'
-
     time        = (f) -> moment().format(f)
-
     isBuilding  = 'build'   in args._
     isCompiling = 'compile' in args._
-
 
     onError = (err) ->
       $.util.beep()
@@ -53,7 +47,6 @@ module.exports = (Registry) ->
       stream
         .pipe $.data -> env:process.env
         .pipe $.template()
-
 
     plumbing    = ->  $.if args.watch, $.plumber(errorHandler: onError)
     stopPlumbing = -> $.if args.watch, $.plumber.stop()

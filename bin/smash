@@ -103,7 +103,6 @@ Registry.register 'Smasher', Smasher,
   ]
   singleton: true
 
-
 Registry.get('Smasher')
   # .then (smasher) ->
   #   console.warn 'smasher done!'
