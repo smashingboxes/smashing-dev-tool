@@ -272,7 +272,7 @@ module.exports = (Registry) ->
                                   * Built #{time 'dddd, MMMM Do YYYY, h:mma'}  \n
                                   */ \n\n"
 
-    console.log 'getting helpers', project, util
+
   Registry.register 'helpers', getHelpers,
     singleton: true
     args: ['@project', '@util']

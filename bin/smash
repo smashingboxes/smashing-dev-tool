@@ -105,5 +105,5 @@ Registry.register 'Smasher', Smasher,
 
 
 Registry.get('Smasher')
-  .then (smasher) ->
-    console.warn 'smasher done!'
+  # .then (smasher) ->
+  #   console.warn 'smasher done!'
