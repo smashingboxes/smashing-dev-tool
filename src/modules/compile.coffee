@@ -121,11 +121,11 @@ module.exports = (Smasher) ->
         .pipe logging()
         .pipe $.inject appFiles,
           name:         'app'
-          ignorePath:   'compile'
+          ignorePath:   dir.compile
           addRootSlash: false
         .pipe $.inject vendorFiles,
           name:         'vendor'
-          ignorePath:   'client'
+          ignorePath:   dir.client
           addRootSlash: false
         .pipe $.if args.cat, $.cat()
         .pipe $.jade pretty:true, compileDebug:true
