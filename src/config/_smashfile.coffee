@@ -100,7 +100,7 @@ module.exports =
 
   # Deploy Phase
   deploy:
-    path: 'devops'
+    path: 'deploy'
 
   # Swagger API Framework
   swagger:
