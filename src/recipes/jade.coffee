@@ -21,7 +21,7 @@ module.exports =
         mangle: true
         preserveComments: 'some'
 
-    # building = _.contains args?._, 'build'
+    # building = 'build' in args?._
     # html2js = (project?.compile?.html2js is true) and building
 
     ### ---------------- RECIPE --------------------------------------------- ###

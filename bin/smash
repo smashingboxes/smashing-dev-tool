@@ -1,5 +1,5 @@
 #!/usr/bin/env coffee
-require('pretty-error').start
+require('pretty-error').start()
 _            = require 'lodash'
 argv         = require('minimist')(process.argv.slice 2)
 chalk        = require 'chalk'
@@ -93,9 +93,17 @@ require("../src/core/#{a}")(Registry) for a in [
 ]
 
 Registry.register 'Smasher', Smasher,
-  args: ['@platform', '@user', '@util', '@project', '@helpers', '@recipes']
+  args: [
+    '@platform'
+    '@user'
+    '@util'
+    '@project'
+    '@helpers'
+    '@recipes'
+  ]
   singleton: true
 
+
 Registry.get('Smasher')
-  # .then (smasher) ->
-  #   console.warn 'smasher done!'
+  .then (smasher) ->
+    console.warn 'smasher done!'

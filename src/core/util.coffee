@@ -66,6 +66,5 @@ module.exports = (Registry) ->
     merge:   merge
     logger:  logger
 
-
   Registry.register 'util', util,
     type: 'static'

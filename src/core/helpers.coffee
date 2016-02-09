@@ -19,6 +19,8 @@ module.exports = (Registry) ->
     {dir, assets, pkg, env, build, compile} = project
 
 
+
+
     # Auto-load all (most) Gulp plugins and attach to `$` for easy access
     $ = require('gulp-load-plugins')(
       camelize: true
@@ -36,8 +38,10 @@ module.exports = (Registry) ->
     caching     = (cache) ->  $.if args.watch, $.cached cache or 'main'
 
     time        = (f) -> moment().format(f)
-    isBuilding  = _.contains args._, 'build'
-    isCompiling = _.contains args._, 'compile'
+
+    isBuilding  = 'build'   in args._
+    isCompiling = 'compile' in args._
+
 
     onError = (err) ->
       $.util.beep()
@@ -120,7 +124,7 @@ module.exports = (Registry) ->
         _target =
           if found = _.find(fileArgs, _.isPlainObject) and (found?.path? ) then 'path'
           else if a = _.find(fileArgs, isntExt)
-            if _.contains(['vendor', 'build', 'compile', 'test'], a) then a else 'client'
+            if (a in ['vendor', 'build', 'compile', 'test']) then a else 'client'
           else 'client'
 
         # Find `read` flag
@@ -140,12 +144,6 @@ module.exports = (Registry) ->
           else "#{dir[_target]}/**/*+(#{_filter})"
         ]
 
-        # console.log
-        #   filter: _filter
-        #   target: _target
-        #   read:   _read
-        #   config: _config
-        #   path:   _path
 
         # Build out properly formatted
         getExcludes = ->
@@ -237,7 +235,6 @@ module.exports = (Registry) ->
           .src(source, read: _read, base: dir[_target] or '')
 
           # .pipe $.cat()
-
           # .pipe $.plumber(errorHandler: onError)
       # <br><br><br>
 
@@ -275,7 +272,7 @@ module.exports = (Registry) ->
                                   * Built #{time 'dddd, MMMM Do YYYY, h:mma'}  \n
                                   */ \n\n"
 
-
+    console.log 'getting helpers', project, util
   Registry.register 'helpers', getHelpers,
     singleton: true
     args: ['@project', '@util']
