@@ -9,11 +9,11 @@ module.exports =
         moduleName: "templates-main-html"
         prefix: ''
       ngAnnotate:
-        remove: true
+        remove: false
         add: true
         single_quote: true
       uglify:
-        mangle: true
+        mangle: false
         preserveComments: 'some'
 
     ### ---------------- RECIPE --------------------------------------------- ###
