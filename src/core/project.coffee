@@ -104,6 +104,8 @@ module.exports = (Registry) ->
               for prop in ['styles', 'scripts', 'views']
                 if _.isEmpty p.build[prop].order
                   p.build[prop].order = p.compile[prop].order
+                if _.isEmpty p.compile[prop].order
+                  p.compile[prop].order = p.build[prop].order
               p
           )
 
