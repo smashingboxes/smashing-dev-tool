@@ -33,9 +33,9 @@ module.exports = (Registry) ->
       liftoff.on 'require', (name, _module) ->
         log.verbose 'Requiring external module', chalk.magenta(name)
         _module.register()  if name is 'coffee-script'  # Auto-register CS modules
-      # liftoff.on 'requireFail', (name, err) ->
-      #   if args.verbose
-      #     log.warn 'Failed to load external module', chalk.magenta(name)
+      liftoff.on 'requireFail', (name, err) ->
+        if args.verbose
+          log.warn 'Failed to load external module', chalk.magenta(name)
 
       # Use Liftoff to find and parse local project config
       liftoff.launch {}, (env) ->
@@ -104,8 +104,11 @@ module.exports = (Registry) ->
               for prop in ['styles', 'scripts', 'views']
                 if _.isEmpty p.build[prop].order
                   p.build[prop].order = p.compile[prop].order
+                if _.isEmpty p.compile[prop].order
+                  p.compile[prop].order = p.build[prop].order
               p
           )
+
           .value()
 
         deferred.resolve project

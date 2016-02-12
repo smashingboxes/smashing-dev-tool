@@ -5,3 +5,4 @@ docs
 .groc.json
 .vagrant
 *.orig
+.idea

@@ -40,10 +40,18 @@ module.exports = (Smasher) ->
     description: 'Deploy an application to a given enviornment. staging|development|production'
     action: (environment='staging') ->
       logger.info "Deploying to environment: #{chalk.green environment}"
+      path = "#{process.cwd()}/devops/#{environment}"
 
-      deploySh = spawn 'sh', [ 'deploy.sh' ],
-        cwd: "#{process.cwd()}/devops/staging"
-        stdio: 'inherit'
+      try
+        fs.statSync path
+
+        deploySh = spawn 'sh', [ 'deploy.sh' ],
+          cwd: path
+          stdio: 'inherit'
+
+      catch err
+        logger.error 'Could not locate deploy script'
+
 
 
   ### ---------------- TASKS ---------------------------------------------- ###

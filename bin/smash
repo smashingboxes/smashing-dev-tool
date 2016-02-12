@@ -1,5 +1,5 @@
 #!/usr/bin/env coffee
-require('pretty-error').start
+require('pretty-error').start()
 _            = require 'lodash'
 argv         = require('minimist')(process.argv.slice 2)
 chalk        = require 'chalk'

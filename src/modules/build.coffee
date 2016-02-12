@@ -18,7 +18,7 @@ module.exports = (Smasher) ->
 
   cfg =
     ngAnnotate:
-      remove: true
+      remove: false
       add: true
       single_quote: true
     ngHtml2js:
@@ -29,7 +29,7 @@ module.exports = (Smasher) ->
       trimSpacesBeforeNewline: false
       trimTrailingNewline:     true
     uglify:
-      mangle: true
+      mangle: false
       preserveComments: 'some'
 
   Smasher.on 'clean', -> Smasher.startTask 'build:clean'

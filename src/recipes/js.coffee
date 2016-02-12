@@ -9,11 +9,11 @@ module.exports =
 
     cfg =
       ngAnnotate:
-        remove: true
+        remove: false
         add: true
         single_quote: true
       uglify:
-        mangle: true
+        mangle: false
         preserveComments: 'some'
 
     ### ---------------- RECIPE --------------------------------------------- ###
@@ -33,8 +33,8 @@ module.exports =
           .pipe caching()
 
           # Lint
-          .pipe $.jshint jshintrc
-          .pipe $.jshint.reporter jsStylish
+          # .pipe $.jshint jshintrc
+          # .pipe $.jshint.reporter jsStylish
 
           # Post-process
           .pipe $.header banner

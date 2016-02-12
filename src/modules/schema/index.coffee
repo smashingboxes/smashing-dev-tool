@@ -120,7 +120,6 @@ module.exports = (Smasher) ->
         g = chalk.green "(http://localhost:#{serverPort}#{paths.uiUrl})"
         logger.info "Your Swagger API is listening on port #{serverPort} #{g}"
 
-
   # Watch all local YAML files and run validation task on change
   watch = ->
     logger.info "Watching #{chalk.magenta '.yml'} files for changes"
@@ -128,7 +127,6 @@ module.exports = (Smasher) ->
       "#{paths.partials}/**/*.{yml,yaml}",
       "!#{paths.partials}/**/swagger.{yml,yaml}"
     ], ['swagger:validate']
-
 
 
   commands.mock = ->
