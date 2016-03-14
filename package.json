@@ -131,7 +131,6 @@
     "pretty-error": "^1.1.1",
     "prompt": "~0.2.14",
     "q": "^1.1.2",
-    "shelljs": "^0.5.1",
     "stream-to-promise": "^1.0.4",
     "streamqueue": "^1.1.0",
     "style-loader": "^0.12.3",

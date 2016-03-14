@@ -9,9 +9,10 @@ u       = require 'util'
 fs      = require 'fs'
 
 spawn   = require('child_process').spawn
-pe = new (require 'pretty-error')()
+exec    = require('child_process').exec
+pe      = new (require 'pretty-error')()
 
-YAML = require 'json2yaml'
+YAML    = require 'json2yaml'
 
 module.exports = (Smasher) ->
   {commander, assumptions, user, platform, project, util, helpers} = Smasher
@@ -37,21 +38,55 @@ module.exports = (Smasher) ->
   # A simple wrapper around an Ansible deploy script
   Smasher.command
     cmd: 'deploy [environment]'
-    description: 'Deploy an application to a given enviornment. staging|development|production'
-    action: (environment='staging') ->
-      logger.info "Deploying to environment: #{chalk.green environment}"
-      path = "#{process.cwd()}/devops/#{environment}"
+    description: 'Deploy an application to a given environment. staging|development|production'
+    action: (environment='development') ->
+      deployCmd = "tape ansible playbook --book=deploy.yml -l #{environment}"
+      deployCmd += ' -vvv'  if args.verbose
 
-      try
-        fs.statSync path
+      logger.info "Deploying environment: #{chalk.green environment}"
+      logger.verbose "Running command: " + chalk.red deployCmd
 
-        deploySh = spawn 'sh', [ 'deploy.sh' ],
-          cwd: path
-          stdio: 'inherit'
+      dArgs = deployCmd.split ' '
 
-      catch err
-        logger.error 'Could not locate deploy script'
+      deploySh = spawn dArgs[0], dArgs[1..dArgs.length-1],
+        cwd:   "#{process.cwd()}"
+        stdio: 'inherit'
 
+      deploySh.stdout.on 'data', logger.info
+      deploySh.stderr.on 'data', logger.error
+
+      deploySh.on 'close', (code) ->
+        if code is 0
+          logger.info chalk.green 'Deploy success!'
+        else
+          logger.error chalk.red "Exit: #{code}"
+
+
+  # Wrapper for the `tape ansible everything` commmand
+  Smasher.command
+    cmd: 'provision [environment]'
+    description: 'Configure a remote server to host a given environment. staging|development|production'
+    action: (environment='development') ->
+      provisionCmd = "tape ansible everything -l #{environment}"
+      provisionCmd += ' -vvv'  if args.verbose
+
+      logger.info "Provisioning environment: #{chalk.green environment}"
+      logger.verbose "Running command: " + chalk.red provisionCmd
+
+      pArgs = provisionCmd.split ' '
+
+      provisionSh = spawn pArgs[0], pArgs[1..pArgs.length-1],
+        cwd:   "#{process.cwd()}"
+        stdio: 'inherit'
+
+      provisionSh.stdout.on 'data', logger.info
+      provisionSh.stderr.on 'data', logger.error
+
+      provisionSh.on 'close', (code) ->
+        if code is 0
+          logger.info chalk.green 'Provisioning success!'
+        else
+          logger.error chalk.red "Exit: #{code}"
 
 
   ### ---------------- TASKS ---------------------------------------------- ###
