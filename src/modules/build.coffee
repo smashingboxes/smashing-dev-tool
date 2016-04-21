@@ -82,6 +82,7 @@ module.exports = (Smasher) ->
       .pipe $.order project.build.styles.order
       .pipe $.concat CSSoutfile
       .pipe $.if css2js, $.css2js(cfg.css2js)
+      .pipe $.if !css2js, revAll.revision()
 
     # ------------------HTML-----------------------
     htmlVendor = files('vendor', '.html', true)
