@@ -32,6 +32,8 @@ module.exports = (Smasher) ->
       mangle: false
       preserveComments: 'some'
 
+  revAll = new $.revAll()
+
   Smasher.on 'clean', -> Smasher.startTask 'build:clean'
 
   ### ---------------- COMMANDS ------------------------------------------- ###
@@ -104,6 +106,7 @@ module.exports = (Smasher) ->
       .pipe $.concat JSoutfile
       .pipe $.uglify cfg.uglify
       .pipe $.if     args.cat, $.cat()
+      .pipe revAll.revision()
 
 
     ### ------------------APP------------------ ###
