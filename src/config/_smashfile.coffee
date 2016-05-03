@@ -89,6 +89,7 @@ module.exports =
     styles:
       out: 'app-styles.min.css'
       order: [ ]
+      absolutePath: false
     views:
       out: 'app-views.min.js'
       order: [ ]
